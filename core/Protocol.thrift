@@ -11,6 +11,10 @@ struct Frame {
  * Definition of the API exposed by the ProCam unit.
  */
 service ProCam {
+  // TODO(ilijar): T1
+
+  // Test.
+  i32 derpderp()
 }
 
 /**

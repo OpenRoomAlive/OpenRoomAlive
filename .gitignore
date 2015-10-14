@@ -1,1 +1,4 @@
 build
+
+# Swap files.
+*.swp
