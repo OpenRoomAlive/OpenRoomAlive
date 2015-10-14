@@ -34,10 +34,12 @@ SET_SOURCE_FILES_PROPERTIES(
 
 # List of all sources in core.
 SET(SOURCES
+    Exception.cc
 )
 
 # List of all files in core.
 SET(HEADERS
+    Exception.h
 )
 
 ADD_LIBRARY(core

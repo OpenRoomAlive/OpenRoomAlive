@@ -3,6 +3,7 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include <cstdlib>
+#include <iostream>
 
 #include "ProCam.h"
 #include "ProCamSystem.h"
@@ -12,6 +13,14 @@ int main(int argc, char **argv) {
   (void) argc;
   (void) argv;
 
-  return EXIT_SUCCESS;
+  try {
+    return EXIT_SUCCESS;
+  } catch (const std::exception &ex) {
+    std::cerr << "[Exception] " << ex.what() << std::endl;
+    return EXIT_FAILURE;
+  } catch (...) {
+    std::cerr << "[Exception] Unknown exception." << std::endl;
+    return EXIT_FAILURE;
+  }
 }
 
