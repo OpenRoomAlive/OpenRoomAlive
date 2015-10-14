@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
