@@ -2,14 +2,14 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
-#include <cstdlib>
+#pragma once
 
-#include "MasterServer.h"
+#include "core/Master.h"
 
-int main(int argc, char **argv) {
-  (void) argc;
-  (void) argv;
+namespace dv {
 
-  return EXIT_SUCCESS;
-}
+class MasterSever : public MasterIf {
+ public:
+};
 
+} // namespace dv

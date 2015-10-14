@@ -3,10 +3,16 @@
 # (C) 2015 Group 13. All rights reserved.
 
 SET(SOURCES
-  main.cc
+    main.cc
 )
 SET(HEADERS
 
 )
 
-ADD_EXECUTABLE(master ${SOURCES} ${HEADERS})
+ADD_EXECUTABLE(master
+    ${SOURCES}
+    ${HEADERS}
+)
+TARGET_LINK_LIBRARIES(master
+    core
+)
