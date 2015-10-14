@@ -16,6 +16,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}\
 
 # Set up include directories.
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
 # Build everything in subfolders.
 ADD_SUBDIRECTORY(core)

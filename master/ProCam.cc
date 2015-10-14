@@ -2,16 +2,14 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
-#include <cstdlib>
-
 #include "ProCam.h"
-#include "ProCamSystem.h"
-#include "MasterServer.h"
 
-int main(int argc, char **argv) {
-  (void) argc;
-  (void) argv;
+using namespace dv::master;
 
-  return EXIT_SUCCESS;
+ProCam::ProCam(ProCamID id)
+  : id_(id)
+{
 }
 
+ProCam::~ProCam() {
+}

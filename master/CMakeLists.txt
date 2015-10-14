@@ -4,9 +4,14 @@
 
 SET(SOURCES
     main.cc
+    MasterServer.cc
+    ProCam.cc
+    ProCamSystem.cc
 )
 SET(HEADERS
-
+    MasterServer.h
+    ProCam.h
+    ProCamSystem.h
 )
 
 ADD_EXECUTABLE(master
