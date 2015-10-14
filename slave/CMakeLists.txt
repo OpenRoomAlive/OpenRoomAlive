@@ -18,4 +18,5 @@ ADD_EXECUTABLE(slave
 
 TARGET_LINK_LIBRARIES(slave
     core
+    ${freenect2_LIBRARY}
 )

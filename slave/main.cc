@@ -3,7 +3,8 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include <cstdlib>
-
+#include <string>
+#include <libfreenect2/libfreenect2.hpp>
 
 int main(int argc, char **argv) {
   (void) argc;
