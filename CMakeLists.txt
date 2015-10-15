@@ -7,11 +7,10 @@ PROJECT(DerpVision)
 
 # C++ flags.
 SET(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -D thread_local=__thread -std=c++1y -Wall -Werror -Wextra"
+  "${CMAKE_CXX_FLAGS} -D thread_local=__thread -std=c++1y -Wall -Werror -Wextra -pthread"
 )
 
 # Find packages using CMake.
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/tools")
 find_package(Freenect2 REQUIRED)
 
 # Set up include directories.

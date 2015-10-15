@@ -18,5 +18,20 @@ ADD_EXECUTABLE(slave
 
 TARGET_LINK_LIBRARIES(slave
     core
+    pthread
+    GL 
+    glfw3
     ${freenect2_LIBRARY}
 )
+
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    TARGET_LINK_LIBRARIES(slave
+        dl
+        X11
+        Xcursor
+        Xrandr
+        Xi
+        Xinerama
+        Xxf86vm
+)
+ENDIF()
