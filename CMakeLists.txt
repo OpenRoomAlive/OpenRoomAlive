@@ -6,8 +6,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(DerpVision)
 
 # C++ flags.
-SET(CMAKE_CXX_FLAGS 
-    "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Werror -Wextra -fno-rtti"
+SET(CMAKE_CXX_FLAGS
+  "${CMAKE_CXX_FLAGS} -D thread_local=__thread -std=c++1y -Wall -Werror -Wextra"
 )
 
 # Find packages using CMake.
