@@ -6,12 +6,15 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(DerpVision)
 
 # C++ flags.
-SET(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -D thread_local=__thread -std=c++1y -Wall -Werror -Wextra -pthread"
-)
+ADD_COMPILE_OPTIONS(-std=c++1y)
+ADD_COMPILE_OPTIONS(-D thread_local=__thread)
+ADD_COMPILE_OPTIONS(-Wall)
+ADD_COMPILE_OPTIONS(-Werror)
+ADD_COMPILE_OPTIONS(-Wextra)
+ADD_COMPILE_OPTIONS(-pthread)
 
 # Find packages using CMake.
-find_package(Freenect2 REQUIRED)
+FIND_PACKAGE(Freenect2 REQUIRED)
 
 # Set up include directories.
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
