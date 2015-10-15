@@ -19,5 +19,6 @@ ADD_EXECUTABLE(master
     ${HEADERS}
 )
 TARGET_LINK_LIBRARIES(master
+    boost_program_options
     core
 )
