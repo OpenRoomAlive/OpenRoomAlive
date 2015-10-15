@@ -47,4 +47,6 @@ ADD_LIBRARY(core
     ${HEADERS}
     ${THRIFT}
 )
-
+TARGET_LINK_LIBRARIES(core
+    boost_program_options
+    thrift)

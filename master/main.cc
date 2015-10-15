@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <cassert>
 
 #include <boost/program_options.hpp>
 
@@ -19,10 +20,13 @@ using namespace dv;
  */
 class MasterApplication {
  public:
-  MasterApplication(uint16_t port)
-    : port_(port)
+  MasterApplication(uint16_t port, size_t procamTotal)
+    : port_(port),
+      procamTotal_(procamTotal)
   {
+    assert (procamTotal_ > 0);
     (void) port_;
+    (void) procamTotal_;
   }
 
   int Run() {
@@ -31,7 +35,9 @@ class MasterApplication {
 
  private:
   /// Port number the server is listening on.
-  uint16_t port_;
+  const uint16_t port_;
+  /// Number of procams expected to connect.
+  const size_t procamTotal_;
 };
 
 
@@ -45,8 +51,17 @@ int main(int argc, char **argv) {
     // Set up the description of all command line options.
     po::options_description description("DerpVision Master Server");
     description.add_options()
-        ("help", "Print this message.")
-        ("port", po::value<int>()->default_value(11630), "Set the port to listen on.");
+        ( "help"
+        , "Print this message."
+        )
+        ( "--port"
+        , po::value<uint16_t>()->default_value(11630)
+        , "Set the port to listen on."
+        )
+        ( "--procamTotal"
+        , po::value<size_t>()->default_value(1)
+        , "Set the number of procams expected to connect."
+        );
 
     // Parse options.
     po::variables_map options;
@@ -61,7 +76,8 @@ int main(int argc, char **argv) {
 
     // Create & run the app.
     return MasterApplication(
-        options["port"].as<int>()
+        options["--port"].as<uint16_t>(),
+        options["--procamTotal"].as<size_t>()
     ).Run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;
