@@ -19,9 +19,10 @@ ADD_EXECUTABLE(slave
 TARGET_LINK_LIBRARIES(slave
     core
     pthread
-    GL 
     glfw3
     ${freenect2_LIBRARY}
+    ${GLUT_LIBRARY}
+    ${OPENGL_LIBRARIES}
 )
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
