@@ -2,6 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include <iostream>
 #include <thread>
 #include <iostream>
 
@@ -39,83 +40,100 @@ ProCamApplication::ProCamApplication(
   }
 
 int ProCamApplication::Run() {
-    // Interfacing with master node
-    std::thread networking([this]() {
-      talkToMaster();
-    });
+  // Responding to master node requests
+  std::thread networking([this]() {
+    respondToMaster();
+  });
 
-    // Kinect.
-    // TODO(ilijar): set up the kinect.
+  // Send Procam's IP to master
+  namespace at  = apache::thrift;
+  namespace atp = apache::thrift::protocol;
+  namespace att = apache::thrift::transport;
 
-    // Projector
-    GLFWwindow *window;
+  auto socket    = boost::make_shared<att::TSocket>(masterIP_, masterPort_);
+  auto transport = boost::make_shared<att::TBufferedTransport>(socket);
+  auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
+  MasterClient masterClient(protocol);
 
-    try {
-      if (!glfwInit()) {
-        throw EXCEPTION() << "Cannot initialize GLFW.";
-      }
+  try {
+    transport->open();
 
-      int monitorCount;
-      GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
+    printf("Sending Procam's IP to master node...\n");
+    if (!masterClient.ping()) {
+      printf("Master node rejected IP of the Procam.\n");
+      return EXIT_FAILURE;
+    }
+    printf("Master node accepted IP of the Procam.\n");
 
-      if (!monitors || monitorCount < 1) {
-        throw EXCEPTION() << "No monitors found.";
-      }
+    transport->close();
+  } catch (apache::thrift::TException& tx) {
+    std::cout << "ERROR: " << tx.what() << std::endl;
+  }
 
-      GLFWmonitor *projector = monitors[monitorCount - 1];
+  // Kinect.
+  // TODO(ilijar): set up the kinect.
 
-      if (monitorCount == 1) {
-        std::cerr << "Only primary monitor found.\n";
-      } else if (monitorCount > 2) {
-        std::cerr << "Multiple secondary monitors were found.\n";
-      }
+  // Projector
+  GLFWwindow *window;
 
-      const GLFWvidmode* mode = glfwGetVideoMode(projector);
-      window = glfwCreateWindow(
-          mode->width,
-          mode->height,
-          "OpenRoom",
-          projector, NULL);
-
-      if (!window) {
-        throw EXCEPTION() << "Cannot open GLFW window.\n";
-      }
-
-      glfwMakeContextCurrent(window);
-      glViewport(0, 0, mode->width, mode->height);
-    } catch (...) {
-      glfwTerminate();
-      throw;
+  try {
+    if (!glfwInit()) {
+      throw EXCEPTION() << "Cannot initialize GLFW.";
     }
 
-    while (!glfwWindowShouldClose(window)) {
-      glClear(GL_COLOR_BUFFER_BIT);
+    int monitorCount;
+    GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
 
-      glBegin(GL_QUADS);
-        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
-        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(-1.0f, +1.0f);
-        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(+1.0f, +1.0f);
-        glColor3f(1.0f, 1.0f, 0.0f); glVertex2f(+1.0f, -1.0f);
-      glEnd();
-
-      glfwSwapBuffers(window);
-      glfwPollEvents();
+    if (!monitors || monitorCount < 1) {
+      throw EXCEPTION() << "No monitors found.";
     }
 
+    GLFWmonitor *projector = monitors[monitorCount - 1];
+
+    if (monitorCount == 1) {
+      std::cerr << "Only primary monitor found.\n";
+    } else if (monitorCount > 2) {
+      std::cerr << "Multiple secondary monitors were found.\n";
+    }
+
+    const GLFWvidmode* mode = glfwGetVideoMode(projector);
+    window = glfwCreateWindow(
+        mode->width,
+        mode->height,
+        "OpenRoom",
+        projector, NULL);
+
+    if (!window) {
+      throw EXCEPTION() << "Cannot open GLFW window.\n";
+    }
+
+    glfwMakeContextCurrent(window);
+    glViewport(0, 0, mode->width, mode->height);
+  } catch (...) {
     glfwTerminate();
-
-    return EXIT_SUCCESS;
+    throw;
   }
 
-void ProCamApplication::talkToMaster() {
-    // ONLY A BEGINNING OF NEWORK SETUP. DON'T BOTHER REVIEWING
-    namespace at  = apache::thrift;
-    namespace atp = apache::thrift::protocol;
-    namespace att = apache::thrift::transport;
+  while (!glfwWindowShouldClose(window)) {
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    auto socket    = boost::make_shared<att::TSocket>(masterIP_, masterPort_);
-    auto transport = boost::make_shared<att::TBufferedTransport>(socket);
-    auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
-    MasterClient client(protocol);
+    glBegin(GL_QUADS);
+      glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
+      glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(-1.0f, +1.0f);
+      glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(+1.0f, +1.0f);
+      glColor3f(1.0f, 1.0f, 0.0f); glVertex2f(+1.0f, -1.0f);
+    glEnd();
+
+    glfwSwapBuffers(window);
+    glfwPollEvents();
   }
+
+  glfwTerminate();
+
+  return EXIT_SUCCESS;
+}
+
+void ProCamApplication::respondToMaster() {
+  // Run server responding to master node requests for data.
+}
 

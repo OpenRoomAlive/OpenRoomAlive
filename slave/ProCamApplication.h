@@ -15,8 +15,8 @@ class ProCamApplication {
   int Run();
 
  private:
-  // Interfacing with master node.
-  void talkToMaster();
+  // Run server responding to master node requests for data.
+  void respondToMaster();
 
  private:
   /// IP of the master node.
@@ -24,6 +24,6 @@ class ProCamApplication {
   /// Port on which Procam messages master node.
   const uint16_t masterPort_;
   /// Flag for threads to message each other when Procam is to be shut down.
-  bool runProcam_;
+  std::atomic<bool> runProcam_;
 };
 

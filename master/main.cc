@@ -6,13 +6,20 @@
 #include <iostream>
 #include <cassert>
 
+#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
+
+#include <thrift/protocol/TBinaryProtocol.h>
+#include <thrift/server/TThreadedServer.h>
+#include <thrift/transport/TServerSocket.h>
+#include <thrift/transport/TTransportUtils.h>
 
 #include "ProCam.h"
 #include "ProCamSystem.h"
 #include "MasterServer.h"
 
 using namespace dv;
+using namespace dv::master;
 
 
 /**
@@ -30,6 +37,20 @@ class MasterApplication {
   }
 
   int Run() {
+    namespace atp = apache::thrift::protocol;
+    namespace att = apache::thrift::transport;
+    namespace ats = apache::thrift::server;
+
+    ats::TThreadedServer server(
+      boost::make_shared<MasterProcessor>(boost::make_shared<MasterServer>()),
+      boost::make_shared<att::TServerSocket>(port_), //port
+      boost::make_shared<att::TBufferedTransportFactory>(),
+      boost::make_shared<atp::TBinaryProtocolFactory>());
+
+    std::cout << "Starting the server..." << std::endl;
+    server.serve();
+    std::cout << "Done." << std::endl;
+
     return EXIT_SUCCESS;
   }
 

@@ -58,4 +58,7 @@ service ProCam {
  * Definition of the API exposed by the Server.
  */
 service Master {
+
+  // Send Procam's IP to master node.
+  bool ping()
 }

@@ -6,10 +6,18 @@
 
 #include "core/Master.h"
 
-namespace dv {
+namespace dv { namespace master {
 
-class MasterSever : public MasterIf {
+class MasterServer : virtual public dv::MasterIf {
  public:
+  MasterServer();
+  ~MasterServer();
+
+
+  /**
+   * Send Procam's IP to master node.
+   */
+  bool ping();
 };
 
-} // namespace dv
+}}

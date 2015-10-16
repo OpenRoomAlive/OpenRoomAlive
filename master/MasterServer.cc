@@ -4,3 +4,13 @@
 
 #include "master/MasterServer.h"
 
+dv::master::MasterServer::MasterServer() {
+}
+
+dv::master::MasterServer::~MasterServer() {
+}
+
+bool dv::master::MasterServer::ping() {
+  printf("Pinged by a Procam.\n");
+  return true;
+}
