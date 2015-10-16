@@ -43,8 +43,10 @@ int ProCamApplication::Run() {
       talkToMaster();
     });
 
-    // Projector
+    // Kinect.
+    // TODO(ilijar): set up the kinect.
 
+    // Projector
     GLFWwindow* window;
 
     if (!glfwInit()) {
