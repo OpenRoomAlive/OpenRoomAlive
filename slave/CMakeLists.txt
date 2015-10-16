@@ -4,10 +4,12 @@
 
 SET(SOURCES
     main.cc
+    ProCamApplication.cc
     ProCamServer.cc
 )
 
 SET(HEADERS
+    ProCamApplication.h
     ProCamServer.h
 )
 
