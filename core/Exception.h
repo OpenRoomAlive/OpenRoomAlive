@@ -22,6 +22,11 @@ class Exception : public std::exception {
   /**
    * Adds a string to the message.
    */
+  Exception &operator << (const char *str) {
+    message_ += str;
+    return *this;
+  }
+
   Exception &operator << (const std::string &str) {
     message_ += str;
     return *this;

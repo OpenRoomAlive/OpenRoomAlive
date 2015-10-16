@@ -3,6 +3,7 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include <thread>
+#include <iostream>
 
 #include <boost/make_shared.hpp>
 
@@ -20,10 +21,10 @@
 #include <thrift/transport/TTransportUtils.h>
 
 #include "core/Master.h"
+#include "core/Exception.h"
 #include "slave/ProCamApplication.h"
 
 using namespace dv;
-
 
 ProCamApplication::ProCamApplication(
   const std::string &masterIP,
@@ -47,28 +48,61 @@ int ProCamApplication::Run() {
     // TODO(ilijar): set up the kinect.
 
     // Projector
-    GLFWwindow* window;
+    GLFWwindow *window;
 
-    if (!glfwInit()) {
-      return EXIT_FAILURE;
-    }
+    try {
+      if (!glfwInit()) {
+        throw EXCEPTION() << "Cannot initialize GLFW.";
+      }
 
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window) {
+      int monitorCount;
+      GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
+
+      if (!monitors || monitorCount < 1) {
+        throw EXCEPTION() << "No monitors found.";
+      }
+
+      GLFWmonitor *projector = monitors[monitorCount - 1];
+
+      if (monitorCount == 1) {
+        std::cerr << "Only primary monitor found.\n";
+      } else if (monitorCount > 2) {
+        std::cerr << "Multiple secondary monitors were found.\n";
+      }
+
+      const GLFWvidmode* mode = glfwGetVideoMode(projector);
+      window = glfwCreateWindow(
+          mode->width,
+          mode->height,
+          "OpenRoom",
+          projector, NULL);
+
+      if (!window) {
+        throw EXCEPTION() << "Cannot open GLFW window.\n";
+      }
+
+      glfwMakeContextCurrent(window);
+      glViewport(0, 0, mode->width, mode->height);
+    } catch (...) {
       glfwTerminate();
-      return EXIT_FAILURE;
+      throw;
     }
-
-    glfwMakeContextCurrent(window);
 
     while (!glfwWindowShouldClose(window)) {
       glClear(GL_COLOR_BUFFER_BIT);
+
+      glBegin(GL_QUADS);
+        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
+        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(-1.0f, +1.0f);
+        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(+1.0f, +1.0f);
+        glColor3f(1.0f, 1.0f, 0.0f); glVertex2f(+1.0f, -1.0f);
+      glEnd();
+
       glfwSwapBuffers(window);
       glfwPollEvents();
     }
 
     glfwTerminate();
-
 
     return EXIT_SUCCESS;
   }
