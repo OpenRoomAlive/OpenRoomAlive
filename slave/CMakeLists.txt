@@ -4,11 +4,13 @@
 
 SET(SOURCES
     main.cc
+    GLDisplay.cc
     ProCamApplication.cc
     ProCamServer.cc
 )
 
 SET(HEADERS
+    GLDisplay.h
     ProCamApplication.h
     ProCamServer.h
 )
@@ -24,6 +26,7 @@ TARGET_LINK_LIBRARIES(slave
     ${freenect2_LIBRARY}
     ${GLUT_LIBRARY}
     ${OPENGL_LIBRARIES}
+    ${OpenCV_LIBRARIES}
     pthread
 )
 

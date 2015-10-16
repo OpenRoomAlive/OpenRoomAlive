@@ -12,7 +12,7 @@
 #include "core/ProCam.h"
 #include "slave/ProCamApplication.h"
 
-using namespace dv;
+using namespace dv::slave;
 
 
 int main(int argc, char **argv) {
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     return ProCamApplication(
         options["--ip"].as<std::string>(),
         options["--port"].as<uint16_t>()
-    ).Run();
+    ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;
     return EXIT_FAILURE;
