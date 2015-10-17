@@ -2,3 +2,8 @@ build
 
 # Swap files.
 *.swp
+
+# IDE Files
+.idea
+.cproject
+.project

@@ -26,7 +26,7 @@ SET(LIBS
     pthread
 )
 
-# Choose mock or kinct implementation.
+# Choose mock or kinect implementation.
 IF (${freenect2_FOUND})
     ADD_DEFINITIONS(-DKINECT_CAMERA)
 
@@ -57,7 +57,7 @@ ELSE()
 ENDIF()
 
 
-# Linux-specific lbraries.
+# Linux-specific libraries.
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(LIBS ${LIBS}
         dl

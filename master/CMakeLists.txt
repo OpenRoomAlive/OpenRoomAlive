@@ -21,5 +21,6 @@ ADD_EXECUTABLE(master
 TARGET_LINK_LIBRARIES(master
     boost_program_options
     core
+    pthread
 )
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <memory>
 #include <string>
 
 #include "core/ProCam.h"
