@@ -7,16 +7,19 @@
 #include <cstdlib>
 #include <string>
 
-#include <libfreenect2/libfreenect2.hpp>
-
 #include "core/ProCam.h"
 
 
 namespace dv { namespace slave {
 
+class RGBDCamera;
+
+/**
+ * Thrift server that provides information to the master node.
+ */
 class ProCamServer : virtual public dv::ProCamIf {
  public:
-  ProCamServer(const std::shared_ptr<libfreenect2::Freenect2Device>& kinect);
+  ProCamServer(const std::shared_ptr<RGBDCamera>& camera);
   ~ProCamServer();
 
   /**
@@ -31,7 +34,7 @@ class ProCamServer : virtual public dv::ProCamIf {
 
  private:
   /// Kinect device.
-  const std::shared_ptr<libfreenect2::Freenect2Device> kinect_;
+  const std::shared_ptr<RGBDCamera> camera_;
 };
 
 }}

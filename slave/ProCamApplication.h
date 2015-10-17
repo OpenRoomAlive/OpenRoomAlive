@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <libfreenect2/libfreenect2.hpp>
-
 
 namespace dv { namespace slave {
 
@@ -19,11 +17,6 @@ class ProCamApplication {
   ProCamApplication(const std::string &masterIP, uint16_t masterPort);
 
   int run();
-
- private:
-  // Run server responding to master node requests for data.
-  void respondToMaster(
-      const std::shared_ptr<libfreenect2::Freenect2Device>& kinect);
 
  private:
   /// IP of the master node.

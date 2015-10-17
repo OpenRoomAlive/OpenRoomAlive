@@ -20,6 +20,16 @@
 #include "slave/ProCamApplication.h"
 #include "slave/ProCamServer.h"
 
+#if defined(KINECT_CAMERA)
+  #include "slave/KinectCamera.h"
+  using RGBDCameraImpl = dv::slave::KinectCamera;
+#elif defined(MOCK_CAMERA)
+  #include "slave/MockCamera.h"
+  using RGBDCameraImpl = dv::slave::MockCamera;
+#else
+  #error "No camera implementation provided."
+#endif
+
 using namespace dv::slave;
 
 
@@ -74,36 +84,11 @@ int ProCamApplication::run() {
   display_->displayImage(mat);
   display_->run();
 
-  // Kinect.
-  // TODO(ilijar): set up the kinect.
-  libfreenect2::Freenect2 freenect2;
-
-  if (freenect2.enumerateDevices() == 0) {
-    std::cout << "No Kinect device connected!" << std::endl;
-    // TODO(ilijar): T15
-    return EXIT_FAILURE;
-  }
-
-  std::string serial = freenect2.getDefaultDeviceSerialNumber();
-
-  libfreenect2::Freenect2Device* device = freenect2.openDevice(serial);
-  std::shared_ptr<libfreenect2::Freenect2Device> kinect(device);
-
-  kinect->start();
-
-  slave::ProCamServer proCamServer(kinect);
-
-  kinect->stop();
-  kinect->close();
+  // Procam server.
+  slave::ProCamServer proCamServer(std::make_shared<RGBDCameraImpl>());
 
   // Projector.
   display_->run();
 
   return EXIT_SUCCESS;
-}
-
-void ProCamApplication::respondToMaster(
-    const std::shared_ptr<libfreenect2::Freenect2Device>& kinect)
-{
-  (void) kinect;
 }
