@@ -49,10 +49,15 @@ class GLDisplay {
    */
   void onKeyPressed(int key);
 
+  /**
+   * Main rendering loop.
+   */
+  void loop();
+
  private:
   /// Lock protecting the data.
   std::mutex lock_;
-  /// Image (gray code) to display.
+  /// Image (gray code) to display. Initialized to a single pixel RGBA image.
   cv::Mat image_;
   /// Image being displayed (copy to make multithreading easiery).
   cv::Mat displayedImage_;

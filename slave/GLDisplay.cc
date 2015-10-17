@@ -32,7 +32,8 @@ void GLDisplay::onKeyCallback(GLFWwindow* window, int key, int scancode, int act
 
 
 GLDisplay::GLDisplay()
-  : texture_(0)
+  : image_(1, 1, CV_8UC3)
+  , texture_(0)
   , window_(nullptr)
 {
 }
@@ -82,19 +83,15 @@ void GLDisplay::run() {
     glfwMakeContextCurrent(window_);
     glViewport(0, 0, mode->width, mode->height);
 
-    while (!glfwWindowShouldClose(window_)) {
-      glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &texture_);
+    glBindTexture(GL_TEXTURE_2D, texture_);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-      glBegin(GL_QUADS);
-        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
-        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(-1.0f, +1.0f);
-        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(+1.0f, +1.0f);
-        glColor3f(1.0f, 1.0f, 0.0f); glVertex2f(+1.0f, -1.0f);
-      glEnd();
-
-      glfwSwapBuffers(window_);
-      glfwPollEvents();
-    }
+    loop();
 
     destroy();
   } catch (...) {
@@ -103,16 +100,17 @@ void GLDisplay::run() {
   }
 }
 
-
 void GLDisplay::displayImage(const cv::Mat &image) {
-  (void) image;
-  (void) image_;
-  (void) displayedImage_;
-  (void) texture_;
+  std::lock_guard<std::mutex> locker(lock_);
+  image_ = image;
 }
 
 
 void GLDisplay::destroy() {
+  if (texture_) {
+    glDeleteTextures(1, &texture_);
+    texture_ = 0;
+  }
   if (window_) {
     glfwDestroyWindow(window_);
     window_ = nullptr;
@@ -120,6 +118,60 @@ void GLDisplay::destroy() {
   glfwTerminate();
 }
 
+void GLDisplay::loop() {
+  while (!glfwWindowShouldClose(window_)) {
+    {
+      std::lock_guard<std::mutex> locker(lock_);
+      displayedImage_ = image_;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, texture_);
+    switch (displayedImage_.elemSize()) {
+      case 1: {
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGB,
+            displayedImage_.cols,
+            displayedImage_.rows,
+            0,
+            GL_LUMINANCE,
+            GL_UNSIGNED_BYTE,
+            displayedImage_.data
+        );
+        break;
+      }
+      case 3: {
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGB,
+            displayedImage_.cols,
+            displayedImage_.rows,
+            0,
+            GL_RGB,
+            GL_UNSIGNED_BYTE,
+            displayedImage_.data
+        );
+        break;
+      }
+      default: {
+        throw EXCEPTION() << "Unsupported image type .";
+      }
+    }
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
+      glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f, +1.0f);
+      glTexCoord2f(1.0f, 1.0f); glVertex2f(+1.0f, +1.0f);
+      glTexCoord2f(1.0f, 0.0f); glVertex2f(+1.0f, -1.0f);
+    glEnd();
+
+    glfwSwapBuffers(window_);
+    glfwPollEvents();
+  }
+}
 
 void GLDisplay::onKeyPressed(int key) {
   switch (key) {

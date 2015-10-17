@@ -37,22 +37,22 @@ ProCamApplication::ProCamApplication(
 }
 
 int ProCamApplication::run() {
- // Responding to master node requests
- std::thread networking([this]() {
+  // Responding to master node requests
+  std::thread networking([this]() {
    //respondToMaster();
- });
+  });
 
- // Send Procam's IP to master
- namespace at  = apache::thrift;
- namespace atp = apache::thrift::protocol;
- namespace att = apache::thrift::transport;
+  // Send Procam's IP to master
+  namespace at  = apache::thrift;
+  namespace atp = apache::thrift::protocol;
+  namespace att = apache::thrift::transport;
 
- auto socket    = boost::make_shared<att::TSocket>(masterIP_, masterPort_);
- auto transport = boost::make_shared<att::TBufferedTransport>(socket);
- auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
- MasterClient masterClient(protocol);
+  auto socket    = boost::make_shared<att::TSocket>(masterIP_, masterPort_);
+  auto transport = boost::make_shared<att::TBufferedTransport>(socket);
+  auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
+  MasterClient masterClient(protocol);
 
- try {
+  try {
    transport->open();
 
    printf("Sending Procam's IP to master node...\n");
@@ -64,9 +64,15 @@ int ProCamApplication::run() {
    printf("Master node accepted IP of the Procam.\n");
 
    transport->close();
- } catch (apache::thrift::TException& tx) {
+  } catch (apache::thrift::TException& tx) {
    std::cout << "ERROR: " << tx.what() << std::endl;
- }
+  }
+
+  // TODO(nandor): This is just a test.
+  uint8_t data[] = {255, 0, 0, 128, 128, 128, 128, 128, 128, 128, 255, 0, 0};
+  cv::Mat mat(2, 2, CV_8UC3, data);
+  display_->displayImage(mat);
+  display_->run();
 
   // Kinect.
   // TODO(ilijar): set up the kinect.
