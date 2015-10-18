@@ -42,6 +42,12 @@ SET(HEADERS
     Exception.h
 )
 
+# List of all tests.
+SET(TESTS
+    ExceptionTest.cc
+)
+
+# Shared core library.
 ADD_LIBRARY(core
     ${SOURCES}
     ${HEADERS}
@@ -49,4 +55,16 @@ ADD_LIBRARY(core
 )
 TARGET_LINK_LIBRARIES(core
     boost_program_options
-    thrift)
+    thrift
+)
+
+# Tests for the core library.
+ADD_EXECUTABLE(core_test
+    ${TESTS}
+)
+TARGET_LINK_LIBRARIES(core_test
+    core
+    ${GTEST_BOTH_LIBRARIES}
+)
+ADD_TEST(CoreTests core_test)
+
