@@ -81,7 +81,12 @@ void GLDisplay::run() {
     }
 
     glfwMakeContextCurrent(window_);
-    glViewport(0, 0, mode->width, mode->height);
+
+    int screenWidth, screenHeight;
+
+    glfwGetFramebufferSize(window_, &screenWidth, &screenHeight);
+
+    glViewport(0, 0, screenWidth, screenHeight);
 
     glEnable(GL_TEXTURE_2D);
     glGenTextures(1, &texture_);
