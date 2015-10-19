@@ -4,63 +4,12 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <cassert>
 
-#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 
-#include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/server/TThreadedServer.h>
-#include <thrift/transport/TServerSocket.h>
-#include <thrift/transport/TTransportUtils.h>
+#include "master/MasterApplication.h"
 
-#include "ProCam.h"
-#include "ProCamSystem.h"
-#include "MasterServer.h"
-
-using namespace dv;
 using namespace dv::master;
-
-
-/**
- * Encapsulates most of the functionality of the application.
- */
-class MasterApplication {
- public:
-  MasterApplication(uint16_t port, size_t procamTotal)
-    : port_(port),
-      procamTotal_(procamTotal)
-  {
-    assert (procamTotal_ > 0);
-    (void) port_;
-    (void) procamTotal_;
-  }
-
-  int Run() {
-    namespace atp = apache::thrift::protocol;
-    namespace att = apache::thrift::transport;
-    namespace ats = apache::thrift::server;
-
-    ats::TThreadedServer server(
-      boost::make_shared<MasterProcessor>(boost::make_shared<MasterServer>()),
-      boost::make_shared<att::TServerSocket>(port_), //port
-      boost::make_shared<att::TBufferedTransportFactory>(),
-      boost::make_shared<atp::TBinaryProtocolFactory>());
-
-    std::cout << "Starting the server..." << std::endl;
-    server.serve();
-    std::cout << "Done." << std::endl;
-
-    return EXIT_SUCCESS;
-  }
-
- private:
-  /// Port number the server is listening on.
-  const uint16_t port_;
-  /// Number of procams expected to connect.
-  const size_t procamTotal_;
-};
-
 
 /**
  * Entry point of the application.
@@ -99,7 +48,7 @@ int main(int argc, char **argv) {
     return MasterApplication(
         options["--port"].as<uint16_t>(),
         options["--procamTotal"].as<size_t>()
-    ).Run();
+    ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;
     return EXIT_FAILURE;

@@ -2,15 +2,19 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include <iostream>
+
 #include "master/MasterServer.h"
 
-dv::master::MasterServer::MasterServer() {
+using namespace dv::master;
+
+MasterServer::MasterServer() {
 }
 
-dv::master::MasterServer::~MasterServer() {
+MasterServer::~MasterServer() {
 }
 
-bool dv::master::MasterServer::ping() {
-  printf("Pinged by a Procam.\n");
+bool MasterServer::ping() {
+  std::cout << "Pinged by a Procam." << std::endl;
   return true;
 }

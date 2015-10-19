@@ -4,12 +4,16 @@
 
 SET(SOURCES
     main.cc
+    MasterApplication.cc
     MasterServer.cc
+    MasterServerFactory.cc
     ProCam.cc
     ProCamSystem.cc
 )
 SET(HEADERS
+    MasterApplication.h
     MasterServer.h
+    MasterServerFactory.h
     ProCam.h
     ProCamSystem.h
 )

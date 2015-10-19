@@ -8,7 +8,7 @@
 
 namespace dv { namespace master {
 
-class MasterServer : virtual public dv::MasterIf {
+class MasterServer : virtual public MasterIf {
  public:
   MasterServer();
   ~MasterServer();

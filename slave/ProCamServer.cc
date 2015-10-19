@@ -2,6 +2,8 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include <iostream>
+
 #include "slave/ProCamServer.h"
 #include "slave/RGBDCamera.h"
 
@@ -21,6 +23,6 @@ void ::ProCamServer::getCameraParams(CameraParams& cameraParams) {
 }
 
 int32_t ProCamServer::derpderp() {
-  printf("DERP DERP\n");
+  std::cout << "DERP DERP" << std::endl;
   return -1;
 }

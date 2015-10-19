@@ -63,19 +63,19 @@ int ProCamApplication::run() {
   MasterClient masterClient(protocol);
 
   try {
-   transport->open();
+    transport->open();
 
-   printf("Sending Procam's IP to master node...\n");
-   if (!masterClient.ping()) {
-     printf("Master node rejected IP of the Procam.\n");
-     return EXIT_FAILURE;
-   }
+    std::cout << "Sending Procam's IP to master node..." << std::endl;
+    if (!masterClient.ping()) {
+      std::cout << "Master node rejected IP of the Procam." << std::endl;
+      return EXIT_FAILURE;
+    }
 
-   printf("Master node accepted IP of the Procam.\n");
+    std::cout << "Master node accepted IP of the Procam." << std::endl;
 
-   transport->close();
+    transport->close();
   } catch (apache::thrift::TException& tx) {
-   std::cout << "ERROR: " << tx.what() << std::endl;
+    std::cout << "ERROR: " << tx.what() << std::endl;
   }
 
   // TODO(nandor): This is just a test.
