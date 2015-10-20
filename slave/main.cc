@@ -32,8 +32,11 @@ int main(int argc, char **argv) {
         ( "port"
         , po::value<uint16_t>()->default_value(11630)
         , "Set the port on which Procam messages master node."
+        )
+        ( "enable-projector"
+        , po::value<bool>()->default_value(true)
+        , "Enable projector output."
         );
-
 
     // Parse options.
     po::variables_map options;
@@ -48,8 +51,9 @@ int main(int argc, char **argv) {
 
     // Create & run the app.
     return ProCamApplication(
-        options["--ip"].as<std::string>(),
-        options["--port"].as<uint16_t>()
+        options["ip"].as<std::string>(),
+        options["port"].as<uint16_t>(),
+        options["enable-projector"].as<bool>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;

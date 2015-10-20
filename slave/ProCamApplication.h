@@ -6,17 +6,22 @@
 
 #include <atomic>
 
+#include <folly/Optional.h>
+
+#include "slave/GLDisplay.h"
+
 
 namespace dv { namespace slave {
-
-class GLDisplay;
 
 /**
  * Encapsulates most of the functionality of the application.
  */
 class ProCamApplication {
  public:
-  ProCamApplication(const std::string &masterIP, uint16_t masterPort);
+  ProCamApplication(
+      const std::string &masterIP,
+      uint16_t masterPort,
+      bool enableProjector);
 
   int run();
 
@@ -26,7 +31,7 @@ class ProCamApplication {
   /// Port on which Procam messages master node.
   const uint16_t masterPort_;
   /// OpenGL window.
-  const std::shared_ptr<GLDisplay> display_;
+  folly::Optional<GLDisplay> display_;
   /// Flag for threads to message each other when Procam is to be shut down.
   std::atomic<bool> runProcam_;
 };

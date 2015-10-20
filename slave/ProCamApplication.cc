@@ -35,12 +35,16 @@ using namespace dv::slave;
 
 ProCamApplication::ProCamApplication(
     const std::string &masterIP,
-    uint16_t masterPort)
-  : masterIP_(masterIP),
-    masterPort_(masterPort),
-    display_(new GLDisplay()),
-    runProcam_(true)
+    uint16_t masterPort,
+    bool enableProjector)
+  : masterIP_(masterIP)
+  , masterPort_(masterPort)
+  , runProcam_(true)
 {
+  if (enableProjector) {
+    display_.emplace();
+  }
+
   (void) masterIP_;
   (void) masterPort_;
   (void) runProcam_;
@@ -48,9 +52,9 @@ ProCamApplication::ProCamApplication(
 
 int ProCamApplication::run() {
   // Responding to master node requests
-  std::thread networking([this]() {
+  //std::thread networking([this]() {
    //respondToMaster();
-  });
+  //});
 
   // Send Procam's IP to master
   namespace at  = apache::thrift;
@@ -78,17 +82,19 @@ int ProCamApplication::run() {
     std::cout << "ERROR: " << tx.what() << std::endl;
   }
 
-  // TODO(nandor): This is just a test.
-  uint8_t data[] = {255, 0, 0, 128, 128, 128, 128, 128, 128, 128, 255, 0, 0};
-  cv::Mat mat(2, 2, CV_8UC3, data);
-  display_->displayImage(mat);
-  display_->run();
-
   // Procam server.
-  slave::ProCamServer proCamServer(std::make_shared<RGBDCameraImpl>());
+  //slave::ProCamServer proCamServer(std::make_shared<RGBDCameraImpl>());
 
-  // Projector.
-  display_->run();
+
+  if (display_.hasValue()) {
+    // TODO(nandor): This is just a test.
+    uint8_t data[] = {255, 0, 0, 128, 128, 128, 128, 128, 128, 128, 255, 0, 0};
+    cv::Mat mat(2, 2, CV_8UC3, data);
+    display_->displayImage(mat);
+    display_->run();
+  } else {
+    getchar();
+  }
 
   return EXIT_SUCCESS;
 }
