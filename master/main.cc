@@ -24,11 +24,11 @@ int main(int argc, char **argv) {
         ( "help"
         , "Print this message."
         )
-        ( "--port"
+        ( "port"
         , po::value<uint16_t>()->default_value(11630)
         , "Set the port to listen on."
         )
-        ( "--procamTotal"
+        ( "procamTotal"
         , po::value<size_t>()->default_value(1)
         , "Set the number of procams expected to connect."
         );

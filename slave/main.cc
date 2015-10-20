@@ -25,11 +25,11 @@ int main(int argc, char **argv) {
         ( "help"
         , "Print this message."
         )
-        ( "--ip"
+        ( "ip"
         , po::value<std::string>()->default_value("localhost")
         , "Set the IP of the master node."
         )
-        ( "--port"
+        ( "port"
         , po::value<uint16_t>()->default_value(11630)
         , "Set the port on which Procam messages master node."
         );
