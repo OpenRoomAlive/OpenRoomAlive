@@ -8,8 +8,8 @@
 
 #include <folly/Optional.h>
 
+#include "GrayCode.h"
 #include "slave/GLDisplay.h"
-
 
 namespace dv { namespace slave {
 
@@ -34,6 +34,8 @@ class ProCamApplication {
   folly::Optional<GLDisplay> display_;
   /// Flag for threads to message each other when Procam is to be shut down.
   std::atomic<bool> runProcam_;
+  /// Gray code generator
+  const std::shared_ptr<GrayCode> grayCode_;
 };
 
 }}

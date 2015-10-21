@@ -2,19 +2,21 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 Group 13. All rights reserved.
 
-SET(SOURCES
+SET(SOURCES ${SOURCES}
     main.cc
     GLDisplay.cc
+    GrayCode.cc
     ProCamApplication.cc
     ProCamServer.cc
     RGBDCamera.cc
 )
 
-SET(HEADERS
+SET(HEADERS ${HEADERS}
     GLDisplay.h
+    GrayCode.h
     ProCamApplication.h
     ProCamServer.h
-    RGBDCamera.cc
+    RGBDCamera.h
 )
 
 SET(LIBS
@@ -56,7 +58,6 @@ ELSE()
     )
 ENDIF()
 
-
 # Linux-specific libraries.
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(LIBS ${LIBS}
@@ -70,7 +71,6 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 ENDIF()
 
-
 ADD_EXECUTABLE(slave
     ${SOURCES}
     ${HEADERS}
@@ -79,4 +79,3 @@ ADD_EXECUTABLE(slave
 TARGET_LINK_LIBRARIES(slave
     ${LIBS}
 )
-

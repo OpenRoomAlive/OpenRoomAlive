@@ -17,6 +17,7 @@
 #include "core/Master.h"
 #include "core/Exception.h"
 #include "slave/GLDisplay.h"
+#include "slave/GrayCode.h"
 #include "slave/ProCamApplication.h"
 #include "slave/ProCamServer.h"
 
@@ -40,6 +41,7 @@ ProCamApplication::ProCamApplication(
   : masterIP_(masterIP)
   , masterPort_(masterPort)
   , runProcam_(true)
+  , grayCode_(new GrayCode())
 {
   if (enableProjector) {
     display_.emplace();
@@ -61,9 +63,9 @@ int ProCamApplication::run() {
   namespace atp = apache::thrift::protocol;
   namespace att = apache::thrift::transport;
 
-  auto socket    = boost::make_shared<att::TSocket>(masterIP_, masterPort_);
-  auto transport = boost::make_shared<att::TBufferedTransport>(socket);
-  auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
+  boost::shared_ptr<att::TTransport> socket(new att::TSocket(masterIP_, masterPort_));
+  boost::shared_ptr<att::TTransport> transport(new att::TBufferedTransport(socket));
+  boost::shared_ptr<atp::TProtocol> protocol(new atp::TBinaryProtocol(transport));
   MasterClient masterClient(protocol);
 
   try {
@@ -85,12 +87,11 @@ int ProCamApplication::run() {
   // Procam server.
   //slave::ProCamServer proCamServer(std::make_shared<RGBDCameraImpl>());
 
-
   if (display_.hasValue()) {
     // TODO(nandor): This is just a test.
-    uint8_t data[] = {255, 0, 0, 128, 128, 128, 128, 128, 128, 128, 255, 0, 0};
-    cv::Mat mat(2, 2, CV_8UC3, data);
-    display_->displayImage(mat);
+    auto image = grayCode_->getPattern(GrayCode::Orientation::HORIZONTAL, 0);
+
+    display_->displayImage(image);
     display_->run();
   } else {
     getchar();
