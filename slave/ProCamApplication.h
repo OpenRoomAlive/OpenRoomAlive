@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include <atomic>
-
-#include <folly/Optional.h>
-
 #include <thrift/server/TServer.h>
 
 #include "slave/GrayCode.h"
@@ -16,6 +12,8 @@
 
 namespace dv { namespace slave {
 
+class Display;
+class GrayCode;
 class RGBDCamera;
 
 
@@ -27,7 +25,7 @@ class ProCamApplication {
   ProCamApplication(
       const std::string &masterIP,
       uint16_t port,
-      bool enableProjector,
+      bool enableDisplay,
       bool enableKinect);
   ~ProCamApplication();
 
@@ -44,14 +42,12 @@ class ProCamApplication {
   const std::string masterIP_;
   /// Port used for conenctions.
   const uint16_t port_;
-  /// OpenGL window.
-  folly::Optional<GLDisplay> display_;
-  /// Flag for threads to message each other when Procam is to be shut down.
-  std::atomic<bool> runProcam_;
   /// Gray code generator
   const std::shared_ptr<GrayCode> grayCode_;
   /// Server instance.
   const std::shared_ptr<apache::thrift::server::TServer> server_;
+  /// OpenGL window.
+  const std::shared_ptr<Display> display_;
   /// Kinect camera implementation.
   const std::shared_ptr<RGBDCamera> camera_;
 };

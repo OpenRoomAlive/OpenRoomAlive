@@ -13,7 +13,7 @@
 #endif
 #include <GLFW/glfw3.h>
 
-#include <opencv2/opencv.hpp>
+#include "slave/Display.h"
 
 
 namespace dv { namespace slave {
@@ -22,7 +22,7 @@ namespace dv { namespace slave {
 /**
  * Class encapsulating all the OpenGL rendering logic.
  */
-class GLDisplay {
+class GLDisplay : public Display {
  public:
   GLDisplay();
   ~GLDisplay();

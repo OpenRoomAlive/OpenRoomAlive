@@ -4,18 +4,22 @@
 
 SET(SOURCES ${SOURCES}
     main.cc
+    Display.cc
     GLDisplay.cc
     GrayCode.cc
     MockCamera.cc
+    MockDisplay.cc
     ProCamApplication.cc
     ProCamServer.cc
     RGBDCamera.cc
 )
 
 SET(HEADERS ${HEADERS}
+    Display.h
     GLDisplay.h
     GrayCode.h
     MockCamera.h
+    MockDisplay.h
     ProCamApplication.h
     ProCamServer.h
     RGBDCamera.h

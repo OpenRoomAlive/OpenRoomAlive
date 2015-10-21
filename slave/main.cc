@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
         , po::value<uint16_t>()->default_value(11630)
         , "Set the port on which Procam messages master node."
         )
-        ( "enable-projector"
+        ( "enable-display"
         , po::value<bool>()->default_value(true)
         , "Enable projector output."
         )
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     return ProCamApplication(
         options["ip"].as<std::string>(),
         options["port"].as<uint16_t>(),
-        options["enable-projector"].as<bool>(),
+        options["enable-display"].as<bool>(),
         options["enable-kinect"].as<bool>()
     ).run();
   } catch (const std::exception &ex) {

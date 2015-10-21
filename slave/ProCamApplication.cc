@@ -16,9 +16,11 @@
 
 #include "core/Master.h"
 #include "core/Exception.h"
+#include "slave/Display.h"
 #include "slave/GLDisplay.h"
 #include "slave/GrayCode.h"
 #include "slave/MockCamera.h"
+#include "slave/MockDisplay.h"
 #include "slave/ProCamApplication.h"
 #include "slave/ProCamServer.h"
 
@@ -42,11 +44,10 @@ constexpr auto MAX_CONNECT_WAIT = 512s;
 ProCamApplication::ProCamApplication(
     const std::string &masterIP,
     uint16_t port,
-    bool enableProjector,
+    bool enableDisplay,
     bool enableKinect)
   : masterIP_(masterIP)
   , port_(port)
-  , runProcam_(true)
   , grayCode_(new GrayCode())
   , server_(new apache::thrift::server::TThreadedServer(
         // TODO(ilijar): remove null when T1 is done.
@@ -54,15 +55,13 @@ ProCamApplication::ProCamApplication(
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_ + 1),
         boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
+  , display_(enableDisplay
+        ? static_cast<Display*>(new GLDisplay())
+        : static_cast<Display*>(new MockDisplay()))
   , camera_(enableKinect
         ? static_cast<RGBDCamera*>(new RGBDCameraImpl())
         : static_cast<RGBDCamera*>(new MockCamera()))
 {
-  if (enableProjector) {
-    display_.emplace();
-  }
-
-  (void) runProcam_;
 }
 
 ProCamApplication::~ProCamApplication() {
@@ -108,15 +107,11 @@ int ProCamApplication::run() {
   // Procam server.
   //slave::ProCamServer proCamServer(std::make_shared<RGBDCameraImpl>());
 
-  if (display_.hasValue()) {
-    // TODO(nandor): This is just a test.
-    auto image = grayCode_->getPattern(GrayCode::Orientation::HORIZONTAL, 0);
+  // TODO(nandor): This is just a test.
+  auto image = grayCode_->getPattern(GrayCode::Orientation::HORIZONTAL, 0);
 
-    display_->displayImage(image);
-    display_->run();
-  } else {
-    getchar();
-  }
+  display_->displayImage(image);
+  display_->run();
 
   server_->stop();
   networking.join();
