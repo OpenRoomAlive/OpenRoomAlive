@@ -8,10 +8,16 @@
 
 #include <folly/Optional.h>
 
-#include "GrayCode.h"
+#include <thrift/server/TServer.h>
+
+#include "slave/GrayCode.h"
 #include "slave/GLDisplay.h"
 
+
 namespace dv { namespace slave {
+
+class RGBDCamera;
+
 
 /**
  * Encapsulates most of the functionality of the application.
@@ -21,7 +27,8 @@ class ProCamApplication {
   ProCamApplication(
       const std::string &masterIP,
       uint16_t port,
-      bool enableProjector);
+      bool enableProjector,
+      bool enableKinect);
   ~ProCamApplication();
 
   int run();
@@ -43,6 +50,10 @@ class ProCamApplication {
   std::atomic<bool> runProcam_;
   /// Gray code generator
   const std::shared_ptr<GrayCode> grayCode_;
+  /// Server instance.
+  const std::shared_ptr<apache::thrift::server::TServer> server_;
+  /// Kinect camera implementation.
+  const std::shared_ptr<RGBDCamera> camera_;
 };
 
 }}

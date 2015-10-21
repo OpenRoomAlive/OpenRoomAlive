@@ -14,10 +14,22 @@
 
 using namespace dv::slave;
 
+/**
+ * Null output for thrift logging.
+ */
+static void nullOutput(const char *message) {
+  (void) message;
+}
 
+/**
+ * Entry point of the application.
+ */
 int main(int argc, char **argv) {
   try {
     namespace po = boost::program_options;
+
+    // Silence silly thrift output.
+    apache::thrift::GlobalOutput.setOutputFunction(nullOutput);
 
     // Set up the description of all command line options.
     po::options_description description("DerpVision Procam Server");
@@ -36,6 +48,10 @@ int main(int argc, char **argv) {
         ( "enable-projector"
         , po::value<bool>()->default_value(true)
         , "Enable projector output."
+        )
+        ( "enable-kinect"
+        , po::value<bool>()->default_value(true)
+        , "Enable kinect input."
         );
 
     // Parse options.
@@ -53,7 +69,8 @@ int main(int argc, char **argv) {
     return ProCamApplication(
         options["ip"].as<std::string>(),
         options["port"].as<uint16_t>(),
-        options["enable-projector"].as<bool>()
+        options["enable-projector"].as<bool>(),
+        options["enable-kinect"].as<bool>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;

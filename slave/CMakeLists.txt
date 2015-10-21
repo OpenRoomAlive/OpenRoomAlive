@@ -6,6 +6,7 @@ SET(SOURCES ${SOURCES}
     main.cc
     GLDisplay.cc
     GrayCode.cc
+    MockCamera.cc
     ProCamApplication.cc
     ProCamServer.cc
     RGBDCamera.cc
@@ -14,6 +15,7 @@ SET(SOURCES ${SOURCES}
 SET(HEADERS ${HEADERS}
     GLDisplay.h
     GrayCode.h
+    MockCamera.h
     ProCamApplication.h
     ProCamServer.h
     RGBDCamera.h
@@ -42,19 +44,6 @@ IF (${freenect2_FOUND})
 
     SET(LIBS ${LIBS}
         ${freenect2_LIBRARIES}
-    )
-ELSE()
-    ADD_DEFINITIONS(-DMOCK_CAMERA)
-
-    SET(SOURCES ${SOURCES}
-        MockCamera.cc
-    )
-
-    SET(HEADERS ${HEADERS}
-        MockCamera.h
-    )
-
-    SET(LIBS ${LIBS}
     )
 ENDIF()
 

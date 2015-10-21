@@ -18,30 +18,45 @@
 #include "core/Exception.h"
 #include "slave/GLDisplay.h"
 #include "slave/GrayCode.h"
+#include "slave/MockCamera.h"
 #include "slave/ProCamApplication.h"
 #include "slave/ProCamServer.h"
 
 #if defined(KINECT_CAMERA)
   #include "slave/KinectCamera.h"
   using RGBDCameraImpl = dv::slave::KinectCamera;
-#elif defined(MOCK_CAMERA)
-  #include "slave/MockCamera.h"
-  using RGBDCameraImpl = dv::slave::MockCamera;
 #else
-  #error "No camera implementation provided."
+  using RGBDCameraImpl = dv::slave::MockCamera;
 #endif
 
 using namespace dv::slave;
+using namespace std::literals;
+
+
+/**
+ * Max delay before giving up on a connection.
+ */
+constexpr auto MAX_CONNECT_WAIT = 512s;
 
 
 ProCamApplication::ProCamApplication(
     const std::string &masterIP,
     uint16_t port,
-    bool enableProjector)
+    bool enableProjector,
+    bool enableKinect)
   : masterIP_(masterIP)
   , port_(port)
   , runProcam_(true)
   , grayCode_(new GrayCode())
+  , server_(new apache::thrift::server::TThreadedServer(
+        // TODO(ilijar): remove null when T1 is done.
+        boost::make_shared<ProCamProcessor>(boost::make_shared<ProCamServer>(nullptr)),
+        boost::make_shared<apache::thrift::transport::TServerSocket>(port_ + 1),
+        boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
+        boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
+  , camera_(enableKinect
+        ? static_cast<RGBDCamera*>(new RGBDCameraImpl())
+        : static_cast<RGBDCamera*>(new MockCamera()))
 {
   if (enableProjector) {
     display_.emplace();
@@ -69,22 +84,26 @@ int ProCamApplication::run() {
   auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
   MasterClient masterClient(protocol);
 
-  try {
-    transport->open();
-
-    std::cout << "Sending Procam's IP to master node..." << std::endl;
-    if (!masterClient.ping()) {
-      std::cout << "Master node rejected IP of the Procam." << std::endl;
-      return EXIT_FAILURE;
+  // Open a connection. If it fails, wait using binary exponential backoff.
+  for (auto wait = 1s; wait < MAX_CONNECT_WAIT; wait += wait) {
+    try {
+      transport->open();
+      break;
+    } catch (apache::thrift::TException& tx) {
+      std::cerr << "Connection failed. Retrying in " << wait.count() << "s." << std::endl;
+      std::this_thread::sleep_for(wait);
     }
-
-    std::cout << "Master node accepted IP of the Procam." << std::endl;
-
-    transport->close();
-  } catch (apache::thrift::TException& tx) {
-    std::cout << "ERROR: " << tx.what() << std::endl;
-    throw tx;
   }
+  if (!transport->isOpen()) {
+    throw EXCEPTION() << "Cannot connect to master.";
+  }
+
+  // Ping the master.
+  if (!masterClient.ping()) {
+    return EXIT_FAILURE;
+  }
+  std::cout << "Connected to master.";
+  transport->close();
 
   // Procam server.
   //slave::ProCamServer proCamServer(std::make_shared<RGBDCameraImpl>());
@@ -99,23 +118,11 @@ int ProCamApplication::run() {
     getchar();
   }
 
+  server_->stop();
+  networking.join();
   return EXIT_SUCCESS;
 }
 
 void ProCamApplication::serveMaster() {
-  namespace atp = apache::thrift::protocol;
-  namespace att = apache::thrift::transport;
-  namespace ats = apache::thrift::server;
-
-  ats::TThreadedServer server(
-      boost::make_shared<ProCamProcessor>(
-          // TODO(ilijar): remove null when T1 is done.
-          boost::make_shared<ProCamServer>(nullptr)),
-      boost::make_shared<att::TServerSocket>(port_ + 1),
-      boost::make_shared<att::TBufferedTransportFactory>(),
-      boost::make_shared<atp::TBinaryProtocolFactory>());
-
-  std::cout << "Starting the ProCam server..." << std::endl;
-  server.serve();
-  std::cout << "ProCam server done." << std::endl;
+  server_->serve();
 }
