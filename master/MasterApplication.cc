@@ -40,9 +40,14 @@ MasterApplication::~MasterApplication() {
 
 int MasterApplication::run() {
   // Spawn a thread that runs the server.
+  std::cout << "Starting server." << std::endl;
   std::thread networking([this] () {
     server_->serve();
   });
+
+  // Wait for all the procams to connect.
+  std::cout << "Waiting for " << procamTotal_ << " connections." << std::endl;
+  connectionHandler_->waitForConnections(procamTotal_);
 
   // Wait for user input.
   getchar();

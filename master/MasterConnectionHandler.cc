@@ -23,7 +23,7 @@ MasterConnectionHandler::~MasterConnectionHandler() {
   // Close the ProCam connections.
   for (const auto& connection : connections_) {
     try {
-     connection->close();
+     connection.transport->close();
     } catch (apache::thrift::TException& tx) {
       std::cout << "CLOSING PROCAM CONNECTION: " << tx.what() << std::endl;
     }
@@ -39,7 +39,6 @@ MasterServer* MasterConnectionHandler::getHandler(
   namespace att = apache::thrift::transport;
 
   auto sock = boost::dynamic_pointer_cast<att::TSocket>(connInfo.transport);
-  std::cout << "Incoming connection" << std::endl;
 
   // Set up a reverse connection.
   auto socket = boost::make_shared<att::TSocket>(
@@ -53,12 +52,14 @@ MasterServer* MasterConnectionHandler::getHandler(
     transport->open();
 
     // Add the connection.
-    connections_.emplace_back(transport);
-    clients_.emplace_back(new ProCamClient(protocol));
+    {
+      std::lock_guard<std::mutex> locker(lock_);
+      connections_.emplace_back(transport, std::make_shared<ProCamClient>(protocol));
+      connections_.back().client->derpderp();
+    }
 
-    // Test
-    clients_.back()->derpderp();
-
+    std::cout << "ProCam connected." << std::endl;
+    connectionCountCondition_.notify_all();
   } catch (at::TException& tx) {
     std::cout << "OPENING PROCAM CONNECTION: " << tx.what() << std::endl;
     throw;
@@ -71,4 +72,12 @@ void MasterConnectionHandler::releaseHandler(MasterIf* handler) {
   if (handler != nullptr) {
     delete handler;
   }
+}
+
+void MasterConnectionHandler::waitForConnections(size_t count) {
+  std::unique_lock<std::mutex> locker(lock_);
+  auto self = shared_from_this();
+  connectionCountCondition_.wait(locker, [count, self, this] () {
+    return connections_.size() == count;
+  });
 }
