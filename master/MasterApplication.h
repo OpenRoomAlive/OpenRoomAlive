@@ -4,7 +4,10 @@
 
 #pragma once
 
-#include <atomic>
+#include <memory>
+
+#include <thrift/server/TServer.h>
+
 
 namespace dv { namespace master {
 
@@ -22,18 +25,14 @@ class MasterApplication {
   int run();
 
  private:
-  // Handle networking with Procams
-  void serveProcams();
-
- private:
   /// Port number the server is listening on.
   const uint16_t port_;
   /// Number of procams expected to connect.
   const size_t procamTotal_;
-  /// Flag for threads to message each other when master node is to be shut down.
-  std::atomic<bool> runMaster_;
   /// Handles ProCam connections.
-  boost::shared_ptr<MasterConnectionHandler> connectionHandler_;
+  const boost::shared_ptr<MasterConnectionHandler> connectionHandler_;
+  /// Thrift server.
+  const std::shared_ptr<apache::thrift::server::TServer> server_;
 };
 
 }}
