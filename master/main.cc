@@ -46,8 +46,8 @@ int main(int argc, char **argv) {
 
     // Create & run the app.
     return MasterApplication(
-        options["--port"].as<uint16_t>(),
-        options["--procamTotal"].as<size_t>()
+        options["port"].as<uint16_t>(),
+        options["procamTotal"].as<size_t>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;
