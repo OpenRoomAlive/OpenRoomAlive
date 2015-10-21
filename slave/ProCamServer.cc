@@ -18,7 +18,7 @@ ProCamServer::ProCamServer(const std::shared_ptr<RGBDCamera>& camera)
 ProCamServer::~ProCamServer() {
 }
 
-void ::ProCamServer::getCameraParams(CameraParams& cameraParams) {
+void ProCamServer::getCameraParams(CameraParams& cameraParams) {
   cameraParams = camera_->getParameters();
 }
 

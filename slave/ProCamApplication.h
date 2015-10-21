@@ -20,16 +20,23 @@ class ProCamApplication {
  public:
   ProCamApplication(
       const std::string &masterIP,
-      uint16_t masterPort,
+      uint16_t port,
       bool enableProjector);
+  ~ProCamApplication();
 
   int run();
 
  private:
+  /**
+   * Handles master requests.
+   */
+  void serveMaster();
+
+ private:
   /// IP of the master node.
   const std::string masterIP_;
-  /// Port on which Procam messages master node.
-  const uint16_t masterPort_;
+  /// Port used for conenctions.
+  const uint16_t port_;
   /// OpenGL window.
   folly::Optional<GLDisplay> display_;
   /// Flag for threads to message each other when Procam is to be shut down.

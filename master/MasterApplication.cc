@@ -14,20 +14,22 @@
 #include <thrift/transport/TTransportUtils.h>
 
 #include "master/MasterApplication.h"
-#include "master/MasterServerFactory.h"
+#include "master/MasterConnectionHandler.h"
 
-using namespace dv;
 using namespace dv::master;
 
 
 MasterApplication::MasterApplication(uint16_t port, size_t procamTotal)
-  : port_(port),
-    procamTotal_(procamTotal)
+  : port_(port)
+  , procamTotal_(procamTotal)
+  , connectionHandler_(new MasterConnectionHandler())
 {
   assert (procamTotal_ > 0);
-  (void) port_;
   (void) procamTotal_;
   (void) runMaster_;
+}
+
+MasterApplication::~MasterApplication() {
 }
 
 int MasterApplication::run() {
@@ -41,31 +43,30 @@ int MasterApplication::run() {
 
   // Handle networking with Procams
   std::thread networking([this]() {
-   listenToProcams();
+    serveProcams();
   });
-  
+
   // Processing?
-  
+
   // Wait for networking to finish excution
   networking.join();
 
   return EXIT_SUCCESS;
 }
 
-void MasterApplication::listenToProcams() {
+void MasterApplication::serveProcams() {
   namespace atp = apache::thrift::protocol;
   namespace att = apache::thrift::transport;
   namespace ats = apache::thrift::server;
 
   ats::TThreadedServer server(
-    boost::make_shared<MasterProcessorFactory>(
-        boost::make_shared<MasterServerFactory>()),
-    boost::make_shared<att::TServerSocket>(port_),
-    boost::make_shared<att::TBufferedTransportFactory>(),
-    boost::make_shared<atp::TBinaryProtocolFactory>());
+      boost::make_shared<MasterProcessorFactory>(connectionHandler_),
+      boost::make_shared<att::TServerSocket>(port_),
+      boost::make_shared<att::TBufferedTransportFactory>(),
+      boost::make_shared<atp::TBinaryProtocolFactory>());
 
-  std::cout << "Starting the server..." << std::endl;
+  std::cout << "Starting the master server..." << std::endl;
   server.serve();
-  std::cout << "Done." << std::endl;
+  std::cout << "Master server done." << std::endl;
 }
 

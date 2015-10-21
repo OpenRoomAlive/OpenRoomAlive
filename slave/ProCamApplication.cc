@@ -4,13 +4,13 @@
 
 #include <iostream>
 #include <thread>
-#include <iostream>
 
 #include <boost/make_shared.hpp>
 
 #include <libfreenect2/libfreenect2.hpp>
 
 #include <thrift/protocol/TBinaryProtocol.h>
+#include <thrift/server/TThreadedServer.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
@@ -36,10 +36,10 @@ using namespace dv::slave;
 
 ProCamApplication::ProCamApplication(
     const std::string &masterIP,
-    uint16_t masterPort,
+    uint16_t port,
     bool enableProjector)
   : masterIP_(masterIP)
-  , masterPort_(masterPort)
+  , port_(port)
   , runProcam_(true)
   , grayCode_(new GrayCode())
 {
@@ -47,25 +47,26 @@ ProCamApplication::ProCamApplication(
     display_.emplace();
   }
 
-  (void) masterIP_;
-  (void) masterPort_;
   (void) runProcam_;
+}
+
+ProCamApplication::~ProCamApplication() {
 }
 
 int ProCamApplication::run() {
   // Responding to master node requests
-  //std::thread networking([this]() {
-   //respondToMaster();
-  //});
+  std::thread networking([this]() {
+    serveMaster();
+  });
 
   // Send Procam's IP to master
   namespace at  = apache::thrift;
   namespace atp = apache::thrift::protocol;
   namespace att = apache::thrift::transport;
 
-  boost::shared_ptr<att::TTransport> socket(new att::TSocket(masterIP_, masterPort_));
-  boost::shared_ptr<att::TTransport> transport(new att::TBufferedTransport(socket));
-  boost::shared_ptr<atp::TProtocol> protocol(new atp::TBinaryProtocol(transport));
+  auto socket    = boost::make_shared<att::TSocket>(masterIP_, port_);
+  auto transport = boost::make_shared<att::TBufferedTransport>(socket);
+  auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
   MasterClient masterClient(protocol);
 
   try {
@@ -82,6 +83,7 @@ int ProCamApplication::run() {
     transport->close();
   } catch (apache::thrift::TException& tx) {
     std::cout << "ERROR: " << tx.what() << std::endl;
+    throw tx;
   }
 
   // Procam server.
@@ -98,4 +100,22 @@ int ProCamApplication::run() {
   }
 
   return EXIT_SUCCESS;
+}
+
+void ProCamApplication::serveMaster() {
+  namespace atp = apache::thrift::protocol;
+  namespace att = apache::thrift::transport;
+  namespace ats = apache::thrift::server;
+
+  ats::TThreadedServer server(
+      boost::make_shared<ProCamProcessor>(
+          // TODO(ilijar): remove null when T1 is done.
+          boost::make_shared<ProCamServer>(nullptr)),
+      boost::make_shared<att::TServerSocket>(port_ + 1),
+      boost::make_shared<att::TBufferedTransportFactory>(),
+      boost::make_shared<atp::TBinaryProtocolFactory>());
+
+  std::cout << "Starting the ProCam server..." << std::endl;
+  server.serve();
+  std::cout << "ProCam server done." << std::endl;
 }

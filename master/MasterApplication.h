@@ -8,18 +8,22 @@
 
 namespace dv { namespace master {
 
+class MasterConnectionHandler;
+
+
 /**
  * Encapsulates most of the functionality of the application.
  */
 class MasterApplication {
  public:
   MasterApplication(uint16_t port, size_t procamTotal);
+  ~MasterApplication();
 
   int run();
 
  private:
   // Handle networking with Procams
-  void listenToProcams();
+  void serveProcams();
 
  private:
   /// Port number the server is listening on.
@@ -28,6 +32,8 @@ class MasterApplication {
   const size_t procamTotal_;
   /// Flag for threads to message each other when master node is to be shut down.
   std::atomic<bool> runMaster_;
+  /// Handles ProCam connections.
+  boost::shared_ptr<MasterConnectionHandler> connectionHandler_;
 };
 
 }}

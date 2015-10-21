@@ -6,7 +6,8 @@
 
 #include <opencv2/core/core.hpp>
 
-#include "GrayCode.h"
+#include "core/Exception.h"
+#include "slave/GrayCode.h"
 
 using namespace dv::slave;
 
