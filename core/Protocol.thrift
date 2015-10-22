@@ -61,7 +61,12 @@ service ProCam {
   /**
    * Closes the procam app.
    */
-  oneway void close()
+  oneway void close(),
+
+  /**
+   * TODO(nand): Remove this. Just an example.
+   */
+  i32 test(1: i32 x, 2: i32 y)
 }
 
 /**

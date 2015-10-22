@@ -5,8 +5,10 @@
 #pragma once
 
 #include <condition_variable>
+#include <future>
 #include <memory>
 #include <mutex>
+#include <thread>
 
 #include <boost/enable_shared_from_this.hpp>
 
@@ -54,6 +56,13 @@ class MasterConnectionHandler
    */
   void stop();
 
+  /**
+   * Invokes test on all clients.
+   */
+  std::vector<int32_t> test(int32_t a, int32_t b) {
+    return InvokeParallel(&ProCamClient::test, a, b);
+  }
+
  private:
   /**
    * Information about a connection.
@@ -75,6 +84,57 @@ class MasterConnectionHandler
     {
     }
   };
+
+  /**
+   * Invokes a client RCP method on all clients.
+   *
+   * The RPC calls are performed in parrallel, using one thread for each call.
+   *
+   * @tparam Ret    Return type of the RPC call.
+   * @tparam Args   List of arguments to the RPC call.
+   *
+   * @param func    Pointer to the ProCam API method.
+   * @param args... List of arguments.
+   */
+  template<typename Ret, typename ...Args>
+  std::vector<Ret> InvokeParallel(
+      Ret (ProCamClient::* func) (Args...),
+      Args... args)
+  {
+    // Helper lambda that fulfills the promise by invoking the method
+    // on the client with the given arguments. By-reference capture is
+    // used in order to capture the variadic template args.
+    auto executor = [&] (
+        std::promise<Ret> promise,
+        std::shared_ptr<ProCamClient> client)
+    {
+      promise.set_value_at_thread_exit((client.get()->*func) (args...));
+    };
+
+    // Launch all threads & create futures for all results.
+    std::vector<std::future<Ret>> futures;
+    for (const auto &connection : connections_) {
+      std::promise<Ret> promise;
+      futures.push_back(promise.get_future());
+
+      // The thread is created detached - it must be joined before
+      // the future is fulfilled.
+      std::thread(
+          executor,
+          std::move(promise),
+          connection.client
+      ).detach();
+    }
+
+    // Return all results from the futures. If a future is not
+    // ready to be retrieved, this thread will block until the
+    // RPC call succeeds.
+    std::vector<Ret> results;
+    for (auto &future : futures) {
+      results.push_back(future.get());
+    }
+    return results;
+  }
 
   /// List of connections to procams.
   std::vector<Connection> connections_;

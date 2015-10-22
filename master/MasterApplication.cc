@@ -49,6 +49,11 @@ int MasterApplication::run() {
   std::cout << "Waiting for " << procamTotal_ << " connections." << std::endl;
   connectionHandler_->waitForConnections(procamTotal_);
 
+  // TODO(nand): Remove this. Just an example.
+  for (const auto &x : connectionHandler_->test(2, 4)) {
+    std::cerr << (int)x << std::endl;
+  }
+
   // Wait for user input.
   getchar();
 

@@ -55,6 +55,13 @@ class ProCamApplication : public ProCamIf {
    */
   void close() override;
 
+  /**
+   * TODO(nand): Remove this. Just an example.
+   */
+  int32_t test(int32_t a, int32_t b) override {
+    return a * b;
+  }
+
  private:
   /// IP of the master node.
   const std::string masterIP_;
