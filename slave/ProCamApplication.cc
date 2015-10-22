@@ -120,3 +120,4 @@ void ProCamApplication::close() {
   server_->stop();
   display_->stop();
 }
+

@@ -2,6 +2,8 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include <libfreenect2/packet_pipeline.h>
+
 #include "core/Exception.h"
 #include "slave/KinectCamera.h"
 
@@ -11,6 +13,10 @@ using namespace dv::slave;
 
 KinectCamera::KinectCamera()
   : freenect_(new Freenect2())
+  , pipeline_(new libfreenect2::CpuPacketPipeline())
+  , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
+  , undistorted_(kFrameWidth, kFrameHeight, kFramePixelSize)
+  , registered_(kFrameWidth, kFrameHeight, kFramePixelSize)
 {
   // Find the kinect device.
   if (freenect_->enumerateDevices() == 0) {
@@ -19,8 +25,17 @@ KinectCamera::KinectCamera()
   serial_ = freenect_->getDefaultDeviceSerialNumber();
 
   // Open it.
-  kinect_ = std::shared_ptr<Freenect2Device>(freenect_->openDevice(serial_));
+  kinect_ = std::shared_ptr<Freenect2Device>(
+      freenect_->openDevice(serial_, pipeline_.get()));
+
+  // Set up the listener and start the device.
+  kinect_->setColorFrameListener(&listener_);
+  kinect_->setIrAndDepthFrameListener(&listener_);
   kinect_->start();
+
+  // Register.
+  registration_ = std::make_shared<Registration>(
+      kinect_->getIrCameraParams(), kinect_->getColorCameraParams());
 }
 
 KinectCamera::~KinectCamera() {
@@ -64,3 +79,17 @@ CameraParams KinectCamera::getParameters() {
 
   return cameraParams;
 }
+
+void KinectCamera::poll() {
+  listener_.waitForNewFrame(frames_);
+
+  // Get the image.
+  Frame* rgb = frames_[Frame::Color];
+  Frame* depth = frames_[Frame::Depth];
+
+  // Undistort the image.
+  registration_->apply(rgb, depth, &undistorted_, &registered_);
+
+  listener_.release(frames_);
+}
+
