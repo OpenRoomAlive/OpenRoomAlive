@@ -39,6 +39,11 @@ struct CameraParams {
   2: IrParams ir;
 }
 
+enum Orientation {
+  HORIZONTAL = 0,
+  VERTICAL   = 1
+}
+
 /**
  * Definition of the API exposed by the ProCam unit.
  */
@@ -47,6 +52,11 @@ service ProCam {
    * Retrieves the parameters of the Color and Ir cameras.
    */
   CameraParams getCameraParams(),
+
+  /**
+   * Displays the specified gray code pattern.
+   */
+  void displayGrayCode(1: Orientation orientation, 2: i16 level),
 
   /**
    * Closes the procam app.

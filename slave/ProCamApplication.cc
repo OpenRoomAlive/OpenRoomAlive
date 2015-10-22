@@ -30,6 +30,7 @@
   using RGBDCameraImpl = dv::slave::MockCamera;
 #endif
 
+using namespace dv;
 using namespace dv::slave;
 using namespace std::literals;
 
@@ -39,6 +40,22 @@ using namespace std::literals;
  */
 constexpr auto MAX_CONNECT_WAIT = 512s;
 
+static inline GrayCode::Orientation orientationCast(
+    Orientation::type orientation)
+{
+  switch (orientation) {
+    case Orientation::type::HORIZONTAL: {
+      return GrayCode::Orientation::HORIZONTAL;
+    }
+    case Orientation::type::VERTICAL: {
+      return GrayCode::Orientation::VERTICAL;
+    }
+    default: {
+      throw EXCEPTION() << "Failed to cast enum of thrift Orientation::type "
+                           "to GrayCode::Orientation.";
+    }
+  }
+}
 
 ProCamApplication::ProCamApplication(
     const std::string &masterIP,
@@ -114,6 +131,17 @@ int ProCamApplication::run() {
 
 void ProCamApplication::getCameraParams(CameraParams& cameraParams) {
   cameraParams = camera_->getParameters();
+}
+
+void ProCamApplication::displayGrayCode(
+    const Orientation::type orientation,
+    const int16_t level)
+{
+  cv::Mat grayCodeImage = grayCode_->getPattern(
+      orientationCast(orientation),
+      static_cast<size_t>(level));
+
+  display_->displayImage(grayCodeImage);
 }
 
 void ProCamApplication::close() {

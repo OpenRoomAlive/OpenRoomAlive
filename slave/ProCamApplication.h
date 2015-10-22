@@ -44,6 +44,13 @@ class ProCamApplication : public ProCamIf {
   void getCameraParams(CameraParams& cameraParams) override;
 
   /**
+   * Displays the specified gray code pattern.
+   */
+  void displayGrayCode(
+      const Orientation::type orientation,
+      const int16_t level) override;
+
+  /**
    * Closes the client.
    */
   void close() override;
