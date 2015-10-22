@@ -13,7 +13,7 @@
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
-#include "core/exception.h"
+#include "core/Exception.h"
 #include "master/MasterApplication.h"
 #include "master/MasterConnectionHandler.h"
 

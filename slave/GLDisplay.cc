@@ -86,6 +86,7 @@ void GLDisplay::run() {
     glViewport(0, 0, screenWidth, screenHeight);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
     glEnable(GL_TEXTURE_2D);
     glGenTextures(1, &texture_);
