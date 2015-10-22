@@ -22,7 +22,6 @@
 #include "slave/MockCamera.h"
 #include "slave/MockDisplay.h"
 #include "slave/ProCamApplication.h"
-#include "slave/ProCamServer.h"
 
 #if defined(KINECT_CAMERA)
   #include "slave/KinectCamera.h"
@@ -50,8 +49,8 @@ ProCamApplication::ProCamApplication(
   , port_(port)
   , grayCode_(new GrayCode())
   , server_(new apache::thrift::server::TThreadedServer(
-        // TODO(ilijar): remove null when T1 is done.
-        boost::make_shared<ProCamProcessor>(boost::make_shared<ProCamServer>(nullptr)),
+        boost::make_shared<ProCamProcessor>(
+            boost::shared_ptr<ProCamApplication>(this, [](ProCamApplication*){})),
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_ + 1),
         boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
@@ -70,7 +69,7 @@ ProCamApplication::~ProCamApplication() {
 int ProCamApplication::run() {
   // Responding to master node requests
   std::thread networking([this]() {
-    serveMaster();
+    server_->serve();
   });
 
   // Send Procam's IP to master
@@ -101,23 +100,23 @@ int ProCamApplication::run() {
   if (!masterClient.ping()) {
     return EXIT_FAILURE;
   }
-  std::cout << "Connected to master.";
+  std::cout << "Connected to master." << std::endl;
   transport->close();
 
-  // Procam server.
-  //slave::ProCamServer proCamServer(std::make_shared<RGBDCameraImpl>());
-
-  // TODO(nandor): This is just a test.
-  auto image = grayCode_->getPattern(GrayCode::Orientation::HORIZONTAL, 0);
-
-  display_->displayImage(image);
+  // Run the display.
   display_->run();
 
-  server_->stop();
+  // Stop everything.
+  std::cerr << "Disconnected from master." << std::endl;
   networking.join();
   return EXIT_SUCCESS;
 }
 
-void ProCamApplication::serveMaster() {
-  server_->serve();
+void ProCamApplication::getCameraParams(CameraParams& cameraParams) {
+  cameraParams = camera_->getParameters();
+}
+
+void ProCamApplication::close() {
+  server_->stop();
+  display_->stop();
 }

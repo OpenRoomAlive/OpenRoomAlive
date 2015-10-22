@@ -52,6 +52,9 @@ int MasterApplication::run() {
   // Wait for user input.
   getchar();
 
+  // Disconnect all clients.
+  connectionHandler_->stop();
+
   // Wait for networking to finish excution.
   server_->stop();
   networking.join();

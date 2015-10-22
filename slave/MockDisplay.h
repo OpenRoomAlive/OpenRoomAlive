@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "slave/Display.h"
 
 
@@ -15,6 +17,7 @@ namespace dv { namespace slave {
  */
 class MockDisplay : public Display {
  public:
+  MockDisplay();
   ~MockDisplay();
 
   /**
@@ -23,10 +26,18 @@ class MockDisplay : public Display {
   void run() override;
 
   /**
+   * Stops the display.
+   */
+  void stop() override;
+
+  /**
    * Sets the image displayed on the screen.
    * @param image [description]
    */
   void displayImage(const cv::Mat &image) override;
+
+ private:
+  std::atomic<bool> isRunning_;
 };
 
 }}

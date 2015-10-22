@@ -10,7 +10,6 @@ SET(SOURCES ${SOURCES}
     MockCamera.cc
     MockDisplay.cc
     ProCamApplication.cc
-    ProCamServer.cc
     RGBDCamera.cc
 )
 
@@ -21,7 +20,6 @@ SET(HEADERS ${HEADERS}
     MockCamera.h
     MockDisplay.h
     ProCamApplication.h
-    ProCamServer.h
     RGBDCamera.h
 )
 

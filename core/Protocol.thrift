@@ -48,17 +48,18 @@ service ProCam {
    */
   CameraParams getCameraParams(),
 
-  // TODO(ilijar): T1
-
-  // Test.
-  i32 derpderp()
+  /**
+   * Closes the procam app.
+   */
+  oneway void close()
 }
 
 /**
  * Definition of the API exposed by the Server.
  */
 service Master {
-
-  // Send Procam's IP to master node.
+  /**
+   * Send Procam's IP to master node.
+   */
   bool ping()
 }

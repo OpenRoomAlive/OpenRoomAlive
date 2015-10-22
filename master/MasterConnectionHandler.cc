@@ -55,7 +55,6 @@ MasterServer* MasterConnectionHandler::getHandler(
     {
       std::lock_guard<std::mutex> locker(lock_);
       connections_.emplace_back(transport, std::make_shared<ProCamClient>(protocol));
-      connections_.back().client->derpderp();
     }
 
     std::cout << "ProCam connected." << std::endl;
@@ -80,4 +79,11 @@ void MasterConnectionHandler::waitForConnections(size_t count) {
   connectionCountCondition_.wait(locker, [count, self, this] () {
     return connections_.size() == count;
   });
+}
+
+void MasterConnectionHandler::stop() {
+  std::lock_guard<std::mutex> locker(lock_);
+  for (const auto &connection : connections_) {
+    connection.client->close();
+  }
 }

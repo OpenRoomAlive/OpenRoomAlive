@@ -4,8 +4,12 @@
 
 #pragma once
 
+#include <atomic>
+#include <memory>
+
 #include <thrift/server/TServer.h>
 
+#include "core/ProCam.h"
 #include "slave/GrayCode.h"
 #include "slave/GLDisplay.h"
 
@@ -20,7 +24,7 @@ class RGBDCamera;
 /**
  * Encapsulates most of the functionality of the application.
  */
-class ProCamApplication {
+class ProCamApplication : public ProCamIf {
  public:
   ProCamApplication(
       const std::string &masterIP,
@@ -29,13 +33,20 @@ class ProCamApplication {
       bool enableKinect);
   ~ProCamApplication();
 
+  /**
+   * Main loop of the application.
+   */
   int run();
 
- private:
   /**
-   * Handles master requests.
+   * Retrieves the camera parameters.
    */
-  void serveMaster();
+  void getCameraParams(CameraParams& cameraParams) override;
+
+  /**
+   * Closes the client.
+   */
+  void close() override;
 
  private:
   /// IP of the master node.

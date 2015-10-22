@@ -49,6 +49,11 @@ class MasterConnectionHandler
    */
   void waitForConnections(size_t count);
 
+  /**
+   * Disconnects all procams.
+   */
+  void stop();
+
  private:
   /**
    * Information about a connection.

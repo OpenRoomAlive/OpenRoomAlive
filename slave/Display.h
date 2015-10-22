@@ -23,6 +23,11 @@ class Display {
   virtual void run() = 0;
 
   /**
+   * Closes the display.
+   */
+  virtual void stop() = 0;
+
+  /**
    * Sets the image displayed on the screen.
    * @param image [description]
    */

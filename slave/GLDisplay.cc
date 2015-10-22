@@ -43,7 +43,6 @@ GLDisplay::~GLDisplay() {
   destroy();
 }
 
-
 void GLDisplay::run() {
   try {
     if (!glfwInit()) {
@@ -176,6 +175,11 @@ void GLDisplay::loop() {
     glfwSwapBuffers(window_);
     glfwPollEvents();
   }
+}
+
+
+void GLDisplay::stop() {
+  glfwSetWindowShouldClose(window_, true);
 }
 
 void GLDisplay::onKeyPressed(int key) {

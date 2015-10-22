@@ -30,13 +30,18 @@ class GLDisplay : public Display {
   /**
    * Main display loop.
    */
-  void run();
+  void run() override;
+
+  /**
+   * Stops the displauy.
+   */
+  void stop() override;
 
   /**
    * Sets the image displayed on the screen.
    * @param image [description]
    */
-  void displayImage(const cv::Mat &image);
+  void displayImage(const cv::Mat &image) override;
 
  private:
   /**
