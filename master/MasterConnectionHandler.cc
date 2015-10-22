@@ -32,9 +32,7 @@ MasterConnectionHandler::~MasterConnectionHandler() {
   }
 }
 
-
-MasterServer* MasterConnectionHandler::getHandler(
-    const ::apache::thrift::TConnectionInfo& connInfo)
+MasterServer* MasterConnectionHandler::getHandler(const TConnectionInfo& connInfo)
 {
   namespace at  = apache::thrift;
   namespace atp = apache::thrift::protocol;
@@ -43,8 +41,7 @@ MasterServer* MasterConnectionHandler::getHandler(
   auto sock = boost::dynamic_pointer_cast<att::TSocket>(connInfo.transport);
 
   // Set up a reverse connection.
-  auto socket = boost::make_shared<att::TSocket>(
-      sock->getPeerAddress(), proCamPort_);
+  auto socket = boost::make_shared<att::TSocket>(sock->getPeerAddress(), proCamPort_);
   auto transport = boost::make_shared<att::TBufferedTransport>(socket);
   auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
 
