@@ -10,7 +10,7 @@
 #include <libfreenect2/libfreenect2.hpp>
 
 #include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/server/TThreadedServer.h>
+#include <thrift/server/TSimpleServer.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
@@ -48,7 +48,7 @@ ProCamApplication::ProCamApplication(
   : masterIP_(masterIP)
   , port_(port)
   , grayCode_(new GrayCode())
-  , server_(new apache::thrift::server::TThreadedServer(
+  , server_(new apache::thrift::server::TSimpleServer(
         boost::make_shared<ProCamProcessor>(
             boost::shared_ptr<ProCamApplication>(this, [](ProCamApplication*){})),
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_ + 1),

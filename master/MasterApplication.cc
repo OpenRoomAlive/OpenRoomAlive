@@ -23,7 +23,7 @@ using namespace dv::master;
 MasterApplication::MasterApplication(uint16_t port, size_t procamTotal)
   : port_(port)
   , procamTotal_(procamTotal)
-  , connectionHandler_(new MasterConnectionHandler())
+  , connectionHandler_(new MasterConnectionHandler(port_ + 1))
   , server_(new apache::thrift::server::TThreadedServer(
         boost::make_shared<MasterProcessorFactory>(connectionHandler_),
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_),

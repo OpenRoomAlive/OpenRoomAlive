@@ -31,7 +31,7 @@ class MasterConnectionHandler
   using TConnectionInfo = apache::thrift::TConnectionInfo;
 
  public:
-  MasterConnectionHandler();
+  MasterConnectionHandler(uint16_t proCamPort);
   ~MasterConnectionHandler();
 
   /**
@@ -82,6 +82,8 @@ class MasterConnectionHandler
   std::mutex lock_;
   /// Condition variable to check on client count.
   std::condition_variable connectionCountCondition_;
+  // Port on which every ProCam listens to requests from the master.
+  const uint16_t proCamPort_;
 };
 
 }}

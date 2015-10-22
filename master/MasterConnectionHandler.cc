@@ -16,7 +16,9 @@
 
 using namespace dv::master;
 
-MasterConnectionHandler::MasterConnectionHandler() {
+MasterConnectionHandler::MasterConnectionHandler(uint16_t proCamPort)
+  : proCamPort_(proCamPort)
+{
 }
 
 MasterConnectionHandler::~MasterConnectionHandler() {
@@ -42,8 +44,7 @@ MasterServer* MasterConnectionHandler::getHandler(
 
   // Set up a reverse connection.
   auto socket = boost::make_shared<att::TSocket>(
-      // TODO(ilijar): hardcoded + 1
-      sock->getPeerAddress(), 11631); //sock->getPeerPort());
+      sock->getPeerAddress(), proCamPort_);
   auto transport = boost::make_shared<att::TBufferedTransport>(socket);
   auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
 
