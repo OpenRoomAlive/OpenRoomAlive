@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <atomic>
+#include <mutex>
+
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/registration.h>
@@ -15,9 +18,11 @@ namespace dv { namespace slave {
 
 namespace {
 
-  const size_t kFrameWidth = 512;
-  const size_t kFrameHeight = 424;
-  const size_t kFramePixelSize = 4;
+  const size_t kColorImageWidth = 1920;
+  const size_t kColorImageHeight = 1080;
+  const size_t kDepthImageWidth = 512;
+  const size_t kDepthImageHeight = 424;
+  const size_t kBytesPerPixel = 4;
 
 } // anonymous namespace
 
@@ -35,13 +40,23 @@ class KinectCamera : public RGBDCamera {
   using FrameMap = libfreenect2::FrameMap;
   using Frame = libfreenect2::Frame;
 
-
  public:
   KinectCamera();
   ~KinectCamera();
 
-  cv::Mat getRGBFrame() override;
+  /**
+   * Retrieves undistorted depth image.
+   */
   cv::Mat getDepthFrame() override;
+
+  /**
+   * Retrieves RGB color image.
+   */
+  cv::Mat getRGBFrame() override;
+
+  /**
+   * Retrieves camera parameters.
+   */
   CameraParams getParameters() override;
 
  private:
@@ -61,14 +76,21 @@ class KinectCamera : public RGBDCamera {
   SyncMultiFrameListener listener_;
   /// Kinect registration.
   std::shared_ptr<Registration> registration_;
-  /// Frames.
-  FrameMap frames_;
-  /// Undistorted frame.
+  /// RGB color image (1920x1080).
+  cv::Mat rgb_;
+  /// Undistorted depth image.
   Frame undistorted_;
-  /// Registered frame.
+  /// Color image for the depth data (512x424).
   Frame registered_;
+  /// Mutex guarding the frames.
+  std::mutex framesLock_;
   /// Serial ID of the kinect.
   std::string serial_;
+  /// Thread for polling the Kinect data.
+  std::thread dataPolling_;
+  /// Flag indicating if the kinect is running.
+  std::atomic<bool> isRunning_;
 };
 
 }}
+

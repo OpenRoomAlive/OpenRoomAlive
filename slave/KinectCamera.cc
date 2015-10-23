@@ -2,6 +2,8 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include <thread>
+
 #include <libfreenect2/packet_pipeline.h>
 
 #include "core/Exception.h"
@@ -13,10 +15,12 @@ using namespace dv::slave;
 
 KinectCamera::KinectCamera()
   : freenect_(new Freenect2())
-  , pipeline_(new libfreenect2::CpuPacketPipeline())
+  , pipeline_(new libfreenect2::OpenGLPacketPipeline())
   , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
-  , undistorted_(kFrameWidth, kFrameHeight, kFramePixelSize)
-  , registered_(kFrameWidth, kFrameHeight, kFramePixelSize)
+  , rgb_(kColorImageHeight, kColorImageWidth, kBytesPerPixel)
+  , undistorted_(kDepthImageWidth, kDepthImageHeight, kBytesPerPixel)
+  , registered_(kDepthImageWidth, kDepthImageHeight, kBytesPerPixel)
+  , isRunning_(false)
 {
   // Find the kinect device.
   if (freenect_->enumerateDevices() == 0) {
@@ -28,31 +32,51 @@ KinectCamera::KinectCamera()
   kinect_ = std::shared_ptr<Freenect2Device>(
       freenect_->openDevice(serial_, pipeline_.get()));
 
-  // Set up the listener and start the device.
+  // Set up the listener.
   kinect_->setColorFrameListener(&listener_);
   kinect_->setIrAndDepthFrameListener(&listener_);
+
+  // Start the kinect.
   kinect_->start();
+  isRunning_ = true;
 
   // Register.
   registration_ = std::make_shared<Registration>(
       kinect_->getIrCameraParams(), kinect_->getColorCameraParams());
+
+  // Start polling the Kinect.
+  dataPolling_ = std::thread([this] () {
+    poll();
+  });
 }
 
 KinectCamera::~KinectCamera() {
   kinect_->stop();
   kinect_->close();
-}
-
-cv::Mat KinectCamera::getRGBFrame() {
-  // TODO(ilijar): implement this.
-  // 1x1 RGB image.
-  return cv::Mat(1, 1, CV_8UC3);
+  isRunning_ = false;
+  dataPolling_.join();
 }
 
 cv::Mat KinectCamera::getDepthFrame() {
-  // TODO(ilijar): implement this.
-  // 1x1 16 bit depth.
-  return cv::Mat(1, 1, CV_16UC3);
+  cv::Mat depth;
+
+  {
+    std::lock_guard<std::mutex> locker(framesLock_);
+
+    // Consturct a cv::Mat from the frame.
+    depth = cv::Mat(
+        undistorted_.height,
+        undistorted_.width,
+        kBytesPerPixel,
+        undistorted_.data).clone();
+  }
+
+  return depth;
+}
+
+cv::Mat KinectCamera::getRGBFrame() {
+  std::lock_guard<std::mutex> locker(framesLock_);
+  return rgb_;
 }
 
 CameraParams KinectCamera::getParameters() {
@@ -81,15 +105,32 @@ CameraParams KinectCamera::getParameters() {
 }
 
 void KinectCamera::poll() {
-  listener_.waitForNewFrame(frames_);
+  FrameMap frames;
 
-  // Get the image.
-  Frame* rgb = frames_[Frame::Color];
-  Frame* depth = frames_[Frame::Depth];
+  while (isRunning_) {
 
-  // Undistort the image.
-  registration_->apply(rgb, depth, &undistorted_, &registered_);
+    // Wait untill the frames are available.
+    listener_.waitForNewFrame(frames);
 
-  listener_.release(frames_);
+    {
+      std::lock_guard<std::mutex> lock(framesLock_);
+
+      // Copy the color image before it gets released.
+      rgb_ = cv::Mat(
+          frames[Frame::Color]->height,
+          frames[Frame::Color]->width,
+          kBytesPerPixel,
+          frames[Frame::Color]->data).clone();
+
+      // Undistort the image.
+      registration_->apply(
+          frames[Frame::Color],
+          frames[Frame::Depth],
+          &undistorted_,
+          &registered_);
+    }
+
+    listener_.release(frames);
+  }
 }
 
