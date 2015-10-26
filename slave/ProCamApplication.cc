@@ -14,6 +14,7 @@
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
+#include "core/Async.h"
 #include "core/Master.h"
 #include "core/Exception.h"
 #include "slave/Display.h"
@@ -84,8 +85,8 @@ ProCamApplication::~ProCamApplication() {
 }
 
 int ProCamApplication::run() {
-  // Responding to master node requests
-  std::thread networking([this]() {
+  // Responding to master node requests.
+  auto future = asyncExecute([this]() {
     server_->serve();
   });
 
@@ -125,7 +126,7 @@ int ProCamApplication::run() {
 
   // Stop everything.
   std::cerr << "Disconnected from master." << std::endl;
-  networking.join();
+  future.get();
   return EXIT_SUCCESS;
 }
 

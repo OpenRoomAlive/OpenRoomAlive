@@ -39,6 +39,7 @@ SET(SOURCES
 
 # List of all files in core.
 SET(HEADERS
+    Async.h
     Exception.h
 )
 

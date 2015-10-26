@@ -13,6 +13,7 @@
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
+#include "core/Async.h"
 #include "core/Exception.h"
 #include "master/MasterApplication.h"
 #include "master/MasterConnectionHandler.h"
@@ -41,7 +42,7 @@ MasterApplication::~MasterApplication() {
 int MasterApplication::run() {
   // Spawn a thread that runs the server.
   std::cout << "Starting server." << std::endl;
-  std::thread networking([this] () {
+  auto future = asyncExecute([this] () {
     server_->serve();
   });
 
@@ -62,7 +63,7 @@ int MasterApplication::run() {
 
   // Wait for networking to finish excution.
   server_->stop();
-  networking.join();
+  future.get();
 
   return EXIT_SUCCESS;
 }
