@@ -35,12 +35,14 @@ SET_SOURCE_FILES_PROPERTIES(
 # List of all sources in core.
 SET(SOURCES
     Exception.cc
+    Projection.cc
 )
 
 # List of all files in core.
 SET(HEADERS
     Async.h
     Exception.h
+    Projection.h
 )
 
 # List of all tests.
