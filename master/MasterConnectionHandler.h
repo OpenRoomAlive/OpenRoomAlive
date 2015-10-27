@@ -56,13 +56,6 @@ class MasterConnectionHandler
    */
   void stop();
 
-  /**
-   * Invokes test on all clients.
-   */
-  std::vector<int32_t> test(int32_t a, int32_t b) {
-    return InvokeParallel(&ProCamClient::test, a, b);
-  }
-
  private:
   /**
    * Information about a connection.
@@ -89,6 +82,7 @@ class MasterConnectionHandler
    * Invokes a client RCP method on all clients.
    *
    * The RPC calls are performed in parrallel, using one thread for each call.
+   * This call only works if the return type is a primitive value.
    *
    * @tparam Ret    Return type of the RPC call.
    * @tparam Args   List of arguments to the RPC call.
@@ -132,6 +126,50 @@ class MasterConnectionHandler
     std::vector<Ret> results;
     for (auto &future : futures) {
       results.push_back(future.get());
+    }
+    return results;
+  }
+
+  /**
+   * Invokes a client RCP method on all clients.
+   *
+   * The RPC calls are performed in parrallel, using one thread for each call.
+   * This call only works if the return type is a thrift structure.
+   *
+   * @tparam Ret    Return type of the RPC call.
+   * @tparam Args   List of arguments to the RPC call.
+   *
+   * @param func    Pointer to the ProCam API method.
+   * @param args... List of arguments.
+   */
+  template<typename Ret, typename ...Args>
+  std::vector<Ret> InvokeParallel(
+      void (ProCamClient::* func) (Ret&, Args...),
+      Args... args)
+  {
+    // Helper lambda that executes the call and store the return
+    // value in the ret argument. By-reference capture is
+    // used in order to capture the variadic template args.
+    auto executor = [&] (Ret &ret, std::shared_ptr<ProCamClient> client) {
+      (client.get()->*func) (ret, args...);
+    };
+
+    // Launch all threads & create a vector to store results.
+    std::vector<Ret> results;
+    std::vector<std::thread> threads;
+    for (const auto &connection : connections_) {
+      results.emplace_back();
+      threads.emplace_back(
+          executor,
+          *results.rbegin(),
+          connection.client
+      );
+    }
+
+    // Wait for all the threads to execute. They will emplace their
+    // return values in the result vector.
+    for (auto &thread : threads) {
+      thread.join();
     }
     return results;
   }
