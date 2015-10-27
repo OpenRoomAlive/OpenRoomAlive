@@ -14,7 +14,7 @@ using namespace dv::slave;
 
 
 KinectCamera::KinectCamera()
-  : freenect_(new Freenect2())
+  : freenect_(new libfreenect2::Freenect2())
   , pipeline_(new libfreenect2::OpenGLPacketPipeline())
   , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
   , rgb_(kColorImageHeight, kColorImageWidth, kBytesPerPixel)
@@ -29,7 +29,7 @@ KinectCamera::KinectCamera()
   serial_ = freenect_->getDefaultDeviceSerialNumber();
 
   // Open it.
-  kinect_ = std::shared_ptr<Freenect2Device>(
+  kinect_ = std::shared_ptr<libfreenect2::Freenect2Device>(
       freenect_->openDevice(serial_, pipeline_.get()));
 
   // Set up the listener.
@@ -41,7 +41,7 @@ KinectCamera::KinectCamera()
   isRunning_ = true;
 
   // Register.
-  registration_ = std::make_shared<Registration>(
+  registration_ = std::make_shared<libfreenect2::Registration>(
       kinect_->getIrCameraParams(), kinect_->getColorCameraParams());
 
   // Start polling the Kinect.
@@ -105,7 +105,7 @@ CameraParams KinectCamera::getParameters() {
 }
 
 void KinectCamera::poll() {
-  FrameMap frames;
+  libfreenect2::FrameMap frames;
 
   while (isRunning_) {
 
@@ -117,15 +117,15 @@ void KinectCamera::poll() {
 
       // Copy the color image before it gets released.
       rgb_ = cv::Mat(
-          frames[Frame::Color]->height,
-          frames[Frame::Color]->width,
+          frames[libfreenect2::Frame::Color]->height,
+          frames[libfreenect2::Frame::Color]->width,
           kBytesPerPixel,
-          frames[Frame::Color]->data).clone();
+          frames[libfreenect2::Frame::Color]->data).clone();
 
       // Undistort the image.
       registration_->apply(
-          frames[Frame::Color],
-          frames[Frame::Depth],
+          frames[libfreenect2::Frame::Color],
+          frames[libfreenect2::Frame::Depth],
           &undistorted_,
           &registered_);
     }

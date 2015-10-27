@@ -31,15 +31,6 @@ namespace {
  * Camera source interfacing with the kinect using libfreenect2.
  */
 class KinectCamera : public RGBDCamera {
- private:
-  using Freenect2 = libfreenect2::Freenect2;
-  using PacketPipeline = libfreenect2::PacketPipeline;
-  using Freenect2Device = libfreenect2::Freenect2Device;
-  using SyncMultiFrameListener = libfreenect2::SyncMultiFrameListener;
-  using Registration = libfreenect2::Registration;
-  using FrameMap = libfreenect2::FrameMap;
-  using Frame = libfreenect2::Frame;
-
  public:
   KinectCamera();
   ~KinectCamera();
@@ -67,21 +58,21 @@ class KinectCamera : public RGBDCamera {
 
  private:
   /// Freenect2 library pointer.
-  std::shared_ptr<Freenect2> freenect_;
+  std::shared_ptr<libfreenect2::Freenect2> freenect_;
   /// Reference to the kinect pipeline.
-  std::shared_ptr<PacketPipeline> pipeline_;
+  std::shared_ptr<libfreenect2::PacketPipeline> pipeline_;
   /// Reference to the kinect device.
-  std::shared_ptr<Freenect2Device> kinect_;
+  std::shared_ptr<libfreenect2::Freenect2Device> kinect_;
   /// Kinect listener.
-  SyncMultiFrameListener listener_;
+  libfreenect2::SyncMultiFrameListener listener_;
   /// Kinect registration.
-  std::shared_ptr<Registration> registration_;
+  std::shared_ptr<libfreenect2::Registration> registration_;
   /// RGB color image (1920x1080).
   cv::Mat rgb_;
   /// Undistorted depth image.
-  Frame undistorted_;
+  libfreenect2::Frame undistorted_;
   /// Color image for the depth data (512x424).
-  Frame registered_;
+  libfreenect2::Frame registered_;
   /// Mutex guarding the frames.
   std::mutex framesLock_;
   /// Serial ID of the kinect.
