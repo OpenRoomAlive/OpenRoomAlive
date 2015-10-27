@@ -17,7 +17,7 @@ namespace dv {
  */
 std::future<void> asyncExecute(std::function<void()> func) {
   // Lambda to wrap the task & fulfill the promise.
-  auto executor = [&] (std::promise<void> promise) {
+  auto executor = [func] (std::promise<void> promise) {
     try {
       func();
       promise.set_value();
