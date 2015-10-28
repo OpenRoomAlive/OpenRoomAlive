@@ -6,8 +6,10 @@
 
 using namespace dv::master;
 
-ProCam::ProCam(ProCamID id)
+ProCam::ProCam(ProCamID id, size_t frameWidth, size_t frameHeight)
   : id_(id)
+  , frameWidth_(frameWidth)
+  , frameHeight_(frameHeight)
 {
 }
 

@@ -11,13 +11,16 @@
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
+#include "core/Exception.h"
 #include "master/MasterServer.h"
 #include "master/MasterConnectionHandler.h"
 
 using namespace dv::master;
+using namespace dv;
 
 MasterConnectionHandler::MasterConnectionHandler(uint16_t proCamPort)
   : proCamPort_(proCamPort)
+  , nextID_(0)
 {
 }
 
@@ -25,7 +28,7 @@ MasterConnectionHandler::~MasterConnectionHandler() {
   // Close the ProCam connections.
   for (const auto& connection : connections_) {
     try {
-     connection.transport->close();
+     connection.second.transport->close();
     } catch (apache::thrift::TException& tx) {
       std::cout << "CLOSING PROCAM CONNECTION: " << tx.what() << std::endl;
     }
@@ -52,7 +55,9 @@ MasterServer* MasterConnectionHandler::getHandler(const TConnectionInfo& connInf
     // Add the connection.
     {
       std::lock_guard<std::mutex> locker(lock_);
-      connections_.emplace_back(transport, std::make_shared<ProCamClient>(protocol));
+      auto id = nextID_++;
+      connections_.emplace(id, Connection(transport,
+          std::make_shared<ProCamClient>(protocol)));
     }
 
     std::cout << "ProCam connected." << std::endl;
@@ -71,17 +76,38 @@ void MasterConnectionHandler::releaseHandler(MasterIf* handler) {
   }
 }
 
-void MasterConnectionHandler::waitForConnections(size_t count) {
+std::vector<ConnectionID> MasterConnectionHandler::waitForConnections(
+    size_t count)
+{
   std::unique_lock<std::mutex> locker(lock_);
   auto self = shared_from_this();
+
   connectionCountCondition_.wait(locker, [count, self, this] () {
     return connections_.size() == count;
   });
+
+  std::vector<ConnectionID> ids;
+  for (const auto &connection : connections_) {
+    ids.push_back(connection.first);
+  }
+  return ids;
+}
+
+std::shared_ptr<ProCamClient> MasterConnectionHandler::getProCamClient(
+    ConnectionID id)
+{
+  auto it = connections_.find(id);
+
+  if (it != connections_.end()) {
+    return it->second.client;
+  } else {
+    throw EXCEPTION() << "Connection with a specified ID was not found.";
+  }
 }
 
 void MasterConnectionHandler::stop() {
   std::lock_guard<std::mutex> locker(lock_);
   for (const auto &connection : connections_) {
-    connection.client->close();
+    connection.second.client->close();
   }
 }

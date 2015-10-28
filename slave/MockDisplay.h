@@ -36,6 +36,11 @@ class MockDisplay : public Display {
    */
   void displayImage(const cv::Mat &image) override;
 
+  /**
+   * Retrieves the parameters of the display.
+   */
+  DisplayParams getParameters() override;
+
  private:
   std::atomic<bool> isRunning_;
 };

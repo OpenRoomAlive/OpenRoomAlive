@@ -19,7 +19,7 @@
 #include "core/Exception.h"
 #include "slave/Display.h"
 #include "slave/GLDisplay.h"
-#include "slave/GrayCode.h"
+#include "core/GrayCode.h"
 #include "slave/MockCamera.h"
 #include "slave/MockDisplay.h"
 #include "slave/ProCamApplication.h"
@@ -134,6 +134,11 @@ void ProCamApplication::getCameraParams(CameraParams& cameraParams) {
   cameraParams = camera_->getParameters();
 }
 
+void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
+  std::cout << "Procam Params\n";
+  displayParams = display_->getParameters();
+}
+
 void ProCamApplication::displayGrayCode(
     const Orientation::type orientation,
     const int16_t level)
@@ -141,7 +146,7 @@ void ProCamApplication::displayGrayCode(
   cv::Mat grayCodeImage = grayCode_->getPattern(
       orientationCast(orientation),
       static_cast<size_t>(level));
-
+  std::cout << "Displaying gray code pattern: " << level << std::endl;
   display_->displayImage(grayCodeImage);
 }
 

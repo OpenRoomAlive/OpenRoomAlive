@@ -6,6 +6,7 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "core/ProCam.h"
 
 namespace dv { namespace slave {
 
@@ -26,6 +27,11 @@ class Display {
    * Closes the display.
    */
   virtual void stop() = 0;
+
+  /**
+   * Retrieves the parameters of the display.
+   */
+  virtual DisplayParams getParameters() = 0;
 
   /**
    * Sets the image displayed on the screen.

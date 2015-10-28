@@ -5,7 +5,9 @@
 #include "core/Exception.h"
 #include "slave/GLDisplay.h"
 
+using namespace dv;
 using namespace dv::slave;
+
 
 
 void GLDisplay::onKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -36,6 +38,7 @@ GLDisplay::GLDisplay()
   , texture_(0)
   , window_(nullptr)
 {
+  openWindow();
 }
 
 
@@ -43,7 +46,62 @@ GLDisplay::~GLDisplay() {
   destroy();
 }
 
+DisplayParams GLDisplay::getParameters() {
+  try {
+    int frameWidth = 0;
+    int frameHeight = 0;
+
+    glfwGetFramebufferSize(window_, &frameWidth, &frameHeight);
+
+    if (frameWidth == 0 || frameHeight == 0) {
+      // Failed to retrieve the dimensions of the display.
+      throw EXCEPTION() << "Could not retrieve dimensions of the display.";
+    }
+
+    DisplayParams params;
+    params.frameWidth = frameWidth;
+    params.frameHeight = frameHeight;
+    return params;
+  } catch (...) {
+    destroy();
+    throw;
+  }
+}
+
 void GLDisplay::run() {
+  try {
+    glfwMakeContextCurrent(window_);
+
+    int screenWidth, screenHeight;
+    glfwGetFramebufferSize(window_, &screenWidth, &screenHeight);
+    glViewport(0, 0, screenWidth, screenHeight);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &texture_);
+    glBindTexture(GL_TEXTURE_2D, texture_);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    loop();
+
+    destroy();
+  } catch (...) {
+    destroy();
+    throw;
+  }
+}
+
+void GLDisplay::displayImage(const cv::Mat &image) {
+  std::lock_guard<std::mutex> locker(lock_);
+  image_ = image;
+}
+
+void GLDisplay::openWindow(){
   try {
     if (!glfwInit()) {
       throw EXCEPTION() << "Cannot initialize GLFW.";
@@ -78,38 +136,11 @@ void GLDisplay::run() {
     if (!window_) {
       throw EXCEPTION() << "Cannot open GLFW window.";
     }
-
-    glfwMakeContextCurrent(window_);
-
-    int screenWidth, screenHeight;
-    glfwGetFramebufferSize(window_, &screenWidth, &screenHeight);
-    glViewport(0, 0, screenWidth, screenHeight);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
-    glEnable(GL_TEXTURE_2D);
-    glGenTextures(1, &texture_);
-    glBindTexture(GL_TEXTURE_2D, texture_);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-    loop();
-
-    destroy();
   } catch (...) {
     destroy();
     throw;
   }
 }
-
-void GLDisplay::displayImage(const cv::Mat &image) {
-  std::lock_guard<std::mutex> locker(lock_);
-  image_ = image;
-}
-
 
 void GLDisplay::destroy() {
   if (texture_) {

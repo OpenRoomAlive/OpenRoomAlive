@@ -36,6 +36,7 @@ SET_SOURCE_FILES_PROPERTIES(
 SET(SOURCES
     Exception.cc
     Projection.cc
+    GrayCode.cc
 )
 
 # List of all files in core.
@@ -43,6 +44,7 @@ SET(HEADERS
     Async.h
     Exception.h
     Projection.h
+    GrayCode.h
 )
 
 # List of all tests.

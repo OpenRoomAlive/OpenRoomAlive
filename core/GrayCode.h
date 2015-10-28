@@ -27,6 +27,18 @@ class GrayCode {
    */
   cv::Mat getPattern(Orientation orientation, size_t level);
 
+  /**
+   * Utility function which given a dimension calculates the level.
+   */
+  static inline size_t calculateLevel(size_t pixels) {
+    for (size_t level = 0; level < 32; ++level) {
+      if (((size_t) 1 << level) >= pixels) {
+        return level;
+      }
+    }
+    return 0;
+  }
+
  private:
   size_t width_;
   size_t height_;

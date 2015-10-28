@@ -17,6 +17,7 @@
 #include "core/Exception.h"
 #include "master/MasterApplication.h"
 #include "master/MasterConnectionHandler.h"
+#include "master/Calibrator.h"
 
 using namespace dv::master;
 
@@ -48,7 +49,17 @@ int MasterApplication::run() {
 
   // Wait for all the procams to connect.
   std::cout << "Waiting for " << procamTotal_ << " connections." << std::endl;
-  connectionHandler_->waitForConnections(procamTotal_);
+  auto connectionIds = connectionHandler_->waitForConnections(procamTotal_);
+
+  std::cout << "IDs of the connected procams:" << std::endl;
+  for (const auto &id : connectionIds) {
+    std::cout << "  " << id << std::endl;
+  }
+
+  Calibrator calibrator(connectionIds, connectionHandler_);
+
+  // Display the gray code patterns for calibration.
+  calibrator.displayGrayCodes();
 
   // Wait for user input.
   getchar();

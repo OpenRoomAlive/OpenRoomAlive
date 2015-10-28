@@ -7,18 +7,10 @@
 #include <opencv2/core/core.hpp>
 
 #include "core/Exception.h"
-#include "slave/GrayCode.h"
+#include "core/GrayCode.h"
 
 using namespace dv::slave;
 
-static inline size_t calculateLevel(size_t pixels) {
-  for (size_t level = 0; level < 32; ++level) {
-    if (((size_t) 1 << level) >= pixels) {
-      return level;
-    }
-  }
-  return 0;
-}
 
 /**
  * width and height are clipped off at ceil log2.

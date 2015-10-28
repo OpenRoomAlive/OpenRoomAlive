@@ -39,6 +39,11 @@ struct CameraParams {
   2: IrParams ir;
 }
 
+struct DisplayParams {
+  1: i16 frameWidth;
+  2: i16 frameHeight;
+}
+
 enum Orientation {
   HORIZONTAL = 0,
   VERTICAL   = 1
@@ -52,6 +57,11 @@ service ProCam {
    * Retrieves the parameters of the Color and Ir cameras.
    */
   CameraParams getCameraParams(),
+
+  /**
+   * Retrieves the parameters of the display.
+   */
+  DisplayParams getDisplayParams(),
 
   /**
    * Displays the specified gray code pattern.

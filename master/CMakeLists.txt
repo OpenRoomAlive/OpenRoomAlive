@@ -3,6 +3,7 @@
 # (C) 2015 Group 13. All rights reserved.
 
 SET(SOURCES
+    Calibrator.cc
     main.cc
     MasterApplication.cc
     MasterConnectionHandler.cc
@@ -11,6 +12,7 @@ SET(SOURCES
     ProCamSystem.cc
 )
 SET(HEADERS
+    Calibrator.h
     MasterApplication.h
     MasterConnectionHandler.h
     MasterServer.h

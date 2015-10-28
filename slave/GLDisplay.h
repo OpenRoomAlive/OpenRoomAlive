@@ -43,7 +43,17 @@ class GLDisplay : public Display {
    */
   void displayImage(const cv::Mat &image) override;
 
+  /**
+   * Retrieves the parameters of the display.
+   */
+  DisplayParams getParameters() override;
+
  private:
+  /**
+   * Open a new GLFW window for this display.
+   */
+  void openWindow();
+
   /**
    * GLFW cleanup.
    */

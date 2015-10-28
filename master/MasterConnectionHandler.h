@@ -4,11 +4,14 @@
 
 #pragma once
 
+#include <atomic>
 #include <condition_variable>
 #include <future>
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <unordered_map>
+#include <vector>
 
 #include <boost/enable_shared_from_this.hpp>
 
@@ -20,6 +23,11 @@
 
 namespace dv { namespace master {
 
+/*
+ * All connections to procams are identified by ID equal to the ID of the
+ * associated ProCam.
+ */
+using ConnectionID = uint64_t;
 
 /**
  * Manages ProCam connections.
@@ -48,8 +56,14 @@ class MasterConnectionHandler
 
   /**
    * Blocks until a specific number of procams connect.
+   * Returns the IDs of the ProCams that connected.
    */
-  void waitForConnections(size_t count);
+  std::vector<ConnectionID> waitForConnections(size_t count);
+
+  /**
+   * Returns a ProCamClient for a procam identified with a given ID.
+   */
+  std::shared_ptr<ProCamClient> getProCamClient(ConnectionID id);
 
   /**
    * Disconnects all procams.
@@ -62,9 +76,9 @@ class MasterConnectionHandler
    */
   struct Connection {
     /// Connection to the procam unit.
-    boost::shared_ptr<TBufferedTransport> transport;
+    const boost::shared_ptr<TBufferedTransport> transport;
     /// Procam client.
-    std::shared_ptr<ProCamClient> client;
+    const std::shared_ptr<ProCamClient> client;
 
     /**
      * Constructor for emplace_back.
@@ -102,7 +116,7 @@ class MasterConnectionHandler
         std::promise<Ret> promise,
         std::shared_ptr<ProCamClient> client)
     {
-      promise.set_value_at_thread_exit((client.get()->*func) (args...));
+      promise.set_value((client.get()->*func) (args...));
     };
 
     // Launch all threads & create futures for all results.
@@ -116,7 +130,7 @@ class MasterConnectionHandler
       std::thread(
           executor,
           std::move(promise),
-          connection.client
+          connection.second.client
       ).detach();
     }
 
@@ -175,13 +189,15 @@ class MasterConnectionHandler
   }
 
   /// List of connections to procams.
-  std::vector<Connection> connections_;
+  std::unordered_map<ConnectionID, Connection> connections_;
   /// Mutex protecting the connections.
   std::mutex lock_;
   /// Condition variable to check on client count.
   std::condition_variable connectionCountCondition_;
   // Port on which every ProCam listens to requests from the master.
   const uint16_t proCamPort_;
+  /// ID assigned to the next incomming connection to the master.
+  std::atomic<ConnectionID> nextID_;
 };
 
 }}

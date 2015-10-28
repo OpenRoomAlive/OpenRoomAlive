@@ -10,7 +10,6 @@
 #include <thrift/server/TServer.h>
 
 #include "core/ProCam.h"
-#include "slave/GrayCode.h"
 #include "slave/GLDisplay.h"
 
 
@@ -42,6 +41,11 @@ class ProCamApplication : public ProCamIf {
    * Retrieves the camera parameters.
    */
   void getCameraParams(CameraParams& cameraParams) override;
+
+  /**
+   * Retrieves the parameters of the display.
+   */
+  void getDisplayParams(DisplayParams& displayParams) override;
 
   /**
    * Displays the specified gray code pattern.

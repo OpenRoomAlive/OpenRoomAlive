@@ -19,7 +19,7 @@ using ProCamID = uint64_t;
  */
 class ProCam {
  public:
-  ProCam(ProCamID id);
+  ProCam(ProCamID id, size_t frameWidth, size_t frameHeight);
   ~ProCam();
 
   /// Returns the ID of the camera.
@@ -31,9 +31,19 @@ class ProCam {
   void operator = (const ProCam&) = delete;
   void operator = (ProCam &&) = delete;
 
+  // Get width of the projector frame.
+  size_t getFrameWidth();
+
+  // Get height of the projector frame.
+  size_t getFrameHeight();
+
  private:
   // ID of the camera.
   const ProCamID id_;
+  // Width of the frame displayed by the projetor.
+  const size_t frameWidth_;
+  // Height of the frame displayed by the projector.
+  const size_t frameHeight_;
 };
 
 } }

@@ -11,6 +11,7 @@
 
 using namespace std::literals;
 using namespace dv::slave;
+using namespace dv;
 
 
 MockDisplay::MockDisplay()
@@ -48,6 +49,13 @@ void MockDisplay::run() {
   }
 
   tcsetattr(fd, TCSANOW, &oldSettings);
+}
+
+DisplayParams MockDisplay::getParameters() {
+  DisplayParams params;
+  params.frameWidth = 1024;
+  params.frameHeight = 1024;
+  return params;
 }
 
 void MockDisplay::stop() {

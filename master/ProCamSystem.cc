@@ -18,8 +18,9 @@ std::shared_ptr<ProCam> ProCamSystem::addCamera() {
   std::shared_ptr<ProCam> proCam;
 
   {
+    // TODO: fix this
     std::unique_lock<std::mutex> locker(lock_);
-    auto result = proCams_.emplace(id, std::make_shared<ProCam>(id));
+    auto result = proCams_.emplace(id, std::make_shared<ProCam>(id, 0, 0));
     if (!result.second || result.first == proCams_.end()) {
       throw std::runtime_error("Cannot create procam unit.");
     }
