@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "master/MasterConnectionHandler.h"
+#include "master/ProCamSystem.h"
 
 namespace dv { namespace master {
 
@@ -17,7 +18,8 @@ class Calibrator {
  public:
   Calibrator(
       const std::vector<ConnectionID>& ids,
-      const boost::shared_ptr<MasterConnectionHandler>& connectionHandler);
+      const boost::shared_ptr<MasterConnectionHandler>& connectionHandler,
+      const std::shared_ptr<ProCamSystem>& system);
 
   ~Calibrator();
 
@@ -33,6 +35,8 @@ class Calibrator {
   const std::vector<ConnectionID> ids_;
   /// Pointer to the connection handler
   const boost::shared_ptr<MasterConnectionHandler> connectionHandler_;
+  /// ProCam system.
+  const std::shared_ptr<ProCamSystem> system_;
 };
 
 } }

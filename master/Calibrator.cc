@@ -7,10 +7,9 @@
 #include <chrono>
 #include <iostream>
 
-#include "Calibrator.h"
-
 #include "core/ProCam.h"
 #include "core/GrayCode.h"
+#include "master/Calibrator.h"
 
 using namespace dv::master;
 using namespace dv;
@@ -22,9 +21,11 @@ constexpr auto kGrayCodeDuration = 1000ms;
 
 Calibrator::Calibrator(
     const std::vector<ConnectionID>& ids,
-    const boost::shared_ptr<MasterConnectionHandler>& connectionHandler)
+    const boost::shared_ptr<MasterConnectionHandler>& connectionHandler,
+    const std::shared_ptr<ProCamSystem>& system)
   : ids_(ids)
   , connectionHandler_(connectionHandler)
+  , system_(system)
 {
 }
 
@@ -33,14 +34,11 @@ Calibrator::~Calibrator() {
 
 void Calibrator::displayGrayCodes() {
   for (const auto &id : ids_) {
-    // Get a connetion to the proCam unit.
-    auto procamClient = connectionHandler_->getProCamClient(id);
-    std::cout << "Display Params for ID " << id << ":" << std::endl;
-    dv::DisplayParams displayParams;
-    // Get the parameters of the display.
-    procamClient->getDisplayParams(displayParams);
+    auto displayParams = system_->getDisplayParams(id);
 
-    std::cout << "  " << displayParams.frameWidth << " " << displayParams.frameHeight << std::endl;
+    std::cout << "Display params for ProCam with ID: " << id << ". Params: "
+              << displayParams.frameWidth << " " << displayParams.frameHeight
+              << std::endl;
 
     size_t level = std::min(
         slave::GrayCode::calculateLevel(displayParams.frameWidth),
@@ -50,11 +48,11 @@ void Calibrator::displayGrayCodes() {
 
     for (size_t i = 0; i < level; i++) {
       // Display interchangebly the vertical and horizontal patterns.
-      procamClient->displayGrayCode(Orientation::type::VERTICAL, i);
+      connectionHandler_->displayGrayCode(id, Orientation::type::VERTICAL, i);
 
       std::this_thread::sleep_for(kGrayCodeDuration);
 
-      procamClient->displayGrayCode(Orientation::type::HORIZONTAL, i);
+      connectionHandler_->displayGrayCode(id, Orientation::type::HORIZONTAL, i);
 
       std::this_thread::sleep_for(kGrayCodeDuration);
     }

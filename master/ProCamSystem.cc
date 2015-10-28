@@ -2,8 +2,8 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
-#include "master/ProCam.h"
 #include "master/ProCamSystem.h"
+
 
 using namespace dv::master;
 
@@ -13,20 +13,40 @@ ProCamSystem::ProCamSystem() {
 ProCamSystem::~ProCamSystem() {
 }
 
-std::shared_ptr<ProCam> ProCamSystem::addCamera() {
-  auto id = ++nextID_;
-  std::shared_ptr<ProCam> proCam;
+void ProCamSystem::addCamera(
+    ConnectionID id,
+    const dv::CameraParams &camParams,
+    const dv::DisplayParams &displayParams)
+{
+  std::unique_lock<std::mutex> locker(lock_);
 
-  {
-    // TODO: fix this
-    std::unique_lock<std::mutex> locker(lock_);
-    auto result = proCams_.emplace(id, std::make_shared<ProCam>(id, 0, 0));
-    if (!result.second || result.first == proCams_.end()) {
-      throw std::runtime_error("Cannot create procam unit.");
-    }
-
-    proCam = result.first->second;
+  auto result = proCams_.emplace(id, ProCam(camParams, displayParams));
+  if (!result.second || result.first == proCams_.end()) {
+    throw std::runtime_error("Cannot create procam unit.");
   }
+}
 
-  return proCam;
+dv::CameraParams ProCamSystem::getCameraParams(ConnectionID id) {
+  std::unique_lock<std::mutex> locker(lock_);
+
+  auto it = proCams_.find(id);
+
+  if (it != proCams_.end()) {
+    return it->second.getCameraParams();
+  } else {
+    throw EXCEPTION() << "ProCam with a specified ID was not found.";
+  }
+}
+
+
+dv::DisplayParams ProCamSystem::getDisplayParams(ConnectionID id) {
+  std::unique_lock<std::mutex> locker(lock_);
+
+  auto it = proCams_.find(id);
+
+  if (it != proCams_.end()) {
+    return it->second.getDisplayParams();
+  } else {
+    throw EXCEPTION() << "ProCam with a specified ID was not found.";
+  }
 }

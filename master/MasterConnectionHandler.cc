@@ -93,17 +93,20 @@ std::vector<ConnectionID> MasterConnectionHandler::waitForConnections(
   return ids;
 }
 
-std::shared_ptr<ProCamClient> MasterConnectionHandler::getProCamClient(
-    ConnectionID id)
+void MasterConnectionHandler::displayGrayCode(
+    ConnectionID id,
+    Orientation::type orientation,
+    int16_t level)
 {
   auto it = connections_.find(id);
 
   if (it != connections_.end()) {
-    return it->second.client;
+    it->second.client->displayGrayCode(orientation, level);
   } else {
     throw EXCEPTION() << "Connection with a specified ID was not found.";
   }
 }
+
 
 void MasterConnectionHandler::stop() {
   std::lock_guard<std::mutex> locker(lock_);

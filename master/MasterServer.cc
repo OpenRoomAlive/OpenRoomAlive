@@ -15,6 +15,5 @@ MasterServer::~MasterServer() {
 }
 
 bool MasterServer::ping() {
-  std::cout << "Pinged by a Procam." << std::endl;
   return true;
 }

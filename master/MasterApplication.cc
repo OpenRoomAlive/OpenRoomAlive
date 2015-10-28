@@ -31,6 +31,7 @@ MasterApplication::MasterApplication(uint16_t port, size_t procamTotal)
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_),
         boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
+  , system_(new ProCamSystem())
 {
   if (procamTotal_ <= 0) {
     throw EXCEPTION() << "At least one procam should be attached.";
@@ -56,7 +57,19 @@ int MasterApplication::run() {
     std::cout << "  " << id << std::endl;
   }
 
-  Calibrator calibrator(connectionIds, connectionHandler_);
+  // Fetch camera params, display params
+  std::cout << "Fetching params from slaves..." << std::endl;
+  auto camerasParams  = connectionHandler_->getCamerasParams();
+  auto displaysParams = connectionHandler_->getDisplaysParams();
+  std::cout << "Fetching completed." << std::endl;
+
+  // Create ProCamSystem
+  for (const auto &id : connectionIds) {
+    system_->addCamera(id, camerasParams[id], displaysParams[id]);
+  }
+
+
+  Calibrator calibrator(connectionIds, connectionHandler_, system_);
 
   // Display the gray code patterns for calibration.
   calibrator.displayGrayCodes();

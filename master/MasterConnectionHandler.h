@@ -17,6 +17,7 @@
 
 #include <thrift/transport/TTransportUtils.h>
 
+#include "core/Exception.h"
 #include "core/Master.h"
 #include "core/ProCam.h"
 #include "master/MasterServer.h"
@@ -61,14 +62,53 @@ class MasterConnectionHandler
   std::vector<ConnectionID> waitForConnections(size_t count);
 
   /**
-   * Returns a ProCamClient for a procam identified with a given ID.
+   * Sends signal to given ProCam to display specified gray code.
    */
-  std::shared_ptr<ProCamClient> getProCamClient(ConnectionID id);
+  void displayGrayCode(
+      ConnectionID id,
+      Orientation::type orientation,
+      int16_t level);
 
   /**
    * Disconnects all procams.
    */
   void stop();
+
+  /**
+   * Invokes getCameraParams on all clients.
+   */
+  std::unordered_map<ConnectionID, CameraParams> getCamerasParams() {
+    return InvokeParallel(&ProCamClient::getCameraParams);
+  }
+
+  /**
+   * Invokes getDisplayParams on all clients.
+   */
+  std::unordered_map<ConnectionID, DisplayParams> getDisplaysParams() {
+    return InvokeParallel(&ProCamClient::getDisplayParams);
+  }
+
+  /**
+   * Invokes getRGBImage on all clients.
+   */
+  std::unordered_map<ConnectionID, Frame> getRGBImages() {
+    return InvokeParallel(&ProCamClient::getRGBImage);
+  }
+
+  /**
+   * Invokes getDepthImage on all clients.
+   */
+  std::unordered_map<ConnectionID, Frame> getDepthImages() {
+    return InvokeParallel(&ProCamClient::getDepthImage);
+  }
+
+  /**
+   * Invokes getUndistortedRGBImage on all clients.
+   */
+  std::unordered_map<ConnectionID, Frame> getUndistortedRGBImages() {
+    return InvokeParallel(&ProCamClient::getUndistortedRGBImage);
+  }
+
 
  private:
   /**
@@ -157,27 +197,35 @@ class MasterConnectionHandler
    * @param args... List of arguments.
    */
   template<typename Ret, typename ...Args>
-  std::vector<Ret> InvokeParallel(
+  std::unordered_map<ConnectionID, Ret> InvokeParallel(
       void (ProCamClient::* func) (Ret&, Args...),
       Args... args)
   {
+    using HashMap = std::unordered_map<ConnectionID, Ret>;
+
     // Helper lambda that executes the call and store the return
     // value in the ret argument. By-reference capture is
     // used in order to capture the variadic template args.
-    auto executor = [&] (Ret &ret, std::shared_ptr<ProCamClient> client) {
-      (client.get()->*func) (ret, args...);
+    auto executor = [&] (
+        typename HashMap::iterator it, 
+        std::shared_ptr<ProCamClient> client) 
+    {
+      (client.get()->*func) (it->second, args...);
     };
 
     // Launch all threads & create a vector to store results.
-    std::vector<Ret> results;
     std::vector<std::thread> threads;
+    HashMap results;
     for (const auto &connection : connections_) {
-      results.emplace_back();
-      threads.emplace_back(
+      auto it = results.emplace(connection.first, Ret());
+      if (!it.second) {
+        throw EXCEPTION() << "Cannot create result object.";
+      }
+      threads.push_back(std::thread(
           executor,
-          *results.rbegin(),
+          it.first,
           connection.second.client
-      );
+      ));
     }
 
     // Wait for all the threads to execute. They will emplace their

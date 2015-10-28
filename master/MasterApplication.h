@@ -8,6 +8,8 @@
 
 #include <thrift/server/TServer.h>
 
+#include "master/ProCamSystem.h"
+
 
 namespace dv { namespace master {
 
@@ -33,6 +35,8 @@ class MasterApplication {
   const boost::shared_ptr<MasterConnectionHandler> connectionHandler_;
   /// Thrift server.
   const std::shared_ptr<apache::thrift::server::TServer> server_;
+  /// ProCam system.
+  const std::shared_ptr<ProCamSystem> system_;
 };
 
 }}

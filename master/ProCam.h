@@ -6,12 +6,9 @@
 
 #include <glm/glm.hpp>
 
-namespace dv { namespace master {
+#include "core/ProCam.h"
 
-/**
- * All procams will get numeric IDs, assigned sequentially.
- */
-using ProCamID = uint64_t;
+namespace dv { namespace master {
 
 
 /**
@@ -19,31 +16,29 @@ using ProCamID = uint64_t;
  */
 class ProCam {
  public:
-  ProCam(ProCamID id, size_t frameWidth, size_t frameHeight);
+  ProCam() {}
+  ProCam(
+      const dv::CameraParams &camParams,
+      const dv::DisplayParams &displayParams);
   ~ProCam();
 
-  /// Returns the ID of the camera.
-  ProCamID getID() const { return id_; }
 
-  // Disallow copy and assign.
-  ProCam(const ProCam &) = delete;
-  ProCam(ProCam &&) = delete;
-  void operator = (const ProCam&) = delete;
-  void operator = (ProCam &&) = delete;
+  /**
+   * Returns the parameters of the Color and Ir cameras.
+   */
+  dv::CameraParams getCameraParams() const { return cameraParams_; }
 
-  // Get width of the projector frame.
-  size_t getFrameWidth();
+  /**
+   * Returns the parameters of the display.
+   */
+  dv::DisplayParams getDisplayParams() const { return displayParams_; }
 
-  // Get height of the projector frame.
-  size_t getFrameHeight();
 
  private:
-  // ID of the camera.
-  const ProCamID id_;
-  // Width of the frame displayed by the projetor.
-  const size_t frameWidth_;
-  // Height of the frame displayed by the projector.
-  const size_t frameHeight_;
+  /// Parameters of the Color and Ir cameras.
+  const dv::CameraParams cameraParams_;
+  /// Parameters of the display.
+  const dv::DisplayParams displayParams_;
 };
 
 } }
