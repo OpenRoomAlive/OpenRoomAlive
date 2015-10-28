@@ -176,7 +176,7 @@ class MasterConnectionHandler
       threads.emplace_back(
           executor,
           *results.rbegin(),
-          connection.client
+          connection.second.client
       );
     }
 
