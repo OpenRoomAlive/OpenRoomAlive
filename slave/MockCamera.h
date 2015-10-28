@@ -14,9 +14,11 @@ namespace dv { namespace slave {
  */
 class MockCamera : public RGBDCamera {
  public:
-  cv::Mat getRGBFrame() override;
-  cv::Mat getDepthFrame() override;
+  cv::Mat getRGBImage() override;
+  cv::Mat getDepthImage() override;
+  cv::Mat getUndistortedRGBImage() override;
   CameraParams getParameters() override;
 };
 
 }}
+

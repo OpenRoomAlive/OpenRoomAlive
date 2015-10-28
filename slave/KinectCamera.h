@@ -36,14 +36,19 @@ class KinectCamera : public RGBDCamera {
   ~KinectCamera();
 
   /**
-   * Retrieves undistorted depth image.
+   * Retrieves the RGB color image.
    */
-  cv::Mat getDepthFrame() override;
+  cv::Mat getRGBImage() override;
 
   /**
-   * Retrieves RGB color image.
+   * Retrieves the undistorted depth image.
    */
-  cv::Mat getRGBFrame() override;
+  cv::Mat getDepthImage() override;
+
+  /**
+   * Retrieves the color image for depth data.
+   */
+  cv::Mat getUndistortedRGBImage() override;
 
   /**
    * Retrieves camera parameters.

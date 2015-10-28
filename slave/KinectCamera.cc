@@ -57,7 +57,7 @@ KinectCamera::~KinectCamera() {
   dataPolling_.join();
 }
 
-cv::Mat KinectCamera::getDepthFrame() {
+cv::Mat KinectCamera::getDepthImage() {
   cv::Mat depth;
 
   {
@@ -74,9 +74,26 @@ cv::Mat KinectCamera::getDepthFrame() {
   return depth;
 }
 
-cv::Mat KinectCamera::getRGBFrame() {
+cv::Mat KinectCamera::getRGBImage() {
   std::lock_guard<std::mutex> locker(framesLock_);
   return rgb_;
+}
+
+cv::Mat KinectCamera::getUndistortedRGBImage() {
+  cv::Mat rgbd;
+
+  {
+    std::lock_guard<std::mutex> locker(framesLock_);
+
+    // Construct a cv::Mat from the frame.
+    rgbd = cv::Mat(
+        registered_.height,
+        registered_.width,
+        kBytesPerPixel,
+        registered_.data).clone();
+  }
+
+  return rgbd;
 }
 
 CameraParams KinectCamera::getParameters() {

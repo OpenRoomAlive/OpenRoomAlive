@@ -3,6 +3,7 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include <iostream>
+#include <string>
 #include <thread>
 
 #include <boost/make_shared.hpp>
@@ -106,7 +107,8 @@ int ProCamApplication::run() {
       transport->open();
       break;
     } catch (apache::thrift::TException& tx) {
-      std::cerr << "Connection failed. Retrying in " << wait.count() << "s." << std::endl;
+      std::cerr <<
+          "Connection failed. Retrying in " << wait.count() << "s" << std::endl;
       std::this_thread::sleep_for(wait);
     }
   }
@@ -139,6 +141,21 @@ void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
   displayParams = display_->getParameters();
 }
 
+void ProCamApplication::getRGBImage(Frame& frame) {
+  cv::Mat image = camera_->getRGBImage();
+  constructThriftFrame(image, frame);
+}
+
+void ProCamApplication::getDepthImage(Frame& frame) {
+  cv::Mat image = camera_->getDepthImage();
+  constructThriftFrame(image, frame);
+}
+
+void ProCamApplication::getUndistortedRGBImage(Frame& frame) {
+  cv::Mat image = camera_->getUndistortedRGBImage();
+  constructThriftFrame(image, frame);
+}
+
 void ProCamApplication::displayGrayCode(
     const Orientation::type orientation,
     const int16_t level)
@@ -153,5 +170,13 @@ void ProCamApplication::displayGrayCode(
 void ProCamApplication::close() {
   server_->stop();
   display_->stop();
+}
+
+void ProCamApplication::constructThriftFrame(
+    const cv::Mat& image, Frame& frame)
+{
+  frame.rows = image.rows;
+  frame.cols = image.cols;
+  frame.data = std::string(reinterpret_cast<const char*>(image.data));
 }
 

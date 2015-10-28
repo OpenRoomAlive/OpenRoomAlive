@@ -21,12 +21,17 @@ class RGBDCamera {
   /**
    * Returns the last RGB frame from the camera.
    */
-  virtual cv::Mat getRGBFrame() = 0;
+  virtual cv::Mat getRGBImage() = 0;
 
   /**
    * Returns the last depth frame from the camera.
    */
-  virtual cv::Mat getDepthFrame() = 0;
+  virtual cv::Mat getDepthImage() = 0;
+
+  /**
+   * Returns the last RGB frame for depth data.
+   */
+  virtual cv::Mat getUndistortedRGBImage() = 0;
 
   /**
    * Returns the camera calibration parameters.
@@ -35,3 +40,4 @@ class RGBDCamera {
 };
 
 }}
+

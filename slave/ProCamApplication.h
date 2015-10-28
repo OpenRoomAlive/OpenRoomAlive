@@ -48,6 +48,21 @@ class ProCamApplication : public ProCamIf {
   void getDisplayParams(DisplayParams& displayParams) override;
 
   /**
+   * Retrieves the RGB image (1920x1080).
+   */
+  void getRGBImage(Frame& frame) override;
+
+  /**
+   * Retrieves the undistorted Depth image (512x424).
+   */
+  void getDepthImage(Frame& frame) override;
+
+  /**
+   * Retrieves the color image for depth data (512x424).
+   */
+  void getUndistortedRGBImage(Frame& frame) override;
+
+  /**
    * Displays the specified gray code pattern.
    */
   void displayGrayCode(
@@ -58,6 +73,12 @@ class ProCamApplication : public ProCamIf {
    * Closes the client.
    */
   void close() override;
+
+ private:
+  /**
+   * Constructs a thrift Frame from a cv::Mat image representation.
+   */
+  void constructThriftFrame(const cv::Mat& image, Frame& frame);
 
  private:
   /// IP of the master node.

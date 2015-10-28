@@ -44,6 +44,12 @@ struct DisplayParams {
   2: i16 frameHeight;
 }
 
+struct Frame {
+  1: i32 rows;
+  2: i32 cols;
+  3: string data;
+}
+
 enum Orientation {
   HORIZONTAL = 0,
   VERTICAL   = 1
@@ -62,6 +68,21 @@ service ProCam {
    * Retrieves the parameters of the display.
    */
   DisplayParams getDisplayParams(),
+
+  /**
+   * Retrieves the RGB image (1920x1080).
+   */
+  Frame getRGBImage(),
+
+  /**
+   * Retrieves the undistorted depth image (512x424).
+   */
+  Frame getDepthImage(),
+
+  /**
+   * Retrieves the color image for depth data (512x424).
+   */
+  Frame getUndistortedRGBImage(),
 
   /**
    * Displays the specified gray code pattern.
