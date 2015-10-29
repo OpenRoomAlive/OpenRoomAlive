@@ -52,6 +52,8 @@ void Calibrator::displayGrayCodes() {
 
       std::this_thread::sleep_for(kGrayCodeDuration);
 
+      auto images = connectionHandler_->getUndistortedRGBImages();
+
       connectionHandler_->displayGrayCode(id, Orientation::type::HORIZONTAL, i);
 
       std::this_thread::sleep_for(kGrayCodeDuration);

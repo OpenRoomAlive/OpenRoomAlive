@@ -175,8 +175,11 @@ void ProCamApplication::close() {
 void ProCamApplication::constructThriftFrame(
     const cv::Mat& image, Frame& frame)
 {
+  auto data = reinterpret_cast<const char*>(image.data);
+  auto size = image.step[0] * image.rows;
+
   frame.rows = image.rows;
   frame.cols = image.cols;
-  frame.data = std::string(reinterpret_cast<const char*>(image.data));
+  frame.data = std::string(data, data + size);
 }
 

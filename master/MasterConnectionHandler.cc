@@ -114,3 +114,30 @@ void MasterConnectionHandler::stop() {
     connection.second.client->close();
   }
 }
+
+
+std::unordered_map<ConnectionID, cv::Mat>
+MasterConnectionHandler::getUndistortedRGBImages()
+{
+  std::unordered_map<ConnectionID, cv::Mat> cvFrames;
+
+  auto frames = InvokeParallel(&ProCamClient::getUndistortedRGBImage);
+  for (const auto &frame : frames) {
+    const auto &id = frame.first;
+    const auto &image = frame.second;
+
+    if (static_cast<size_t>(image.rows * image.cols * 4) != image.data.size()) {
+      throw EXCEPTION() << "Invalid undistorted RBG image.";
+    }
+
+    cvFrames[id] = cv::Mat(
+        image.rows,
+        image.cols,
+        CV_8UC4,
+        const_cast<char*>(image.data.c_str()),
+        1).clone();
+  }
+
+  return cvFrames;
+}
+

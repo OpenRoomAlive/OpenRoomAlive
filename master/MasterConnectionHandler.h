@@ -15,6 +15,8 @@
 
 #include <boost/enable_shared_from_this.hpp>
 
+#include <opencv2/opencv.hpp>
+
 #include <thrift/transport/TTransportUtils.h>
 
 #include "core/Exception.h"
@@ -105,10 +107,7 @@ class MasterConnectionHandler
   /**
    * Invokes getUndistortedRGBImage on all clients.
    */
-  std::unordered_map<ConnectionID, Frame> getUndistortedRGBImages() {
-    return InvokeParallel(&ProCamClient::getUndistortedRGBImage);
-  }
-
+  std::unordered_map<ConnectionID, cv::Mat> getUndistortedRGBImages();
 
  private:
   /**
@@ -207,8 +206,8 @@ class MasterConnectionHandler
     // value in the ret argument. By-reference capture is
     // used in order to capture the variadic template args.
     auto executor = [&] (
-        typename HashMap::iterator it, 
-        std::shared_ptr<ProCamClient> client) 
+        typename HashMap::iterator it,
+        std::shared_ptr<ProCamClient> client)
     {
       (client.get()->*func) (it->second, args...);
     };

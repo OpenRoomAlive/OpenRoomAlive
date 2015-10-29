@@ -28,5 +28,6 @@ TARGET_LINK_LIBRARIES(master
     boost_program_options
     core
     pthread
+    ${OpenCV_LIBRARIES}
 )
 
