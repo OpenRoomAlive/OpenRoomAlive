@@ -34,7 +34,7 @@ Calibrator::~Calibrator() {
 
 void Calibrator::displayGrayCodes() {
   for (const auto &id : ids_) {
-    auto displayParams = system_->getDisplayParams(id);
+    auto displayParams = system_->proCams_[id]->getDisplayParams();
 
     std::cout << "Display params for ProCam with ID: " << id << ". Params: "
               << displayParams.frameWidth << " " << displayParams.frameHeight

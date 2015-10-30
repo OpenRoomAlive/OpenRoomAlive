@@ -16,33 +16,31 @@
 
 namespace dv { namespace master {
 
+class Calibrator;
 class ProCam;
 
 /**
  * Class managing an ensemble of ProCam units.
  */
 class ProCamSystem {
+friend class Calibrator;
+
  public:
   ProCamSystem();
   ~ProCamSystem();
 
   /**
-   * Adds a new camera to the system.
+   * Adds a new ProCam to the system.
    */
-  void addCamera(
+  void addProCam(
       ConnectionID id,
       const dv::CameraParams &camParams,
       const dv::DisplayParams &displayParams);
 
   /**
-   * Returns the parameters of the Color and Ir cameras of given ProCam.
+   * Returns pointer to ProCam if there exists one with given id.
    */
-  dv::CameraParams getCameraParams(ConnectionID id);
-
-  /**
-   * Returns the parameters of the display of given ProCam.
-   */
-  dv::DisplayParams getDisplayParams(ConnectionID id);
+  std::shared_ptr<const ProCam> getProCam(ConnectionID id);
 
   // Disallow copy and assign.
   ProCamSystem(const ProCamSystem &) = delete;
@@ -54,7 +52,7 @@ class ProCamSystem {
   /// Lock protecting access to the procam system.
   std::mutex lock_;
   /// Hash map storing all procams.
-  std::unordered_map<ConnectionID, ProCam> proCams_;
+  std::unordered_map<ConnectionID, std::shared_ptr<ProCam>> proCams_;
 };
 
 } }

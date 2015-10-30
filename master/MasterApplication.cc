@@ -65,7 +65,7 @@ int MasterApplication::run() {
 
   // Create ProCamSystem
   for (const auto &id : connectionIds) {
-    system_->addCamera(id, camerasParams[id], displaysParams[id]);
+    system_->addProCam(id, camerasParams[id], displaysParams[id]);
   }
 
   Calibrator calibrator(connectionIds, connectionHandler_, system_);
