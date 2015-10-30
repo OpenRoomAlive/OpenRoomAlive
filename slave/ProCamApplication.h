@@ -77,11 +77,6 @@ class ProCamApplication : public ProCamIf {
 
  private:
   /**
-   * Constructs a thrift Frame from a cv::Mat image representation.
-   */
-  void constructThriftFrame(const cv::Mat& image, Frame& frame);
-
-  /**
    * Pings the master server.
    */
   void pingMaster();
@@ -104,3 +99,4 @@ class ProCamApplication : public ProCamIf {
 };
 
 }}
+

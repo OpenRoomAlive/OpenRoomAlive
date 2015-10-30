@@ -34,6 +34,7 @@ SET_SOURCE_FILES_PROPERTIES(
 
 # List of all sources in core.
 SET(SOURCES
+    Conv.cc
     Exception.cc
     Projection.cc
     GrayCode.cc
@@ -42,6 +43,7 @@ SET(SOURCES
 # List of all files in core.
 SET(HEADERS
     Async.h
+    Conv.h
     Exception.h
     Projection.h
     GrayCode.h

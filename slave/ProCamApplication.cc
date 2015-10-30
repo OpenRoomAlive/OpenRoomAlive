@@ -16,6 +16,7 @@
 #include <thrift/transport/TTransportUtils.h>
 
 #include "core/Async.h"
+#include "core/Conv.h"
 #include "core/Master.h"
 #include "core/Exception.h"
 #include "slave/Display.h"
@@ -124,17 +125,17 @@ void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
 
 void ProCamApplication::getRGBImage(Frame& frame) {
   cv::Mat image = camera_->getRGBImage();
-  constructThriftFrame(image, frame);
+  conv::cvMatToThriftFrame(image, frame);
 }
 
 void ProCamApplication::getDepthImage(Frame& frame) {
   cv::Mat image = camera_->getDepthImage();
-  constructThriftFrame(image, frame);
+  conv::cvMatToThriftFrame(image, frame);
 }
 
 void ProCamApplication::getUndistortedRGBImage(Frame& frame) {
   cv::Mat image = camera_->getUndistortedRGBImage();
-  constructThriftFrame(image, frame);
+  conv::cvMatToThriftFrame(image, frame);
 }
 
 void ProCamApplication::displayGrayCode(
@@ -152,17 +153,6 @@ void ProCamApplication::displayGrayCode(
 void ProCamApplication::close() {
   server_->stop();
   display_->stop();
-}
-
-void ProCamApplication::constructThriftFrame(
-    const cv::Mat& image, Frame& frame)
-{
-  auto data = reinterpret_cast<const char*>(image.data);
-  auto size = image.step[0] * image.rows;
-
-  frame.rows = image.rows;
-  frame.cols = image.cols;
-  frame.data = std::string(data, data + size);
 }
 
 void ProCamApplication::pingMaster() {
@@ -198,3 +188,4 @@ void ProCamApplication::pingMaster() {
   std::cout << "Connected to master." << std::endl;
   transport->close();
 }
+

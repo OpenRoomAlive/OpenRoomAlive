@@ -10,7 +10,7 @@
 /**
  * Provides functions used for camera calibration.
  */
-namespace dv { namespace core { namespace projection {
+namespace dv { namespace projection {
 
 
 /**
@@ -31,5 +31,5 @@ cv::Point2f project(
     float k2,
     const cv::Point3f& point);
 
-}}}
+}}
 

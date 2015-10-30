@@ -4,7 +4,7 @@
 
 #include "core/Projection.h"
 
-using namespace dv::core::projection;
+using namespace dv::projection;
 
 
 cv::Point2f project(

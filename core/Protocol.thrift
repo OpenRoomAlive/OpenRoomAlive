@@ -47,7 +47,8 @@ struct DisplayParams {
 struct Frame {
   1: i32 rows;
   2: i32 cols;
-  3: string data;
+  3: i64 format;
+  4: string data;
 }
 
 enum Orientation {

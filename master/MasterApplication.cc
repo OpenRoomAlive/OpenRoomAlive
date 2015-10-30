@@ -73,16 +73,6 @@ int MasterApplication::run() {
   // Display the gray code patterns for calibration.
   //calibrator.displayGrayCodes();
 
-  // DEBUG - will be removed.
-  // comment out line 74 and uncomment the code below
-  /*
-  for (const auto& id : connectionIds) {
-    while (true) {
-      connectionHandler_->displayWhatYouSee(id);
-    }
-  }
-  */
-
   // Wait for user input.
   getchar();
 
