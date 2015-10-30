@@ -116,11 +116,11 @@ void MasterConnectionHandler::stop() {
 
 
 std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getUndistortedRGBImages()
+MasterConnectionHandler::getUndistortedColorImages()
 {
   std::unordered_map<ConnectionID, cv::Mat> cvFrames;
 
-  auto frames = InvokeParallel(&ProCamClient::getUndistortedRGBImage);
+  auto frames = InvokeParallel(&ProCamClient::getUndistortedColorImage);
   for (const auto &frame : frames) {
     const auto &id = frame.first;
     const auto &image = frame.second;

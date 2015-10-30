@@ -27,9 +27,9 @@ class KinectCamera : public RGBDCamera {
   ~KinectCamera();
 
   /**
-   * Retrieves the RGB color image.
+   * Retrieves the BGR color image.
    */
-  cv::Mat getRGBImage() override;
+  cv::Mat getColorImage() override;
 
   /**
    * Retrieves the undistorted depth image.
@@ -39,7 +39,7 @@ class KinectCamera : public RGBDCamera {
   /**
    * Retrieves the color image for depth data.
    */
-  cv::Mat getUndistortedRGBImage() override;
+  cv::Mat getUndistortedColorImage() override;
 
   /**
    * Retrieves camera parameters.
@@ -68,12 +68,12 @@ class KinectCamera : public RGBDCamera {
   libfreenect2::SyncMultiFrameListener listener_;
   /// Kinect registration.
   std::shared_ptr<libfreenect2::Registration> registration_;
-  /// RGB color image (1920x1080).
-  cv::Mat rgb_;
+  /// BGR color image (1920x1080).
+  cv::Mat bgr_;
   /// Undistorted depth image (512x424).
   cv::Mat depth_;
-  /// Undistorted color image for depth data (512x424).
-  cv::Mat rgbUndistorted_;
+  /// Undistorted BGR color image for depth data (512x424).
+  cv::Mat bgrUndistorted_;
   /// Mutex guarding the frames.
   std::mutex framesLock_;
   /// Serial ID of the kinect.

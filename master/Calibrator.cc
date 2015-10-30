@@ -53,7 +53,7 @@ void Calibrator::displayGrayCodes() {
 
       std::this_thread::sleep_for(kGrayCodeDuration);
 
-      auto images = connectionHandler_->getUndistortedRGBImages();
+      auto images = connectionHandler_->getUndistortedColorImages();
 
       cv::Mat temp;
       cv::resize(images[id], temp, cv::Size(640, 480));

@@ -49,9 +49,9 @@ class ProCamApplication : public ProCamIf {
   void getDisplayParams(DisplayParams& displayParams) override;
 
   /**
-   * Retrieves the RGB image (1920x1080).
+   * Retrieves the color BGR image (1920x1080).
    */
-  void getRGBImage(Frame& frame) override;
+  void getColorImage(Frame& frame) override;
 
   /**
    * Retrieves the undistorted Depth image (512x424).
@@ -61,7 +61,7 @@ class ProCamApplication : public ProCamIf {
   /**
    * Retrieves the color image for depth data (512x424).
    */
-  void getUndistortedRGBImage(Frame& frame) override;
+  void getUndistortedColorImage(Frame& frame) override;
 
   /**
    * Displays the specified gray code pattern.

@@ -8,7 +8,7 @@ using namespace dv;
 using namespace dv::slave;
 
 
-cv::Mat MockCamera::getRGBImage() {
+cv::Mat MockCamera::getColorImage() {
   // 1x1 RGB image.
   return cv::Mat(1, 1, kColorFormat);
 }
@@ -18,7 +18,7 @@ cv::Mat MockCamera::getDepthImage() {
   return cv::Mat(1, 1, kDepthFormat);
 }
 
-cv::Mat MockCamera::getUndistortedRGBImage() {
+cv::Mat MockCamera::getUndistortedColorImage() {
   return cv::Mat(1, 1, kColorFormat);
 }
 

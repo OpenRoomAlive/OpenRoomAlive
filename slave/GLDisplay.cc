@@ -191,7 +191,7 @@ void GLDisplay::loop() {
             displayedImage_.cols,
             displayedImage_.rows,
             0,
-            GL_RGB,
+            GL_BGR,
             GL_UNSIGNED_BYTE,
             displayedImage_.data
         );
@@ -205,7 +205,7 @@ void GLDisplay::loop() {
             displayedImage_.cols,
             displayedImage_.rows,
             0,
-            GL_RGBA,
+            GL_BGRA,
             GL_UNSIGNED_BYTE,
             displayedImage_.data
         );

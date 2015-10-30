@@ -14,9 +14,9 @@ namespace dv { namespace slave {
  */
 class MockCamera : public RGBDCamera {
  public:
-  cv::Mat getRGBImage() override;
+  cv::Mat getColorImage() override;
   cv::Mat getDepthImage() override;
-  cv::Mat getUndistortedRGBImage() override;
+  cv::Mat getUndistortedColorImage() override;
   CameraParams getParameters() override;
   void warmup() override {}
 };

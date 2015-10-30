@@ -107,7 +107,7 @@ int ProCamApplication::run() {
     // Debug stuff here.
     cv::namedWindow("test");
     while (cv::waitKey(1) != 'q') {
-      cv::imshow("test", camera_->getRGBImage());
+      cv::imshow("test", camera_->getColorImage());
     }
   }
 
@@ -123,8 +123,8 @@ void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
   displayParams = display_->getParameters();
 }
 
-void ProCamApplication::getRGBImage(Frame& frame) {
-  cv::Mat image = camera_->getRGBImage();
+void ProCamApplication::getColorImage(Frame& frame) {
+  cv::Mat image = camera_->getColorImage();
   conv::cvMatToThriftFrame(image, frame);
 }
 
@@ -133,8 +133,8 @@ void ProCamApplication::getDepthImage(Frame& frame) {
   conv::cvMatToThriftFrame(image, frame);
 }
 
-void ProCamApplication::getUndistortedRGBImage(Frame& frame) {
-  cv::Mat image = camera_->getUndistortedRGBImage();
+void ProCamApplication::getUndistortedColorImage(Frame& frame) {
+  cv::Mat image = camera_->getUndistortedColorImage();
   conv::cvMatToThriftFrame(image, frame);
 }
 

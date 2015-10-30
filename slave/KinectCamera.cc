@@ -17,9 +17,9 @@ KinectCamera::KinectCamera()
   : freenect_(new libfreenect2::Freenect2())
   , pipeline_(new libfreenect2::OpenGLPacketPipeline())
   , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
-  , rgb_(kColorImageHeight, kColorImageWidth, kColorFormat)
+  , bgr_(kColorImageHeight, kColorImageWidth, kColorFormat)
   , depth_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
-  , rgbUndistorted_(kDepthImageHeight, kDepthImageWidth, kColorFormat)
+  , bgrUndistorted_(kDepthImageHeight, kDepthImageWidth, kColorFormat)
   , isRunning_(false)
   , frameCount_(0)
 {
@@ -63,14 +63,14 @@ cv::Mat KinectCamera::getDepthImage() {
   return depth_;
 }
 
-cv::Mat KinectCamera::getRGBImage() {
+cv::Mat KinectCamera::getColorImage() {
   std::lock_guard<std::mutex> locker(framesLock_);
-  return rgb_;
+  return bgr_;
 }
 
-cv::Mat KinectCamera::getUndistortedRGBImage() {
+cv::Mat KinectCamera::getUndistortedColorImage() {
   std::lock_guard<std::mutex> locker(framesLock_);
-  return rgbUndistorted_;
+  return bgrUndistorted_;
 }
 
 CameraParams KinectCamera::getParameters() {
@@ -120,14 +120,11 @@ void KinectCamera::poll() {
       std::lock_guard<std::mutex> locker(framesLock_);
 
       // Construct the BGR image.
-      auto bgr = cv::Mat(
+      bgr_ = cv::Mat(
           frames[libfreenect2::Frame::Color]->height,
           frames[libfreenect2::Frame::Color]->width,
           kColorFormat,
           frames[libfreenect2::Frame::Color]->data).clone();
-
-      // Convert from BGR to RGB.
-      cv::cvtColor(bgr, rgb_, CV_BGRA2RGBA);
 
       // Undistort the image.
       registration_->apply(
@@ -144,14 +141,11 @@ void KinectCamera::poll() {
           undistorted.data).clone();
 
       // Construct the BGR undistorted image.
-      auto bgrUndistorted = cv::Mat(
+      bgrUndistorted_ = cv::Mat(
           registered.height,
           registered.width,
           kColorFormat,
           registered.data).clone();
-
-      // Convert from BGR to RGB.
-      cv::cvtColor(bgrUndistorted, rgbUndistorted_, CV_BGR2RGBA);
     }
 
     listener_.release(frames);
@@ -164,3 +158,4 @@ void KinectCamera::warmup() {
     return frameCount_ > 0;
   });
 }
+

@@ -71,9 +71,9 @@ service ProCam {
   DisplayParams getDisplayParams(),
 
   /**
-   * Retrieves the RGB image (1920x1080).
+   * Retrieves the BGR image (1920x1080).
    */
-  Frame getRGBImage(),
+  Frame getColorImage(),
 
   /**
    * Retrieves the undistorted depth image (512x424).
@@ -81,9 +81,9 @@ service ProCam {
   Frame getDepthImage(),
 
   /**
-   * Retrieves the color image for depth data (512x424).
+   * Retrieves the BGR image for depth data (512x424).
    */
-  Frame getUndistortedRGBImage(),
+  Frame getUndistortedColorImage(),
 
   /**
    * Displays the specified gray code pattern.
