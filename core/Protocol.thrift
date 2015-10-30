@@ -93,6 +93,12 @@ service ProCam {
    * Closes the procam app.
    */
   oneway void close()
+
+  /**
+   * Used for debugging.
+   * TODO(ilijar): remove when depth is fixed.
+   */
+  void displayWhatYouSee();
 }
 
 /**

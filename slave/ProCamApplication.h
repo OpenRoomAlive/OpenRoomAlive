@@ -74,6 +74,9 @@ class ProCamApplication : public ProCamIf {
    */
   void close() override;
 
+  // TEST
+  void displayWhatYouSee() override;
+
  private:
   /**
    * Constructs a thrift Frame from a cv::Mat image representation.

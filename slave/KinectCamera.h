@@ -22,7 +22,8 @@ namespace {
   const size_t kColorImageHeight = 1080;
   const size_t kDepthImageWidth = 512;
   const size_t kDepthImageHeight = 424;
-  const size_t kBytesPerPixel = 4;
+  const size_t kBytesPerPixelColor = CV_8UC4;
+  const size_t kBytesPerPixelDepth = CV_32FC1;
 
 } // anonymous namespace
 
@@ -74,10 +75,10 @@ class KinectCamera : public RGBDCamera {
   std::shared_ptr<libfreenect2::Registration> registration_;
   /// RGB color image (1920x1080).
   cv::Mat rgb_;
-  /// Undistorted depth image.
-  libfreenect2::Frame undistorted_;
-  /// Color image for the depth data (512x424).
-  libfreenect2::Frame registered_;
+  /// Undistorted depth image (512x424).
+  cv::Mat depth_;
+  /// Undistorted color image for depth data (512x424).
+  cv::Mat rgbUndistorted_;
   /// Mutex guarding the frames.
   std::mutex framesLock_;
   /// Serial ID of the kinect.

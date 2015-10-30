@@ -10,7 +10,13 @@ using namespace dv::slave;
 
 
 
-void GLDisplay::onKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void GLDisplay::onKeyCallback(
+    GLFWwindow* window,
+    int key,
+    int scancode,
+    int action,
+    int mods)
+{
   (void) scancode;
   (void) mods;
 
@@ -191,6 +197,20 @@ void GLDisplay::loop() {
         );
         break;
       }
+      case 4: {
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGB,
+            displayedImage_.cols,
+            displayedImage_.rows,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            displayedImage_.data
+        );
+        break;
+      }
       default: {
         throw EXCEPTION() << "Unsupported image type .";
       }
@@ -198,10 +218,10 @@ void GLDisplay::loop() {
 
     glClear(GL_COLOR_BUFFER_BIT);
     glBegin(GL_QUADS);
-      glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
-      glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f, +1.0f);
-      glTexCoord2f(1.0f, 1.0f); glVertex2f(+1.0f, +1.0f);
-      glTexCoord2f(1.0f, 0.0f); glVertex2f(+1.0f, -1.0f);
+      glTexCoord2f(1.0f, 1.0f); glVertex2f(-1.0f, -1.0f);
+      glTexCoord2f(1.0f, 0.0f); glVertex2f(-1.0f, +1.0f);
+      glTexCoord2f(0.0f, 0.0f); glVertex2f(+1.0f, +1.0f);
+      glTexCoord2f(0.0f, 1.0f); glVertex2f(+1.0f, -1.0f);
     glEnd();
 
     glfwSwapBuffers(window_);

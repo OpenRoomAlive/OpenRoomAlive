@@ -17,9 +17,9 @@ KinectCamera::KinectCamera()
   : freenect_(new libfreenect2::Freenect2())
   , pipeline_(new libfreenect2::OpenGLPacketPipeline())
   , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
-  , rgb_(kColorImageHeight, kColorImageWidth, kBytesPerPixel)
-  , undistorted_(kDepthImageWidth, kDepthImageHeight, kBytesPerPixel)
-  , registered_(kDepthImageWidth, kDepthImageHeight, kBytesPerPixel)
+  , rgb_(kColorImageHeight, kColorImageWidth, kBytesPerPixelColor)
+  , depth_(kDepthImageHeight, kDepthImageWidth, kBytesPerPixelDepth)
+  , rgbUndistorted_(kDepthImageHeight, kDepthImageWidth, kBytesPerPixelColor)
   , isRunning_(false)
 {
   // Find the kinect device.
@@ -58,20 +58,8 @@ KinectCamera::~KinectCamera() {
 }
 
 cv::Mat KinectCamera::getDepthImage() {
-  cv::Mat depth;
-
-  {
-    std::lock_guard<std::mutex> locker(framesLock_);
-
-    // Consturct a cv::Mat from the frame.
-    depth = cv::Mat(
-        undistorted_.height,
-        undistorted_.width,
-        kBytesPerPixel,
-        undistorted_.data).clone();
-  }
-
-  return depth;
+  std::lock_guard<std::mutex> locker(framesLock_);
+  return depth_;
 }
 
 cv::Mat KinectCamera::getRGBImage() {
@@ -80,20 +68,17 @@ cv::Mat KinectCamera::getRGBImage() {
 }
 
 cv::Mat KinectCamera::getUndistortedRGBImage() {
-  cv::Mat rgbd;
+  std::lock_guard<std::mutex> locker(framesLock_);
 
-  {
-    std::lock_guard<std::mutex> locker(framesLock_);
+  /*
+  std::cout << "SUM: "
+            << cv::sum(rgbUndistorted_)[0]
+            << " R: " << rgbUndistorted_.rows
+            << " C: " << rgbUndistorted_.cols
+            << std::endl;
+  */
 
-    // Construct a cv::Mat from the frame.
-    rgbd = cv::Mat(
-        registered_.height,
-        registered_.width,
-        kBytesPerPixel,
-        registered_.data).clone();
-  }
-
-  return rgbd;
+  return rgbUndistorted_;
 }
 
 CameraParams KinectCamera::getParameters() {
@@ -123,6 +108,8 @@ CameraParams KinectCamera::getParameters() {
 
 void KinectCamera::poll() {
   libfreenect2::FrameMap frames;
+  libfreenect2::Frame undistorted(kDepthImageWidth, kDepthImageHeight, 4);
+  libfreenect2::Frame registered(kDepthImageWidth, kDepthImageHeight, 4);
 
   while (isRunning_) {
 
@@ -132,19 +119,39 @@ void KinectCamera::poll() {
     {
       std::lock_guard<std::mutex> lock(framesLock_);
 
-      // Copy the color image before it gets released.
-      rgb_ = cv::Mat(
+      // Construct the BGR image.
+      auto bgr = cv::Mat(
           frames[libfreenect2::Frame::Color]->height,
           frames[libfreenect2::Frame::Color]->width,
-          kBytesPerPixel,
+          kBytesPerPixelColor,
           frames[libfreenect2::Frame::Color]->data).clone();
+
+      // Convert from BGR to RGB.
+      cv::cvtColor(bgr, rgb_, CV_BGRA2RGBA);
 
       // Undistort the image.
       registration_->apply(
           frames[libfreenect2::Frame::Color],
           frames[libfreenect2::Frame::Depth],
-          &undistorted_,
-          &registered_);
+          &undistorted,
+          &registered);
+
+      // Construct the undistorted depth image.
+      depth_ = cv::Mat(
+          undistorted.height,
+          undistorted.width,
+          kBytesPerPixelDepth,
+          undistorted.data).clone();
+
+      // Construct the BGR undistorted image.
+      auto bgrUndistorted = cv::Mat(
+          registered.height,
+          registered.width,
+          kBytesPerPixelDepth,
+          registered.data).clone();
+
+      // Convert from BGR to RGB.
+      //cv::cvtColor(bgrUndistorted, rgbUndistorted_, CV_BGRA2RGBA);
     }
 
     listener_.release(frames);

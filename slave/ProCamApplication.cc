@@ -172,6 +172,12 @@ void ProCamApplication::close() {
   display_->stop();
 }
 
+void ProCamApplication::displayWhatYouSee() {
+  display_->displayImage(camera_->getRGBImage());
+  //display_->displayImage(camera_->getUndistortedRGBImage());
+  //display_->displayImage(camera_->getDepthImage());
+}
+
 void ProCamApplication::constructThriftFrame(
     const cv::Mat& image, Frame& frame)
 {
