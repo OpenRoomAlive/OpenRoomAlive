@@ -107,11 +107,6 @@ void MasterConnectionHandler::displayGrayCode(
   }
 }
 
-void MasterConnectionHandler::displayWhatYouSee(ConnectionID id) {
-  auto it = connections_.find(id);
-  it->second.client->displayWhatYouSee();
-}
-
 void MasterConnectionHandler::stop() {
   std::lock_guard<std::mutex> locker(lock_);
   for (const auto &connection : connections_) {

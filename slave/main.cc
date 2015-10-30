@@ -52,6 +52,10 @@ int main(int argc, char **argv) {
         ( "enable-kinect"
         , po::value<bool>()->default_value(true)
         , "Enable kinect input."
+        )
+        ( "enable-master"
+        , po::value<bool>()->default_value(true)
+        , "Enables the connection to the master."
         );
 
     // Parse options.
@@ -70,7 +74,8 @@ int main(int argc, char **argv) {
         options["ip"].as<std::string>(),
         options["port"].as<uint16_t>(),
         options["enable-display"].as<bool>(),
-        options["enable-kinect"].as<bool>()
+        options["enable-kinect"].as<bool>(),
+        options["enable-master"].as<bool>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;

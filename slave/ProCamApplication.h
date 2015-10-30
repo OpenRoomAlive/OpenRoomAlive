@@ -29,7 +29,8 @@ class ProCamApplication : public ProCamIf {
       const std::string &masterIP,
       uint16_t port,
       bool enableDisplay,
-      bool enableKinect);
+      bool enableKinect,
+      bool enableMaster);
   ~ProCamApplication();
 
   /**
@@ -74,14 +75,16 @@ class ProCamApplication : public ProCamIf {
    */
   void close() override;
 
-  // TEST
-  void displayWhatYouSee() override;
-
  private:
   /**
    * Constructs a thrift Frame from a cv::Mat image representation.
    */
   void constructThriftFrame(const cv::Mat& image, Frame& frame);
+
+  /**
+   * Pings the master server.
+   */
+  void pingMaster();
 
  private:
   /// IP of the master node.
@@ -96,6 +99,8 @@ class ProCamApplication : public ProCamIf {
   const std::shared_ptr<Display> display_;
   /// Kinect camera implementation.
   const std::shared_ptr<RGBDCamera> camera_;
+  /// True if the master is pinged.
+  const bool enableMaster_;
 };
 
 }}

@@ -63,7 +63,8 @@ ProCamApplication::ProCamApplication(
     const std::string &masterIP,
     uint16_t port,
     bool enableDisplay,
-    bool enableKinect)
+    bool enableKinect,
+    bool enableMaster)
   : masterIP_(masterIP)
   , port_(port)
   , grayCode_(new GrayCode())
@@ -79,6 +80,7 @@ ProCamApplication::ProCamApplication(
   , camera_(enableKinect
         ? static_cast<RGBDCamera*>(new RGBDCameraImpl())
         : static_cast<RGBDCamera*>(new MockCamera()))
+  , enableMaster_(enableMaster)
 {
 }
 
@@ -91,40 +93,17 @@ int ProCamApplication::run() {
     server_->serve();
   });
 
-  // Send Procam's IP to master
-  namespace at  = apache::thrift;
-  namespace atp = apache::thrift::protocol;
-  namespace att = apache::thrift::transport;
-
-  auto socket    = boost::make_shared<att::TSocket>(masterIP_, port_);
-  auto transport = boost::make_shared<att::TBufferedTransport>(socket);
-  auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
-  MasterClient masterClient(protocol);
-
-  // Open a connection. If it fails, wait using binary exponential backoff.
-  for (auto wait = 1s; wait < MAX_CONNECT_WAIT; wait += wait) {
-    try {
-      transport->open();
-      break;
-    } catch (apache::thrift::TException& tx) {
-      std::cerr <<
-          "Connection failed. Retrying in " << wait.count() << "s" << std::endl;
-      std::this_thread::sleep_for(wait);
+  if (enableMaster_) {
+    // Actual workflow here.
+    pingMaster();
+    display_->run();
+  } else {
+    // Debug stuff here.
+    cv::namedWindow("test");
+    while (cv::waitKey(1) != 'q') {
+      cv::imshow("test", camera_->getRGBImage());
     }
   }
-  if (!transport->isOpen()) {
-    throw EXCEPTION() << "Cannot connect to master.";
-  }
-
-  // Ping the master.
-  if (!masterClient.ping()) {
-    return EXIT_FAILURE;
-  }
-  std::cout << "Connected to master." << std::endl;
-  transport->close();
-
-  // Run the display.
-  display_->run();
 
   // Stop everything.
   std::cerr << "Disconnected from master." << std::endl;
@@ -163,6 +142,7 @@ void ProCamApplication::displayGrayCode(
   cv::Mat grayCodeImage = grayCode_->getPattern(
       orientationCast(orientation),
       static_cast<size_t>(level));
+
   std::cout << "Displaying gray code pattern: " << level << std::endl;
   display_->displayImage(grayCodeImage);
 }
@@ -170,12 +150,6 @@ void ProCamApplication::displayGrayCode(
 void ProCamApplication::close() {
   server_->stop();
   display_->stop();
-}
-
-void ProCamApplication::displayWhatYouSee() {
-  //display_->displayImage(camera_->getRGBImage());
-  display_->displayImage(camera_->getUndistortedRGBImage());
-  //display_->displayImage(camera_->getDepthImage());
 }
 
 void ProCamApplication::constructThriftFrame(
@@ -189,3 +163,36 @@ void ProCamApplication::constructThriftFrame(
   frame.data = std::string(data, data + size);
 }
 
+void ProCamApplication::pingMaster() {
+  // Send Procam's IP to master
+  namespace at  = apache::thrift;
+  namespace atp = apache::thrift::protocol;
+  namespace att = apache::thrift::transport;
+
+  auto socket    = boost::make_shared<att::TSocket>(masterIP_, port_);
+  auto transport = boost::make_shared<att::TBufferedTransport>(socket);
+  auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
+  MasterClient masterClient(protocol);
+
+  // Open a connection. If it fails, wait using binary exponential backoff.
+  for (auto wait = 1s; wait < MAX_CONNECT_WAIT; wait += wait) {
+    try {
+      transport->open();
+      break;
+    } catch (apache::thrift::TException& tx) {
+      std::cerr <<
+          "Connection failed. Retrying in " << wait.count() << "s" << std::endl;
+      std::this_thread::sleep_for(wait);
+    }
+  }
+  if (!transport->isOpen()) {
+    throw EXCEPTION() << "Cannot connect to master.";
+  }
+
+  // Ping the master.
+  if (!masterClient.ping()) {
+    throw EXCEPTION() << "Error on master.";
+  }
+  std::cout << "Connected to master." << std::endl;
+  transport->close();
+}

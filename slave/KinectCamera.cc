@@ -69,15 +69,6 @@ cv::Mat KinectCamera::getRGBImage() {
 
 cv::Mat KinectCamera::getUndistortedRGBImage() {
   std::lock_guard<std::mutex> locker(framesLock_);
-
-  /*
-  std::cout << "SUM: "
-            << cv::sum(rgbUndistorted_)[0]
-            << " R: " << rgbUndistorted_.rows
-            << " C: " << rgbUndistorted_.cols
-            << std::endl;
-  */
-
   return rgbUndistorted_;
 }
 

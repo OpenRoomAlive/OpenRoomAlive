@@ -71,8 +71,6 @@ class MasterConnectionHandler
       Orientation::type orientation,
       int16_t level);
 
-  void displayWhatYouSee(ConnectionID id);
-
   /**
    * Disconnects all procams.
    */
