@@ -46,6 +46,11 @@ class RGBDCamera {
    * Returns the camera calibration parameters.
    */
   virtual CameraParams getParameters() = 0;
+
+  /**
+   * Waits for the first frame from the camers.
+   */
+  virtual void warmup() = 0;
 };
 
 }}

@@ -33,7 +33,6 @@ Calibrator::~Calibrator() {
 }
 
 void Calibrator::displayGrayCodes() {
-  std::this_thread::sleep_for(3s);
   cv::namedWindow("test");
   for (const auto &id : ids_) {
     auto displayParams = system_->getDisplayParams(id);

@@ -18,6 +18,7 @@ class MockCamera : public RGBDCamera {
   cv::Mat getDepthImage() override;
   cv::Mat getUndistortedRGBImage() override;
   CameraParams getParameters() override;
+  void warmup() override {}
 };
 
 }}

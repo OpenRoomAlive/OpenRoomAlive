@@ -21,6 +21,7 @@ KinectCamera::KinectCamera()
   , depth_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
   , rgbUndistorted_(kDepthImageHeight, kDepthImageWidth, kColorFormat)
   , isRunning_(false)
+  , frameCount_(0)
 {
   // Find the kinect device.
   if (freenect_->enumerateDevices() == 0) {
@@ -107,8 +108,16 @@ void KinectCamera::poll() {
     // Wait untill the frames are available.
     listener_.waitForNewFrame(frames);
 
+    // Increment the frame counter.
     {
-      std::lock_guard<std::mutex> lock(framesLock_);
+      std::unique_lock<std::mutex> locker(countLock_);
+      frameCount_++;
+      countLock_.unlock();
+      countCond_.notify_all();
+    }
+
+    {
+      std::lock_guard<std::mutex> locker(framesLock_);
 
       // Construct the BGR image.
       auto bgr = cv::Mat(
@@ -149,3 +158,9 @@ void KinectCamera::poll() {
   }
 }
 
+void KinectCamera::warmup() {
+  std::unique_lock<std::mutex> locker(countLock_);
+  countCond_.wait(locker, [this]() {
+    return frameCount_ > 0;
+  });
+}

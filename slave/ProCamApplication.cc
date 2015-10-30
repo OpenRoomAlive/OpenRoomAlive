@@ -88,15 +88,20 @@ ProCamApplication::~ProCamApplication() {
 }
 
 int ProCamApplication::run() {
-  // Responding to master node requests.
-  auto future = asyncExecute([this]() {
-    server_->serve();
-  });
+  camera_->warmup();
 
   if (enableMaster_) {
-    // Actual workflow here.
+    // Responding to master node requests.
+    auto future = asyncExecute([this]() {
+      server_->serve();
+    });
+
     pingMaster();
     display_->run();
+
+    // Stop everything.
+    std::cerr << "Disconnected from master." << std::endl;
+    future.get();
   } else {
     // Debug stuff here.
     cv::namedWindow("test");
@@ -105,9 +110,6 @@ int ProCamApplication::run() {
     }
   }
 
-  // Stop everything.
-  std::cerr << "Disconnected from master." << std::endl;
-  future.get();
   return EXIT_SUCCESS;
 }
 

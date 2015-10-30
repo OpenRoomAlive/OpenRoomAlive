@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
 
 #include <libfreenect2/frame_listener_impl.h>
@@ -45,6 +46,11 @@ class KinectCamera : public RGBDCamera {
    */
   CameraParams getParameters() override;
 
+  /**
+   * Blocks until the first frame is retrieved.
+   */
+  void warmup() override;
+
  private:
   /**
    * Retrieves frames from the device.
@@ -76,6 +82,12 @@ class KinectCamera : public RGBDCamera {
   std::thread dataPolling_;
   /// Flag indicating if the kinect is running.
   std::atomic<bool> isRunning_;
+  /// Number of frames retrieved.
+  uint64_t frameCount_;
+  /// Condition variable waiting on the first frame.
+  std::condition_variable countCond_;
+  /// Mutex protecting the frame count.
+  std::mutex countLock_;
 };
 
 }}
