@@ -15,7 +15,7 @@ namespace dv {
 /**
  * Specialization for void functions.
  */
-std::future<void> asyncExecute(std::function<void()> func) {
+inline std::future<void> asyncExecute(std::function<void()> func) {
   // Lambda to wrap the task & fulfill the promise.
   auto executor = [func] (std::promise<void> promise) {
     try {

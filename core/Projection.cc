@@ -4,7 +4,7 @@
 
 #include "core/Projection.h"
 
-using namespace dv::projection;
+namespace dv { namespace projection {
 
 
 cv::Point2f project(
@@ -32,4 +32,6 @@ cv::Point2f project(
 
   return cv::Point2f(u, v);
 }
+
+}}
 

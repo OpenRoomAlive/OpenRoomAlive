@@ -71,7 +71,18 @@ int MasterApplication::run() {
   Calibrator calibrator(connectionIds, connectionHandler_, system_);
 
   // Display the gray code patterns for calibration.
-  calibrator.displayGrayCodes();
+  //calibrator.displayGrayCodes();
+
+  /*
+  cv::namedWindow("test");
+  while (true) {
+    auto images = connectionHandler_->getUndistortedColorImages();
+    for (const auto &image : images) {
+      cv::imshow("test", image.second);
+    }
+    cv::waitKey(1);
+  }
+  */
 
   // Wait for user input.
   getchar();

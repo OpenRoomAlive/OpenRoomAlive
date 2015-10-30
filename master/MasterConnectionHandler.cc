@@ -11,6 +11,7 @@
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
+#include "core/Conv.h"
 #include "core/Exception.h"
 #include "master/MasterServer.h"
 #include "master/MasterConnectionHandler.h"
@@ -44,7 +45,8 @@ MasterServer* MasterConnectionHandler::getHandler(const TConnectionInfo& connInf
   auto sock = boost::dynamic_pointer_cast<att::TSocket>(connInfo.transport);
 
   // Set up a reverse connection.
-  auto socket = boost::make_shared<att::TSocket>(sock->getPeerAddress(), proCamPort_);
+  auto socket = boost::make_shared<att::TSocket>(
+      sock->getPeerAddress(), proCamPort_);
   auto transport = boost::make_shared<att::TBufferedTransport>(socket);
   auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
 
@@ -120,22 +122,14 @@ std::unordered_map<ConnectionID, cv::Mat>
 MasterConnectionHandler::getUndistortedColorImages()
 {
   std::unordered_map<ConnectionID, cv::Mat> cvFrames;
+  auto thriftFrames = InvokeParallel(&ProCamClient::getUndistortedColorImage);
 
-  auto frames = InvokeParallel(&ProCamClient::getUndistortedColorImage);
-  for (const auto &frame : frames) {
-    const auto &id = frame.first;
-    const auto &image = frame.second;
 
-    if (static_cast<size_t>(image.rows * image.cols * 4) != image.data.size()) {
-      throw EXCEPTION() << "Invalid undistorted RBG image.";
-    }
+  for (const auto &thriftFrame : thriftFrames) {
+    const auto &id = thriftFrame.first;
+    const auto &frame = thriftFrame.second;
 
-    cvFrames[id] = cv::Mat(
-        image.rows,
-        image.cols,
-        CV_8UC4,
-        const_cast<char*>(image.data.c_str()),
-        1).clone();
+    conv::thriftFrameToCvMat(frame, cvFrames[id]);
   }
 
   return cvFrames;

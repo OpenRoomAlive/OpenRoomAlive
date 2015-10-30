@@ -23,7 +23,7 @@ void cvMatToThriftFrame(const cv::Mat& image, Frame& frame);
 /**
  * Converts a thrift frame to a cv::Mat.
  */
-void thriftFrameToCvMat(Frame& frame, const cv::Mat& image);
+void thriftFrameToCvMat(const Frame& frame, cv::Mat& image);
 
 }}
 

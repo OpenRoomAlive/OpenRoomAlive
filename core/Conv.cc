@@ -3,6 +3,7 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include "core/Conv.h"
+#include "core/Exception.h"
 
 
 namespace dv { namespace conv {
@@ -18,11 +19,16 @@ void cvMatToThriftFrame(const cv::Mat& image, Frame& frame) {
   frame.data = std::string(data, data + size);
 }
 
-void thriftFrameToCvMat(Frame& frame, const cv::Mat& image) {
-  (void) image;
-  (void) frame;
+void thriftFrameToCvMat(const Frame& frame, cv::Mat& image) {
+  if (static_cast<size_t>(frame.rows * frame.cols * 4) != frame.data.size()) {
+    throw EXCEPTION() << "Invalid frame image.";
+  }
 
-  // TODO(ilijar)
+  image = cv::Mat(
+      frame.rows,
+      frame.cols,
+      frame.format,
+      const_cast<char*>(frame.data.c_str())).clone();
 }
 
 }}
