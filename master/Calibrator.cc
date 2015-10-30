@@ -33,6 +33,8 @@ Calibrator::~Calibrator() {
 }
 
 void Calibrator::displayGrayCodes() {
+  std::this_thread::sleep_for(3s);
+  cv::namedWindow("test");
   for (const auto &id : ids_) {
     auto displayParams = system_->getDisplayParams(id);
 
@@ -53,6 +55,11 @@ void Calibrator::displayGrayCodes() {
       std::this_thread::sleep_for(kGrayCodeDuration);
 
       auto images = connectionHandler_->getUndistortedRGBImages();
+
+      cv::Mat temp;
+      cv::resize(images[id], temp, cv::Size(640, 480));
+      cv::imshow("test", temp);
+      cv::waitKey(100000);
 
       connectionHandler_->displayGrayCode(id, Orientation::type::HORIZONTAL, i);
 

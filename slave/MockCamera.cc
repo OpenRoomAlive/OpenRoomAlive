@@ -10,16 +10,16 @@ using namespace dv::slave;
 
 cv::Mat MockCamera::getRGBImage() {
   // 1x1 RGB image.
-  return cv::Mat(1, 1, CV_8UC4);
+  return cv::Mat(1, 1, kColorFormat);
 }
 
 cv::Mat MockCamera::getDepthImage() {
-  // 1x1 16 bit depth.
-  return cv::Mat(1, 1, CV_32FC1);
+  // 1x1 32 bit float depth.
+  return cv::Mat(1, 1, kDepthFormat);
 }
 
 cv::Mat MockCamera::getUndistortedRGBImage() {
-  return cv::Mat(1, 1, CV_8UC4);
+  return cv::Mat(1, 1, kColorFormat);
 }
 
 CameraParams MockCamera::getParameters() {

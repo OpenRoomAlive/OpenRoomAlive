@@ -11,6 +11,15 @@
 
 namespace dv { namespace slave {
 
+
+constexpr size_t kColorImageWidth = 1920;
+constexpr size_t kColorImageHeight = 1080;
+constexpr size_t kDepthImageWidth = 512;
+constexpr size_t kDepthImageHeight = 424;
+constexpr auto kColorFormat = CV_8UC4;
+constexpr auto kDepthFormat = CV_32FC1;
+
+
 /**
  * Interface to RGBD cameras.
  */
