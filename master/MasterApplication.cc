@@ -76,7 +76,9 @@ int MasterApplication::run() {
   /*
   cv::namedWindow("test");
   while (true) {
-    auto images = connectionHandler_->getUndistortedColorImages();
+    //auto images = connectionHandler_->getUndistortedColorImages();
+    auto images = connectionHandler_->getColorImages();
+
     for (const auto &image : images) {
       cv::imshow("test", image.second);
     }

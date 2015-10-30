@@ -94,16 +94,12 @@ class MasterConnectionHandler
   /**
    * Invokes getColorImage on all clients.
    */
-  std::unordered_map<ConnectionID, Frame> getColorImages() {
-    return InvokeParallel(&ProCamClient::getColorImage);
-  }
+  std::unordered_map<ConnectionID, cv::Mat> getColorImages();
 
   /**
    * Invokes getDepthImage on all clients.
    */
-  std::unordered_map<ConnectionID, Frame> getDepthImages() {
-    return InvokeParallel(&ProCamClient::getDepthImage);
-  }
+  std::unordered_map<ConnectionID, cv::Mat> getDepthImages();
 
   /**
    * Invokes getUndistortedColorImage on all clients.

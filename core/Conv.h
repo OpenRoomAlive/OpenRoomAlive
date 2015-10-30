@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include <opencv2/opencv.hpp>
 
 #include "core/ProCam.h"
@@ -24,6 +26,25 @@ void cvMatToThriftFrame(const cv::Mat& image, Frame& frame);
  * Converts a thrift frame to a cv::Mat.
  */
 void thriftFrameToCvMat(const Frame& frame, cv::Mat& image);
+
+/**
+ * Converts a map of thrift frames to a map of cv::Mat.
+ */
+template <typename K>
+std::unordered_map<K, cv::Mat>
+thriftFrameToCvMatMap(std::unordered_map<K, Frame> frames)
+{
+  std::unordered_map<K, cv::Mat> images;
+
+  for (const auto& keyFrame : frames) {
+    const auto& key = keyFrame.first;
+    const auto& frame = keyFrame.second;
+
+    thriftFrameToCvMat(frame, images[key]);
+  }
+
+  return images;
+}
 
 }}
 

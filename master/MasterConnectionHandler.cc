@@ -117,21 +117,24 @@ void MasterConnectionHandler::stop() {
   }
 }
 
+std::unordered_map<ConnectionID, cv::Mat>
+MasterConnectionHandler::getColorImages()
+{
+  return conv::thriftFrameToCvMatMap(
+      InvokeParallel(&ProCamClient::getColorImage));
+}
+
+std::unordered_map<ConnectionID, cv::Mat>
+MasterConnectionHandler::getDepthImages()
+{
+  return conv::thriftFrameToCvMatMap(
+      InvokeParallel(&ProCamClient::getDepthImage));
+}
 
 std::unordered_map<ConnectionID, cv::Mat>
 MasterConnectionHandler::getUndistortedColorImages()
 {
-  std::unordered_map<ConnectionID, cv::Mat> cvFrames;
-  auto thriftFrames = InvokeParallel(&ProCamClient::getUndistortedColorImage);
-
-
-  for (const auto &thriftFrame : thriftFrames) {
-    const auto &id = thriftFrame.first;
-    const auto &frame = thriftFrame.second;
-
-    conv::thriftFrameToCvMat(frame, cvFrames[id]);
-  }
-
-  return cvFrames;
+  return conv::thriftFrameToCvMatMap(
+      InvokeParallel(&ProCamClient::getUndistortedColorImage));
 }
 
