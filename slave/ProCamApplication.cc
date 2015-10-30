@@ -140,14 +140,23 @@ void ProCamApplication::getUndistortedColorImage(Frame& frame) {
 
 void ProCamApplication::displayGrayCode(
     const Orientation::type orientation,
-    const int16_t level)
+    const int16_t level,
+    bool invertedGrayCode)
 {
   cv::Mat grayCodeImage = grayCode_->getPattern(
       orientationCast(orientation),
       static_cast<size_t>(level));
 
   std::cout << "Displaying gray code pattern: " << level << std::endl;
-  display_->displayImage(grayCodeImage);
+
+  // Display the inverted gray code if the flag is set.
+  if (invertedGrayCode) {
+    cv::Mat inverted;
+    cv::bitwise_not(grayCodeImage, inverted);
+    display_->displayImage(inverted);
+  } else {
+    display_->displayImage(grayCodeImage);
+  }
 }
 
 void ProCamApplication::close() {

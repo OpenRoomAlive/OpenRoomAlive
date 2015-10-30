@@ -68,7 +68,8 @@ class ProCamApplication : public ProCamIf {
    */
   void displayGrayCode(
       const Orientation::type orientation,
-      const int16_t level) override;
+      const int16_t level,
+      bool invertedGrayCode) override;
 
   /**
    * Closes the client.

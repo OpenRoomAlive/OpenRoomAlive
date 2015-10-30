@@ -69,7 +69,8 @@ class MasterConnectionHandler
   void displayGrayCode(
       ConnectionID id,
       Orientation::type orientation,
-      int16_t level);
+      int16_t level,
+      bool invertedGrayCode);
 
   /**
    * Disconnects all procams.

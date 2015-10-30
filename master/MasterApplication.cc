@@ -71,7 +71,7 @@ int MasterApplication::run() {
   Calibrator calibrator(connectionIds, connectionHandler_, system_);
 
   // Display the gray code patterns for calibration.
-  //calibrator.displayGrayCodes();
+  calibrator.displayGrayCodes();
 
   // Wait for user input.
   getchar();

@@ -96,12 +96,13 @@ std::vector<ConnectionID> MasterConnectionHandler::waitForConnections(
 void MasterConnectionHandler::displayGrayCode(
     ConnectionID id,
     Orientation::type orientation,
-    int16_t level)
+    int16_t level,
+    bool invertedGrayCode)
 {
   auto it = connections_.find(id);
 
   if (it != connections_.end()) {
-    it->second.client->displayGrayCode(orientation, level);
+    it->second.client->displayGrayCode(orientation, level, invertedGrayCode);
   } else {
     throw EXCEPTION() << "Connection with a specified ID was not found.";
   }

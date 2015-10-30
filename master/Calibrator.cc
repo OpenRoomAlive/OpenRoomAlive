@@ -49,18 +49,34 @@ void Calibrator::displayGrayCodes() {
 
     for (size_t i = 0; i < level; i++) {
       // Display interchangebly the vertical and horizontal patterns.
-      connectionHandler_->displayGrayCode(id, Orientation::type::VERTICAL, i);
+      // Display the vertical uninverted gray code.
+      connectionHandler_->displayGrayCode(
+          id, Orientation::type::VERTICAL, i, false);
 
       std::this_thread::sleep_for(kGrayCodeDuration);
 
-      auto images = connectionHandler_->getUndistortedColorImages();
+      // Display the inverted horizontal gray code.
+      connectionHandler_->displayGrayCode(
+          id, Orientation::type::VERTICAL, i, true);
+
+      std::this_thread::sleep_for(kGrayCodeDuration);
+
+      /*auto images = connectionHandler_->getUndistortedColorImages();
 
       cv::Mat temp;
       cv::resize(images[id], temp, cv::Size(640, 480));
       cv::imshow("test", temp);
-      cv::waitKey(100000);
+      cv::waitKey(100000);*/
 
-      connectionHandler_->displayGrayCode(id, Orientation::type::HORIZONTAL, i);
+      // Display the horizontal gray code.
+      connectionHandler_->displayGrayCode(
+          id, Orientation::type::HORIZONTAL, i, false);
+
+      std::this_thread::sleep_for(kGrayCodeDuration);
+
+      // Display the inverted vertical gray code.
+      connectionHandler_->displayGrayCode(
+          id, Orientation::type::HORIZONTAL, i, true);
 
       std::this_thread::sleep_for(kGrayCodeDuration);
     }
