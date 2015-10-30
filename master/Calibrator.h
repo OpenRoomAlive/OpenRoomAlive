@@ -30,6 +30,15 @@ class Calibrator {
    */
   void displayGrayCodes();
 
+  /**
+   * Display and capture a single level of gray code.
+   */
+  void displayAndCapture(
+      ConnectionID id,
+      Orientation::type orientation,
+      size_t level,
+      bool inverted);
+
  private:
   /// IDs of the procam connections
   const std::vector<ConnectionID> ids_;

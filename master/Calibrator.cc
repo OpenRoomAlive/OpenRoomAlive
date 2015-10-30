@@ -17,7 +17,7 @@ using namespace dv;
 using namespace std::chrono_literals;
 
 // Duration of a one element of gray code sequence in milliseconds.
-constexpr auto kGrayCodeDuration = 1000ms;
+constexpr auto kGrayCodeDuration = 2000ms;
 
 Calibrator::Calibrator(
     const std::vector<ConnectionID>& ids,
@@ -40,37 +40,35 @@ void Calibrator::displayGrayCodes() {
               << displayParams.frameWidth << " " << displayParams.frameHeight
               << std::endl;
 
-    size_t level = std::min(
-        slave::GrayCode::calculateLevel(displayParams.frameWidth),
-        slave::GrayCode::calculateLevel(displayParams.frameHeight));
-
-    std::cout << "  Levels: " << level << std::endl;
-
+    size_t level = slave::GrayCode::calculateLevel(displayParams.frameHeight);
     for (size_t i = 0; i < level; i++) {
-      // Display interchangebly the vertical and horizontal patterns.
-      // Display the vertical uninverted gray code.
-      connectionHandler_->displayGrayCode(
-          id, Orientation::type::VERTICAL, i, false);
+      displayAndCapture(id, Orientation::type::HORIZONTAL, i, false);
+      displayAndCapture(id, Orientation::type::HORIZONTAL, i, true);
+    }
 
-      std::this_thread::sleep_for(kGrayCodeDuration);
-
-      // Display the inverted horizontal gray code.
-      connectionHandler_->displayGrayCode(
-          id, Orientation::type::VERTICAL, i, true);
-
-      std::this_thread::sleep_for(kGrayCodeDuration);
-
-      // Display the horizontal gray code.
-      connectionHandler_->displayGrayCode(
-          id, Orientation::type::HORIZONTAL, i, false);
-
-      std::this_thread::sleep_for(kGrayCodeDuration);
-
-      // Display the inverted vertical gray code.
-      connectionHandler_->displayGrayCode(
-          id, Orientation::type::HORIZONTAL, i, true);
-
-      std::this_thread::sleep_for(kGrayCodeDuration);
+    level = slave::GrayCode::calculateLevel(displayParams.frameWidth);
+    for (size_t i = 0; i < level; i++) {
+      displayAndCapture(id, Orientation::type::VERTICAL, i, false);
+      displayAndCapture(id, Orientation::type::VERTICAL, i, true);
     }
   }
 }
+
+void Calibrator::displayAndCapture(
+    ConnectionID id,
+    Orientation::type orientation,
+    size_t level,
+    bool inverted)
+{
+  std::cout << "displaying level: " << level << std::endl;
+  // Display interchangebly the vertical and horizontal patterns.
+  // Display the vertical uninverted gray code.
+  connectionHandler_->displayGrayCode(id, orientation, level, inverted);
+
+  std::this_thread::sleep_for(kGrayCodeDuration);
+
+  // send a command to slave to save the current frame
+  auto captured = connectionHandler_->getColorImages();
+  (void) captured;
+}
+
