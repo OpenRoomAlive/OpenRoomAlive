@@ -173,8 +173,8 @@ void ProCamApplication::close() {
 }
 
 void ProCamApplication::displayWhatYouSee() {
-  display_->displayImage(camera_->getRGBImage());
-  //display_->displayImage(camera_->getUndistortedRGBImage());
+  //display_->displayImage(camera_->getRGBImage());
+  display_->displayImage(camera_->getUndistortedRGBImage());
   //display_->displayImage(camera_->getDepthImage());
 }
 

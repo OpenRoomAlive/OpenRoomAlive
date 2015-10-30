@@ -71,7 +71,7 @@ int MasterApplication::run() {
   Calibrator calibrator(connectionIds, connectionHandler_, system_);
 
   // Display the gray code patterns for calibration.
-  calibrator.displayGrayCodes();
+  //calibrator.displayGrayCodes();
 
   // DEBUG - will be removed.
   // comment out line 74 and uncomment the code below

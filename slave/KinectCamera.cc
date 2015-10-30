@@ -17,9 +17,9 @@ KinectCamera::KinectCamera()
   : freenect_(new libfreenect2::Freenect2())
   , pipeline_(new libfreenect2::OpenGLPacketPipeline())
   , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
-  , rgb_(kColorImageHeight, kColorImageWidth, kBytesPerPixelColor)
-  , depth_(kDepthImageHeight, kDepthImageWidth, kBytesPerPixelDepth)
-  , rgbUndistorted_(kDepthImageHeight, kDepthImageWidth, kBytesPerPixelColor)
+  , rgb_(kColorImageHeight, kColorImageWidth, kColorFormat)
+  , depth_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
+  , rgbUndistorted_(kDepthImageHeight, kDepthImageWidth, kColorFormat)
   , isRunning_(false)
 {
   // Find the kinect device.
@@ -123,7 +123,7 @@ void KinectCamera::poll() {
       auto bgr = cv::Mat(
           frames[libfreenect2::Frame::Color]->height,
           frames[libfreenect2::Frame::Color]->width,
-          kBytesPerPixelColor,
+          kColorFormat,
           frames[libfreenect2::Frame::Color]->data).clone();
 
       // Convert from BGR to RGB.
@@ -140,18 +140,18 @@ void KinectCamera::poll() {
       depth_ = cv::Mat(
           undistorted.height,
           undistorted.width,
-          kBytesPerPixelDepth,
+          kDepthFormat,
           undistorted.data).clone();
 
       // Construct the BGR undistorted image.
       auto bgrUndistorted = cv::Mat(
           registered.height,
           registered.width,
-          kBytesPerPixelDepth,
+          kColorFormat,
           registered.data).clone();
 
       // Convert from BGR to RGB.
-      //cv::cvtColor(bgrUndistorted, rgbUndistorted_, CV_BGRA2RGBA);
+      cv::cvtColor(bgrUndistorted, rgbUndistorted_, CV_BGR2RGBA);
     }
 
     listener_.release(frames);
