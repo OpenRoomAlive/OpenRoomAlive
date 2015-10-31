@@ -4,21 +4,21 @@
 
 SET(SOURCES ${SOURCES}
     main.cc
+    BGRDCamera.cc
     Display.cc
     GLDisplay.cc
     MockCamera.cc
     MockDisplay.cc
     ProCamApplication.cc
-    RGBDCamera.cc
 )
 
 SET(HEADERS ${HEADERS}
+    BGRDCamera.h
     Display.h
     GLDisplay.h
     MockCamera.h
     MockDisplay.h
     ProCamApplication.h
-    RGBDCamera.h
 )
 
 SET(LIBS

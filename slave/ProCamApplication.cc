@@ -28,9 +28,9 @@
 
 #if defined(KINECT_CAMERA)
   #include "slave/KinectCamera.h"
-  using RGBDCameraImpl = dv::slave::KinectCamera;
+  using BGRDCameraImpl = dv::slave::KinectCamera;
 #else
-  using RGBDCameraImpl = dv::slave::MockCamera;
+  using BGRDCameraImpl = dv::slave::MockCamera;
 #endif
 
 using namespace dv;
@@ -79,8 +79,8 @@ ProCamApplication::ProCamApplication(
         ? static_cast<Display*>(new GLDisplay())
         : static_cast<Display*>(new MockDisplay()))
   , camera_(enableKinect
-        ? static_cast<RGBDCamera*>(new RGBDCameraImpl())
-        : static_cast<RGBDCamera*>(new MockCamera()))
+        ? static_cast<BGRDCamera*>(new BGRDCameraImpl())
+        : static_cast<BGRDCamera*>(new MockCamera()))
   , enableMaster_(enableMaster)
 {
 }

@@ -21,11 +21,11 @@ constexpr auto kDepthFormat = CV_32FC1;
 
 
 /**
- * Interface to RGBD cameras.
+ * Interface to cameras capable of capturing color and depth.
  */
-class RGBDCamera {
+class BGRDCamera {
  public:
-  virtual ~RGBDCamera();
+  virtual ~BGRDCamera();
 
   /**
    * Returns the last color frame from the camera.

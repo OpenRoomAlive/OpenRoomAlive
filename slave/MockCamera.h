@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "slave/RGBDCamera.h"
+#include "slave/BGRDCamera.h"
 
 
 namespace dv { namespace slave {
@@ -12,7 +12,7 @@ namespace dv { namespace slave {
 /**
  * Mock implementation to run the application without an actual kinect.
  */
-class MockCamera : public RGBDCamera {
+class MockCamera : public BGRDCamera {
  public:
   cv::Mat getColorImage() override;
   cv::Mat getDepthImage() override;

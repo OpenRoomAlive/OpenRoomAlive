@@ -12,7 +12,7 @@
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/registration.h>
 
-#include "slave/RGBDCamera.h"
+#include "slave/BGRDCamera.h"
 
 
 namespace dv { namespace slave {
@@ -21,7 +21,7 @@ namespace dv { namespace slave {
 /**
  * Camera source interfacing with the kinect using libfreenect2.
  */
-class KinectCamera : public RGBDCamera {
+class KinectCamera : public BGRDCamera {
  public:
   KinectCamera();
   ~KinectCamera();

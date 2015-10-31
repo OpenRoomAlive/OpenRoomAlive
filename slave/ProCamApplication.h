@@ -17,7 +17,7 @@ namespace dv { namespace slave {
 
 class Display;
 class GrayCode;
-class RGBDCamera;
+class BGRDCamera;
 
 
 /**
@@ -94,7 +94,7 @@ class ProCamApplication : public ProCamIf {
   /// OpenGL window.
   const std::shared_ptr<Display> display_;
   /// Kinect camera implementation.
-  const std::shared_ptr<RGBDCamera> camera_;
+  const std::shared_ptr<BGRDCamera> camera_;
   /// True if the master is pinged.
   const bool enableMaster_;
 };

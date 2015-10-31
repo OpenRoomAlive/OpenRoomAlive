@@ -2,11 +2,11 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
-#include "slave/RGBDCamera.h"
+#include "slave/BGRDCamera.h"
 
 using namespace dv::slave;
 
 
-RGBDCamera::~RGBDCamera() {
+BGRDCamera::~BGRDCamera() {
 }
 
