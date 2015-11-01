@@ -120,11 +120,11 @@ void KinectCamera::poll() {
       std::lock_guard<std::mutex> locker(framesLock_);
 
       // Construct the BGR image.
-      bgr_ = cv::Mat(
+      cv::Mat(
           frames[libfreenect2::Frame::Color]->height,
           frames[libfreenect2::Frame::Color]->width,
           kColorFormat,
-          frames[libfreenect2::Frame::Color]->data).clone();
+          frames[libfreenect2::Frame::Color]->data).copyTo(bgr_);
 
       // Undistort the image.
       registration_->apply(
@@ -134,18 +134,18 @@ void KinectCamera::poll() {
           &registered);
 
       // Construct the undistorted depth image.
-      depth_ = cv::Mat(
+      cv::Mat(
           undistorted.height,
           undistorted.width,
           kDepthFormat,
-          undistorted.data).clone();
+          undistorted.data).copyTo(depth_);
 
       // Construct the BGR undistorted image.
-      bgrUndistorted_ = cv::Mat(
+      cv::Mat(
           registered.height,
           registered.width,
           kColorFormat,
-          registered.data).clone();
+          registered.data).copyTo(bgrUndistorted_);
     }
 
     listener_.release(frames);
