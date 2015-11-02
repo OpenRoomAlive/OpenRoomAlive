@@ -34,7 +34,9 @@ friend class Calibrator;
    */
   void addProCam(
       ConnectionID id,
-      const dv::CameraParams &camParams,
+      const cv::Mat &colorCamMat,
+      const cv::Mat &irCamMat,
+      const cv::Mat &irDist,
       const dv::DisplayParams &displayParams);
 
   /**

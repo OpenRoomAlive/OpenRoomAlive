@@ -6,10 +6,12 @@ namespace cpp dv
 
 
 /**
- * f - focal point
- * c - principal point
+ * Camera matrix.
+ *
+ * (fx, fy) - camera focal lengths
+ * (cx, cy) - principal point
  */
-struct ColorParams {
+struct CameraMatrix {
   1: double fx;
   2: double fy;
   3: double cx;
@@ -17,26 +19,26 @@ struct ColorParams {
 }
 
 /**
- * f - focal point
- * c - principal point
- * k - tangential disortion
- * p - radial disortion
+ * Distortion coefficients.
+ *
+ * k - radial distortion
+ * p - tangential distortion
  */
-struct IrParams {
-  1: double fx;
-  2: double fy;
-  3: double cx;
-  4: double cy;
-  5: double k1;
-  6: double k2;
-  7: double k3;
-  8: double p1;
-  9: double p2;
+struct DistCoef {
+  1: double k1;
+  2: double k2;
+  3: double p1;
+  4: double p2;
+  5: double k3;
 }
 
+/**
+ * Camera parameters.
+ */
 struct CameraParams {
-  1: ColorParams color;
-  2: IrParams ir;
+  1: CameraMatrix colorCamMat;
+  2: CameraMatrix irCamMat;
+  3: DistCoef irDist;
 }
 
 struct DisplayParams {

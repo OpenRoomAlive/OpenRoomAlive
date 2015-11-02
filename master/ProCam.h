@@ -5,8 +5,10 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "core/ProCam.h"
+
 
 namespace dv { namespace master {
 
@@ -18,27 +20,27 @@ class ProCam {
  public:
   ProCam() {}
   ProCam(
-      const dv::CameraParams &camParams,
+      const cv::Mat &colorCamMat,
+      const cv::Mat &irCamMat,
+      const cv::Mat &irDist,
       const dv::DisplayParams &displayParams);
   ~ProCam();
-
-
-  /**
-   * Returns the parameters of the Color and Ir cameras.
-   */
-  dv::CameraParams getCameraParams() const { return cameraParams_; }
 
   /**
    * Returns the parameters of the display.
    */
   dv::DisplayParams getDisplayParams() const { return displayParams_; }
 
-
  private:
-  /// Parameters of the Color and Ir cameras.
-  const dv::CameraParams cameraParams_;
+  /// Color camera matrix.
+  const cv::Mat colorCamMat_;
+  /// Ir camera matrix.
+  const cv::Mat irCamMat_;
+  /// Ir camera distortion coefficients.
+  const cv::Mat irDist_;
   /// Parameters of the display.
   const dv::DisplayParams displayParams_;
 };
 
-} }
+}}
+

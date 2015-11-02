@@ -14,6 +14,7 @@
 #include <thrift/transport/TTransportUtils.h>
 
 #include "core/Async.h"
+#include "core/Conv.h"
 #include "core/Exception.h"
 #include "master/MasterApplication.h"
 #include "master/MasterConnectionHandler.h"
@@ -65,7 +66,14 @@ int MasterApplication::run() {
 
   // Create ProCamSystem
   for (const auto &id : connectionIds) {
-    system_->addProCam(id, camerasParams[id], displaysParams[id]);
+    auto cameraParams = camerasParams[id];
+
+    system_->addProCam(
+        id,
+        conv::thriftCamMatToCvMat(cameraParams.colorCamMat),
+        conv::thriftCamMatToCvMat(cameraParams.irCamMat),
+        conv::thriftDistToCvMat(cameraParams.irDist),
+        displaysParams[id]);
   }
 
   Calibrator calibrator(connectionIds, connectionHandler_, system_);

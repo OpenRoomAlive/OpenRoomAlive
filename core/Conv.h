@@ -46,5 +46,15 @@ thriftFrameToCvMatMap(std::unordered_map<K, Frame> frames)
   return images;
 }
 
+/**
+ * Converts a thrift camera matrix to a cv::Mat.
+ */
+cv::Mat thriftCamMatToCvMat(const CameraMatrix& cameraMat);
+
+/**
+ * Converts thrift distortion coefficients to a row cv::Mat with 5 columns.
+ */
+cv::Mat thriftDistToCvMat(const DistCoef& distCoef);
+
 }}
 

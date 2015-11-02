@@ -15,13 +15,20 @@ ProCamSystem::~ProCamSystem() {
 
 void ProCamSystem::addProCam(
     ConnectionID id,
-    const dv::CameraParams &camParams,
+    const cv::Mat &colorCamMat,
+    const cv::Mat &irCamMat,
+    const cv::Mat &irDist,
     const dv::DisplayParams &displayParams)
 {
   std::unique_lock<std::mutex> locker(lock_);
 
-  auto result = proCams_.emplace(id,
-      std::make_shared<ProCam>(camParams, displayParams));
+  auto result = proCams_.emplace(
+      id,
+      std::make_shared<ProCam>(
+          colorCamMat,
+          irCamMat,
+          irDist,
+          displayParams));
 
   if (!result.second || result.first == proCams_.end()) {
     throw std::runtime_error("Cannot create procam unit.");

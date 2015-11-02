@@ -6,13 +6,19 @@
 
 using namespace dv::master;
 
+
 ProCam::ProCam(
-    const dv::CameraParams &cameraParams, 
+    const cv::Mat &colorCamMat,
+    const cv::Mat &irCamMat,
+    const cv::Mat &irDist,
     const dv::DisplayParams &displayParams)
-  : cameraParams_(cameraParams)
+  : colorCamMat_(colorCamMat)
+  , irCamMat_(irCamMat)
+  , irDist_(irDist)
   , displayParams_(displayParams)
 {
 }
 
 ProCam::~ProCam() {
 }
+

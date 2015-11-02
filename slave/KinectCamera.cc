@@ -78,22 +78,23 @@ CameraParams KinectCamera::getParameters() {
 
   // Retrieve the color camera params from the device.
   auto color = kinect_->getColorCameraParams();
-  cameraParams.color.fx = color.fx;
-  cameraParams.color.fy = color.fy;
-  cameraParams.color.cx = color.cx;
-  cameraParams.color.cy = color.cy;
+  cameraParams.colorCamMat.fx = color.fx;
+  cameraParams.colorCamMat.fy = color.fy;
+  cameraParams.colorCamMat.cx = color.cx;
+  cameraParams.colorCamMat.cy = color.cy;
 
   // Retrieve the ir camera params from the device.
   auto ir = kinect_->getIrCameraParams();
-  cameraParams.ir.fx = ir.fx;
-  cameraParams.ir.fy = ir.fy;
-  cameraParams.ir.cx = ir.cx;
-  cameraParams.ir.cy = ir.cy;
-  cameraParams.ir.k1 = ir.k1;
-  cameraParams.ir.k2 = ir.k2;
-  cameraParams.ir.k3 = ir.k3;
-  cameraParams.ir.p1 = ir.p1;
-  cameraParams.ir.p2 = ir.p2;
+  cameraParams.irCamMat.fx = ir.fx;
+  cameraParams.irCamMat.fy = ir.fy;
+  cameraParams.irCamMat.cx = ir.cx;
+  cameraParams.irCamMat.cy = ir.cy;
+
+  cameraParams.irDist.k1 = ir.k1;
+  cameraParams.irDist.k2 = ir.k2;
+  cameraParams.irDist.p1 = ir.p1;
+  cameraParams.irDist.p2 = ir.p2;
+  cameraParams.irDist.k3 = ir.k3;
 
   return cameraParams;
 }
