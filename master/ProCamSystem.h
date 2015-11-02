@@ -42,7 +42,7 @@ friend class Calibrator;
   /**
    * Returns pointer to ProCam if there exists one with given id.
    */
-  std::shared_ptr<const ProCam> getProCam(ConnectionID id);
+  std::shared_ptr<const ProCam> getProCam(ConnectionID id) const;
 
   // Disallow copy and assign.
   ProCamSystem(const ProCamSystem &) = delete;
@@ -51,10 +51,17 @@ friend class Calibrator;
   void operator = (ProCamSystem &&) = delete;
 
  private:
+  /**
+   * Non const ProCam getter.
+   */
+  std::shared_ptr<ProCam> getProCam(ConnectionID id);
+
+ private:
   /// Lock protecting access to the procam system.
   std::mutex lock_;
   /// Hash map storing all procams.
   std::unordered_map<ConnectionID, std::shared_ptr<ProCam>> proCams_;
 };
 
-} }
+}}
+

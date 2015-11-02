@@ -17,6 +17,8 @@ namespace dv { namespace master {
  * Class representing an ensemble of a Kinect and a Projector.
  */
 class ProCam {
+friend class Calibrator;
+
  public:
   ProCam() {}
   ProCam(
@@ -40,6 +42,10 @@ class ProCam {
   const cv::Mat irDist_;
   /// Parameters of the display.
   const dv::DisplayParams displayParams_;
+  /// Color baseline.
+  cv::Mat colorBaseline_;
+  /// Depth baseline.
+  cv::Mat depthBaseline_;
 };
 
 }}

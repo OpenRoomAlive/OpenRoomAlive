@@ -66,6 +66,11 @@ class ProCamApplication : public ProCamIf {
   void getUndistortedColorImage(Frame& frame) override;
 
   /**
+   * Retrieves the depth baseline.
+   */
+  void getDepthBaseline(Frame& frame) override;
+
+  /**
    * Displays the specified gray code pattern.
    */
   void displayGrayCode(

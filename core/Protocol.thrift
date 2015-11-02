@@ -88,9 +88,16 @@ service ProCam {
   Frame getUndistortedColorImage(),
 
   /**
+   * Retrieves the depth baseline.
+   */
+   Frame getDepthBaseline(),
+
+  /**
    * Displays the specified gray code pattern.
    */
-  void displayGrayCode(1: Orientation orientation, 2: i16 level,
+  void displayGrayCode(
+      1: Orientation orientation,
+      2: i16 level,
       3: bool invertedGrayCode),
 
   /**

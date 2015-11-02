@@ -36,8 +36,8 @@ MasterConnectionHandler::~MasterConnectionHandler() {
   }
 }
 
-MasterServer* MasterConnectionHandler::getHandler(const TConnectionInfo& connInfo)
-{
+MasterServer*
+MasterConnectionHandler::getHandler(const TConnectionInfo& connInfo) {
   namespace at  = apache::thrift;
   namespace atp = apache::thrift::protocol;
   namespace att = apache::thrift::transport;
@@ -78,9 +78,8 @@ void MasterConnectionHandler::releaseHandler(MasterIf* handler) {
   }
 }
 
-std::vector<ConnectionID> MasterConnectionHandler::waitForConnections(
-    size_t count)
-{
+std::vector<ConnectionID>
+MasterConnectionHandler::waitForConnections(size_t count) {
   std::unique_lock<std::mutex> locker(lock_);
   auto self = shared_from_this();
 
@@ -118,23 +117,26 @@ void MasterConnectionHandler::stop() {
 }
 
 std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getColorImages()
-{
+MasterConnectionHandler::getColorImages() {
   return conv::thriftFrameToCvMatMap(
       InvokeParallel(&ProCamClient::getColorImage));
 }
 
 std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getDepthImages()
-{
+MasterConnectionHandler::getDepthImages() {
   return conv::thriftFrameToCvMatMap(
       InvokeParallel(&ProCamClient::getDepthImage));
 }
 
 std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getUndistortedColorImages()
-{
+MasterConnectionHandler::getUndistortedColorImages() {
   return conv::thriftFrameToCvMatMap(
       InvokeParallel(&ProCamClient::getUndistortedColorImage));
+}
+
+std::unordered_map<ConnectionID, cv::Mat>
+MasterConnectionHandler::getDepthBaselines() {
+  return conv::thriftFrameToCvMatMap(
+      InvokeParallel(&ProCamClient::getDepthBaseline));
 }
 

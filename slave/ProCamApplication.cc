@@ -140,6 +140,12 @@ void ProCamApplication::getUndistortedColorImage(Frame& frame) {
   conv::cvMatToThriftFrame(image, frame);
 }
 
+void ProCamApplication::getDepthBaseline(Frame& frame) {
+  // TODO: T34
+  cv::Mat baseline = camera_->getDepthImage();
+  conv::cvMatToThriftFrame(baseline, frame);
+}
+
 void ProCamApplication::displayGrayCode(
     const Orientation::type orientation,
     const int16_t level,

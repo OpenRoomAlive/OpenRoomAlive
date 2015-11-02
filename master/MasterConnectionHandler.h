@@ -106,6 +106,11 @@ class MasterConnectionHandler
    */
   std::unordered_map<ConnectionID, cv::Mat> getUndistortedColorImages();
 
+  /**
+   * Invokes getDepthBaseline on all clients.
+   */
+  std::unordered_map<ConnectionID, cv::Mat> getDepthBaselines();
+
  private:
   /**
    * Information about a connection.

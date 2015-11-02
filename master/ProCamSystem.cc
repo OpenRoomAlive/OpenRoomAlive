@@ -35,9 +35,7 @@ void ProCamSystem::addProCam(
   }
 }
 
-std::shared_ptr<const ProCam> ProCamSystem::getProCam(ConnectionID id) {
-  std::unique_lock<std::mutex> locker(lock_);
-
+std::shared_ptr<const ProCam> ProCamSystem::getProCam(ConnectionID id) const {
   auto it = proCams_.find(id);
 
   if (it != proCams_.end()) {
@@ -46,3 +44,9 @@ std::shared_ptr<const ProCam> ProCamSystem::getProCam(ConnectionID id) {
     throw EXCEPTION() << "ProCam with a specified ID was not found.";
   }
 }
+
+std::shared_ptr<ProCam> ProCamSystem::getProCam(ConnectionID id) {
+  return std::const_pointer_cast<ProCam>(
+      static_cast<const ProCamSystem&>(*this).getProCam(id));
+}
+

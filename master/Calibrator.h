@@ -39,6 +39,11 @@ class Calibrator {
       size_t level,
       bool inverted);
 
+  /**
+   * Captures and saves baselines.
+   */
+  void captureBaselines();
+
  private:
   /// IDs of the procam connections
   const std::vector<ConnectionID> ids_;

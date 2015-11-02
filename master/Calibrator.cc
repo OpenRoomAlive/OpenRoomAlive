@@ -72,3 +72,14 @@ void Calibrator::displayAndCapture(
   (void) captured;
 }
 
+void Calibrator::captureBaselines() {
+  auto colorBaselines = connectionHandler_->getUndistortedColorImages();
+  auto depthBaselines = connectionHandler_->getDepthBaselines();
+
+  for (const auto &id : ids_) {
+    auto proCam = system_->getProCam(id);
+    proCam->colorBaseline_ = colorBaselines[id];
+    proCam->depthBaseline_ = depthBaselines[id];
+  }
+}
+
