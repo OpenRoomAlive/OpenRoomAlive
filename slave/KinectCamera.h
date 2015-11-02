@@ -13,6 +13,7 @@
 #include <libfreenect2/registration.h>
 
 #include "slave/BGRDCamera.h"
+#include "slave/KinectFileLogger.h"
 
 
 namespace dv { namespace slave {
@@ -23,7 +24,7 @@ namespace dv { namespace slave {
  */
 class KinectCamera : public BGRDCamera {
  public:
-  KinectCamera();
+  KinectCamera(uint16_t logLevel, const std::string &logFile);
   ~KinectCamera();
 
   /**
@@ -68,6 +69,8 @@ class KinectCamera : public BGRDCamera {
   libfreenect2::SyncMultiFrameListener listener_;
   /// Kinect registration.
   std::shared_ptr<libfreenect2::Registration> registration_;
+  /// Logger of Kinect messages.
+  std::shared_ptr<KinectFileLogger> logger_;
   /// BGR color image (1920x1080).
   cv::Mat bgr_;
   /// Undistorted depth image (512x424).

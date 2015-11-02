@@ -36,10 +36,12 @@ IF (${freenect2_FOUND})
 
     SET(SOURCES ${SOURCES}
         KinectCamera.cc
+        KinectFileLogger.cc
     )
 
     SET(HEADERS ${HEADERS}
         KinectCamera.h
+        KinectFileLogger.h
     )
 
     SET(LIBS ${LIBS}

@@ -7,6 +7,11 @@
 using namespace dv;
 using namespace dv::slave;
 
+MockCamera::MockCamera(uint16_t logLevel, const std::string &logFilename) {
+  std::cout 
+    << "Logging to \"" << logFilename << "\" at level " << logLevel << "."
+    << std::endl;
+}
 
 cv::Mat MockCamera::getColorImage() {
   // 1x1 RGB image.

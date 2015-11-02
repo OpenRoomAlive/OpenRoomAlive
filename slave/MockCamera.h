@@ -14,6 +14,8 @@ namespace dv { namespace slave {
  */
 class MockCamera : public BGRDCamera {
  public:
+  MockCamera(uint16_t logLevel, const std::string &logFilename);
+
   cv::Mat getColorImage() override;
   cv::Mat getDepthImage() override;
   cv::Mat getUndistortedColorImage() override;

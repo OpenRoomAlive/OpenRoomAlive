@@ -65,7 +65,9 @@ ProCamApplication::ProCamApplication(
     uint16_t port,
     bool enableDisplay,
     bool enableKinect,
-    bool enableMaster)
+    bool enableMaster,
+    uint16_t logLevel,
+    const std::string &logFilename)
   : masterIP_(masterIP)
   , port_(port)
   , grayCode_(new GrayCode())
@@ -79,8 +81,8 @@ ProCamApplication::ProCamApplication(
         ? static_cast<Display*>(new GLDisplay())
         : static_cast<Display*>(new MockDisplay()))
   , camera_(enableKinect
-        ? static_cast<BGRDCamera*>(new BGRDCameraImpl())
-        : static_cast<BGRDCamera*>(new MockCamera()))
+        ? static_cast<BGRDCamera*>(new BGRDCameraImpl(logLevel, logFilename))
+        : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
   , enableMaster_(enableMaster)
 {
 }

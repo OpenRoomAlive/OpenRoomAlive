@@ -13,16 +13,36 @@ using namespace dv;
 using namespace dv::slave;
 
 
-KinectCamera::KinectCamera()
+KinectCamera::KinectCamera(
+    uint16_t logLevel,
+    const std::string &logFilename)
   : freenect_(new libfreenect2::Freenect2())
   , pipeline_(new libfreenect2::OpenGLPacketPipeline())
   , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
+  , logger_(
+        new KinectFileLogger(
+            static_cast<KinectFileLogger::Level>(logLevel), 
+            logFilename), 
+        [] (KinectFileLogger*) {
+          libfreenect2::setGlobalLogger(libfreenect2::createConsoleLogger(
+              libfreenect2::Logger::getDefaultLevel()));
+        })
   , bgr_(kColorImageHeight, kColorImageWidth, kColorFormat)
   , depth_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
   , bgrUndistorted_(kDepthImageHeight, kDepthImageWidth, kColorFormat)
   , isRunning_(false)
   , frameCount_(0)
 {
+  // Prepare a custom logger for Kinect messages.
+  KinectFileLogger::Level level = 
+    static_cast<KinectFileLogger::Level>(logLevel);
+  std::string levelStr          = libfreenect2::Logger::level2str(level);
+  libfreenect2::setGlobalLogger(logger_.get());
+  std::cout 
+    << "Logging to \"" << logFilename << "\" at level " << logLevel << " - "
+    << levelStr << "." << std::endl;
+  logger_->log(level, "<- This log contains msgs up to this importance level.");
+
   // Find the kinect device.
   if (freenect_->enumerateDevices() == 0) {
     throw EXCEPTION() << "No kinect devices found.";

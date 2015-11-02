@@ -30,7 +30,9 @@ class ProCamApplication : public ProCamIf {
       uint16_t port,
       bool enableDisplay,
       bool enableKinect,
-      bool enableMaster);
+      bool enableMaster,
+      uint16_t logLevel,
+      const std::string &logFile);
   ~ProCamApplication();
 
   /**

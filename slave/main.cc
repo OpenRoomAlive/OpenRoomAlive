@@ -56,6 +56,15 @@ int main(int argc, char **argv) {
         ( "enable-master"
         , po::value<bool>()->default_value(true)
         , "Enables the connection to the master."
+        )
+        ( "log-level"
+        , po::value<uint16_t>()->default_value(2)
+        , "Set the min. importance level of messages logged for Kinect."
+          "By default it is Errors & Warnings."
+        )
+        ( "log-filename"
+        , po::value<std::string>()->default_value("./KinectLog.txt")
+        , "Set the path to the Kinect log file."
         );
 
     // Parse options.
@@ -75,7 +84,9 @@ int main(int argc, char **argv) {
         options["port"].as<uint16_t>(),
         options["enable-display"].as<bool>(),
         options["enable-kinect"].as<bool>(),
-        options["enable-master"].as<bool>()
+        options["enable-master"].as<bool>(),
+        options["log-level"].as<uint16_t>(),
+        options["log-filename"].as<std::string>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;
