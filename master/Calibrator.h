@@ -15,12 +15,26 @@ namespace dv { namespace master {
  * Class wrapping the functionality responsible for ProCam calibration.
  */
 class Calibrator {
+ private:
+  /**
+   * Class to hash pairs of connections.
+   */
+  struct ConnectionPairHasher {
+    size_t operator() (const std::pair<ConnectionID, ConnectionID> &pair) const {
+      return pair.first + (pair.second << 31);
+    }
+  };
+
  public:
+  using GrayCodeMap = std::unordered_map<
+      std::pair<ConnectionID, ConnectionID>,
+      cv::Mat,
+      ConnectionPairHasher>;
+
   Calibrator(
       const std::vector<ConnectionID>& ids,
       const boost::shared_ptr<MasterConnectionHandler>& connectionHandler,
       const std::shared_ptr<ProCamSystem>& system);
-
   ~Calibrator();
 
   /**
@@ -44,6 +58,11 @@ class Calibrator {
    */
   void captureBaselines();
 
+  /**
+   * Decode the captured gray code pattern into a bit mask.
+   */
+  GrayCodeMap decode();
+
  private:
   /// IDs of the procam connections
   const std::vector<ConnectionID> ids_;
@@ -51,6 +70,8 @@ class Calibrator {
   const boost::shared_ptr<MasterConnectionHandler> connectionHandler_;
   /// ProCam system.
   const std::shared_ptr<ProCamSystem> system_;
+  /// Map of captured gray code pattern
+  GrayCodeMap captured_;
 };
 
 } }

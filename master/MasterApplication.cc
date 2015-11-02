@@ -83,6 +83,7 @@ int MasterApplication::run() {
 
   // Display the gray code patterns for calibration.
   calibrator.displayGrayCodes();
+  calibrator.decode();
 
   // Wait for user input.
   getchar();
