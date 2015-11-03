@@ -9,7 +9,6 @@ using namespace dv;
 using namespace dv::slave;
 
 
-
 void GLDisplay::onKeyCallback(
     GLFWwindow* window,
     int key,
@@ -45,14 +44,7 @@ GLDisplay::GLDisplay()
   , window_(nullptr)
 {
   openWindow();
-}
 
-
-GLDisplay::~GLDisplay() {
-  destroy();
-}
-
-DisplayParams GLDisplay::getParameters() {
   try {
     int frameWidth = 0;
     int frameHeight = 0;
@@ -64,14 +56,29 @@ DisplayParams GLDisplay::getParameters() {
       throw EXCEPTION() << "Could not retrieve dimensions of the display.";
     }
 
-    DisplayParams params;
-    params.frameWidth = frameWidth;
-    params.frameHeight = frameHeight;
-    return params;
+    params_.frameWidth = frameWidth;
+    params_.frameHeight = frameHeight;
   } catch (...) {
     destroy();
     throw;
   }
+}
+
+
+GLDisplay::~GLDisplay() {
+  destroy();
+}
+
+DisplayParams GLDisplay::getParameters() {
+  return params_;
+}
+
+size_t GLDisplay::getWidth() {
+  return params_.frameWidth;
+}
+
+size_t GLDisplay::getHeight() {
+  return params_.frameHeight;
 }
 
 void GLDisplay::run() {

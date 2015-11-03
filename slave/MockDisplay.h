@@ -41,6 +41,16 @@ class MockDisplay : public Display {
    */
   DisplayParams getParameters() override;
 
+  /**
+   * Retrieves the width.
+   */
+  virtual size_t getWidth() override;
+
+  /**
+   * Retrieves the height.
+   */
+  virtual size_t getHeight() override;
+
  private:
   std::atomic<bool> isRunning_;
 };

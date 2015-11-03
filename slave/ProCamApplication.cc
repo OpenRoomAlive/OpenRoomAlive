@@ -70,7 +70,6 @@ ProCamApplication::ProCamApplication(
     const std::string &logFilename)
   : masterIP_(masterIP)
   , port_(port)
-  , grayCode_(new GrayCode())
   , server_(new apache::thrift::server::TSimpleServer(
         boost::make_shared<ProCamProcessor>(
             boost::shared_ptr<ProCamApplication>(this, [](ProCamApplication*){})),
@@ -80,6 +79,7 @@ ProCamApplication::ProCamApplication(
   , display_(enableDisplay
         ? static_cast<Display*>(new GLDisplay())
         : static_cast<Display*>(new MockDisplay()))
+  , grayCode_(display_->getWidth(), display_->getHeight())
   , camera_(enableKinect
         ? static_cast<BGRDCamera*>(new BGRDCameraImpl(logLevel, logFilename))
         : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
@@ -151,7 +151,7 @@ void ProCamApplication::displayGrayCode(
     const int16_t level,
     bool invertedGrayCode)
 {
-  cv::Mat grayCodeImage = grayCode_->getPattern(
+  cv::Mat grayCodeImage = grayCode_.getPattern(
       orientationCast(orientation),
       static_cast<size_t>(level));
 

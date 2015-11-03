@@ -48,6 +48,16 @@ class GLDisplay : public Display {
    */
   DisplayParams getParameters() override;
 
+  /**
+   * Retrieves the width.
+   */
+  virtual size_t getWidth() override;
+
+  /**
+   * Retrieves the height.
+   */
+  virtual size_t getHeight() override;
+
  private:
   /**
    * Open a new GLFW window for this display.
@@ -80,6 +90,8 @@ class GLDisplay : public Display {
   GLuint texture_;
   /// GLFW window handle.
   GLFWwindow *window_;
+  /// Display parameters.
+  DisplayParams params_;
 
   // GLFW callback functions.
   static void onKeyCallback(GLFWwindow*, int, int, int, int);

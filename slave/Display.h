@@ -34,6 +34,16 @@ class Display {
   virtual DisplayParams getParameters() = 0;
 
   /**
+   * Retrieves the width.
+   */
+  virtual size_t getWidth() = 0;
+
+  /**
+   * Retrieves the height.
+   */
+  virtual size_t getHeight() = 0;
+
+  /**
    * Sets the image displayed on the screen.
    * @param image [description]
    */

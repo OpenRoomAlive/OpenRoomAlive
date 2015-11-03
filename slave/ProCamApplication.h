@@ -9,6 +9,7 @@
 
 #include <thrift/server/TServer.h>
 
+#include "core/GrayCode.h"
 #include "core/ProCam.h"
 #include "slave/GLDisplay.h"
 
@@ -16,7 +17,6 @@
 namespace dv { namespace slave {
 
 class Display;
-class GrayCode;
 class BGRDCamera;
 
 
@@ -94,12 +94,12 @@ class ProCamApplication : public ProCamIf {
   const std::string masterIP_;
   /// Port used for conenctions.
   const uint16_t port_;
-  /// Gray code generator
-  const std::shared_ptr<GrayCode> grayCode_;
   /// Server instance.
   const std::shared_ptr<apache::thrift::server::TServer> server_;
   /// OpenGL window.
   const std::shared_ptr<Display> display_;
+  /// Gray code generator
+  GrayCode grayCode_;
   /// Kinect camera implementation.
   const std::shared_ptr<BGRDCamera> camera_;
   /// True if the master is pinged.

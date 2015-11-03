@@ -53,14 +53,25 @@ cv::Mat GrayCode::getPattern(Orientation orientation, size_t level) {
   switch (orientation) {
     case Orientation::HORIZONTAL:
       if (level < horizontalBar.size()) {
-        return cv::Mat(static_cast<int>(height_), 1, CV_8UC1, horizontalBar[level].data());
+        return cv::Mat(
+            static_cast<int>(height_),
+            1,
+            CV_8UC1,
+            horizontalBar[level].data());
       }
-      throw EXCEPTION() << "Level " << level << " out of range.";
+      throw EXCEPTION()
+          << "Level " << level << " out of range ("
+          << horizontalBar.size() << ").";
     case Orientation::VERTICAL:
     default:
       if (level < verticalBar.size()) {
-        return cv::Mat(1, static_cast<int>(width_), CV_8UC1, verticalBar[level].data());
+        return cv::Mat(
+            1,
+            static_cast<int>(width_),
+            CV_8UC1, verticalBar[level].data());
       }
-      throw EXCEPTION() << "Level " << level << " out of range.";
+      throw EXCEPTION()
+          << "Level " << level << " out of range ("
+          << verticalBar.size() << ").";
   }
 }

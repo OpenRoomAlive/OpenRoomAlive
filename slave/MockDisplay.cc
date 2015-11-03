@@ -58,6 +58,14 @@ DisplayParams MockDisplay::getParameters() {
   return params;
 }
 
+size_t MockDisplay::getWidth() {
+  return 1024;
+}
+
+size_t MockDisplay::getHeight() {
+  return 1024;
+}
+
 void MockDisplay::stop() {
   isRunning_ = false;
 }
