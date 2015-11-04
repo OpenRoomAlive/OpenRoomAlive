@@ -52,6 +52,7 @@ SET(HEADERS
 # List of all tests.
 SET(TESTS
     ExceptionTest.cc
+    ProjectionTest.cc
 )
 
 # Shared core library.
@@ -63,6 +64,7 @@ ADD_LIBRARY(core
 TARGET_LINK_LIBRARIES(core
     boost_program_options
     thrift
+    opencv_core
 )
 
 # Tests for the core library.

@@ -31,5 +31,23 @@ cv::Point2f project(
     float k2,
     const cv::Point3f& point);
 
+/**
+ * Maps the depth image (captured by a procam) to the 3D coordinates
+ * of the procam.
+ *
+ * @param camera Camera matrix of the form [ fx  0 cx]
+ *                                         [  0 fy cy]
+ *                                         [  0  0  1]
+ * @param depth  Depth image captured by the procam unit.
+ * @param r      Row from in which the depth pixel occurs.
+ * @param c      Column in which the depth pixel occurs.
+ * @return #D coordinate
+ */
+cv::Point3f map3D(
+    const cv::Mat& camera,
+    const cv::Mat& depth,
+    size_t r,
+    size_t c);
+
 }}
 

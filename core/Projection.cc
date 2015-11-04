@@ -22,7 +22,7 @@ cv::Point2f project(
   const float cy = camera.at<float>(1, 2);
 
   const float r2 = xp * xp + yp * yp;
-  const float d = 1 + k1 * r2 + k2 * r2 * r2;
+  const float d = (1 + k1 * r2) / (1 + k2 * r2);
 
   const float xpp = xp * d;
   const float ypp = yp * d;
@@ -31,6 +31,29 @@ cv::Point2f project(
   const float v = fy * ypp + cy;
 
   return cv::Point2f(u, v);
+}
+
+cv::Point3f map3D(
+    const cv::Mat& camera,
+    const cv::Mat& depth,
+    size_t r,
+    size_t c)
+{
+  // Principal points of the camera.
+  const float cx = camera.at<float>(0, 2);
+  const float cy = camera.at<float>(1, 2);
+
+  // Focal points.
+  const float fx = camera.at<float>(0, 0);
+  const float fy = camera.at<float>(1, 1);
+
+  const float depthValue = depth.at<float>(r, c);
+
+  const float x = ((static_cast<float>(r) - cx) * depthValue) / fx;
+  const float y = ((static_cast<float>(c) - cy) * depthValue) / fy;
+  const float z = depthValue;
+
+  return cv::Point3f(x, y, z);
 }
 
 }}
