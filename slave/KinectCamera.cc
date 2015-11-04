@@ -173,10 +173,11 @@ void KinectCamera::poll() {
   }
 }
 
-void KinectCamera::warmup() {
+void KinectCamera::freshFrame() {
   std::unique_lock<std::mutex> locker(countLock_);
-  countCond_.wait(locker, [this]() {
-    return frameCount_ > 0;
+  auto oldCount = frameCount_;
+  countCond_.wait(locker, [this, oldCount]() {
+    return frameCount_ > oldCount;
   });
 }
 

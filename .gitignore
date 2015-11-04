@@ -12,4 +12,4 @@ build
 .DS_STORE
 
 # Kinect log file.
-KinectLog.txt
+*.txt

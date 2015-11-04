@@ -48,9 +48,9 @@ class KinectCamera : public BGRDCamera {
   CameraParams getParameters() override;
 
   /**
-   * Blocks until the first frame is retrieved.
+   * Blocks until a fresh frame is retrieved.
    */
-  void warmup() override;
+  void freshFrame() override;
 
  private:
   /**
@@ -87,7 +87,7 @@ class KinectCamera : public BGRDCamera {
   std::atomic<bool> isRunning_;
   /// Number of frames retrieved.
   uint64_t frameCount_;
-  /// Condition variable waiting on the first frame.
+  /// Condition variable waiting on a fresh frame.
   std::condition_variable countCond_;
   /// Mutex protecting the frame count.
   std::mutex countLock_;

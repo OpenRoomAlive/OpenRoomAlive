@@ -48,9 +48,9 @@ class BGRDCamera {
   virtual CameraParams getParameters() = 0;
 
   /**
-   * Waits for the first frame from the camers.
+   * Waits for a fresh frame from the camera.
    */
-  virtual void warmup() = 0;
+  virtual void freshFrame() = 0;
 };
 
 }}

@@ -20,7 +20,7 @@ class MockCamera : public BGRDCamera {
   cv::Mat getDepthImage() override;
   cv::Mat getUndistortedColorImage() override;
   CameraParams getParameters() override;
-  void warmup() override {}
+  void freshFrame() override {}
 };
 
 }}

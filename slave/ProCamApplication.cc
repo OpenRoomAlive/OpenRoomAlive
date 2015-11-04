@@ -91,7 +91,7 @@ ProCamApplication::~ProCamApplication() {
 }
 
 int ProCamApplication::run() {
-  camera_->warmup();
+  camera_->freshFrame();
 
   if (enableMaster_) {
     // Responding to master node requests.
@@ -126,21 +126,25 @@ void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
 }
 
 void ProCamApplication::getColorImage(Frame& frame) {
+  camera_->freshFrame();
   cv::Mat image = camera_->getColorImage();
   conv::cvMatToThriftFrame(image, frame);
 }
 
 void ProCamApplication::getDepthImage(Frame& frame) {
+  camera_->freshFrame();
   cv::Mat image = camera_->getDepthImage();
   conv::cvMatToThriftFrame(image, frame);
 }
 
 void ProCamApplication::getUndistortedColorImage(Frame& frame) {
+  camera_->freshFrame();
   cv::Mat image = camera_->getUndistortedColorImage();
   conv::cvMatToThriftFrame(image, frame);
 }
 
 void ProCamApplication::getDepthBaseline(Frame& frame) {
+  camera_->freshFrame();
   // TODO: T34
   cv::Mat baseline = camera_->getDepthImage();
   conv::cvMatToThriftFrame(baseline, frame);
