@@ -26,6 +26,10 @@ class Calibrator {
   };
 
  public:
+  using CapturedMap = std::unordered_map<
+      std::pair<ConnectionID, ConnectionID>,
+      std::vector<cv::Mat>,
+      ConnectionPairHasher>;
   using GrayCodeMap = std::unordered_map<
       std::pair<ConnectionID, ConnectionID>,
       cv::Mat,
@@ -71,7 +75,7 @@ class Calibrator {
   /// ProCam system.
   const std::shared_ptr<ProCamSystem> system_;
   /// Map of captured gray code pattern
-  GrayCodeMap captured_;
+  CapturedMap captured_;
 };
 
 } }

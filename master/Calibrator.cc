@@ -71,28 +71,31 @@ void Calibrator::displayAndCapture(
   auto captured = connectionHandler_->getUndistortedColorImages();
 
   for (const auto &image : captured) {
-    auto key = std::make_pair(id, image.first);
-    captured_[key].push_back(image.second);
+    captured_[std::make_pair(id, image.first)].push_back(image.second);
   }
 }
 
 Calibrator::GrayCodeMap Calibrator::decode() {
   GrayCodeMap decoded;
+  cv::Mat diff, mask, mask16;
+
   for (const auto &entry : captured_) {
-    std::vector<cv::Mat> images = entry.second;
-    decoded[entry.first] = cv::Mat::zeros(images[0].size(), CV_16U);
+    const auto &images = entry.second;
+    auto grayCode = cv::Mat(images[0].size(), CV_16U);
 
     for (size_t i = 0; i < images.size() / 2; i++) {
-      cv::Mat mask;
-      cv::subtract(images[i * 2], images[i * 2 + 1], mask);
+      // Compute the difference in the frames and convert to grayscale.
+      cv::subtract(images[i * 2], images[i * 2 + 1], diff);
+      cv::cvtColor(diff, mask, CV_BGR2GRAY);
 
-      // This threshold needs to be tweaked
+      // Threshold the image and convert to 16 bits (needs tweaking).
       cv::threshold(mask, mask, 50 - i * 2, 1, cv::THRESH_BINARY);
+      mask.convertTo(mask16, CV_16U);
 
-      // Construct binary code by left shift the current value and add mask
-      mask.convertTo(mask, CV_16U);
-      cv::scaleAdd(decoded[entry.first], 2, mask, decoded[entry.first]);
+      // Construct binary code by left shift the current value and add mask.
+      cv::scaleAdd(grayCode, 2, mask16, grayCode);
     }
+    decoded[entry.first] = grayCode;
   }
   return decoded;
 }
