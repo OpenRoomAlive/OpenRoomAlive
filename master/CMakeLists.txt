@@ -15,6 +15,7 @@ SET(HEADERS
     Calibrator.h
     MasterApplication.h
     MasterConnectionHandler.h
+    MasterConnectionHandler-inl.h
     MasterServer.h
     ProCam.h
     ProCamSystem.h

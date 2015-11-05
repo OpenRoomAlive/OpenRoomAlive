@@ -109,6 +109,18 @@ void MasterConnectionHandler::displayGrayCode(
   }
 }
 
+
+void MasterConnectionHandler::clearDisplay(ConnectionID id) {
+  // TODO: remove duplication.
+  auto it = connections_.find(id);
+
+  if (it != connections_.end()) {
+    it->second.client->clearDisplay();
+  } else {
+    throw EXCEPTION() << "Connection with a specified ID was not found.";
+  }
+}
+
 void MasterConnectionHandler::stop() {
   std::lock_guard<std::mutex> locker(lock_);
   for (const auto &connection : connections_) {

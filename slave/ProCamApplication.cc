@@ -171,6 +171,10 @@ void ProCamApplication::displayGrayCode(
   }
 }
 
+void ProCamApplication::clearDisplay() {
+  display_->displayImage(cv::Mat::zeros(1, 1, CV_8UC3));
+}
+
 void ProCamApplication::close() {
   server_->stop();
   display_->stop();

@@ -73,9 +73,21 @@ class MasterConnectionHandler
       bool invertedGrayCode);
 
   /**
+   * Clears the display of a procam.
+   */
+  void clearDisplay(ConnectionID id);
+
+  /**
    * Disconnects all procams.
    */
   void stop();
+
+  /**
+   * Clears the displays of all procams.
+   */
+  void clearDisplays() {
+    return InvokeParallel(&ProCamClient::clearDisplay);
+  }
 
   /**
    * Invokes getCameraParams on all clients.
@@ -134,6 +146,21 @@ class MasterConnectionHandler
   };
 
   /**
+   * Invokes a client RPC method on all clients.
+   *
+   * This RPC call is specialized for methods without any return values.
+   *
+   * @tparam Args   List of arguments to the RPC call.
+   *
+   * @param func    Pointer to the ProCam API method.
+   * @param args... List of arguments.
+   */
+  template<typename ...Args>
+  void InvokeParallel(
+      void (ProCamClient::* func) (Args...),
+      Args... args);
+
+  /**
    * Invokes a client RCP method on all clients.
    *
    * The RPC calls are performed in parrallel, using one thread for each call.
@@ -141,49 +168,13 @@ class MasterConnectionHandler
    *
    * @tparam Ret    Return type of the RPC call.
    * @tparam Args   List of arguments to the RPC call.
-   *
    * @param func    Pointer to the ProCam API method.
    * @param args... List of arguments.
    */
   template<typename Ret, typename ...Args>
-  std::vector<Ret> InvokeParallel(
+  std::unordered_map<ConnectionID, Ret> InvokeParallel(
       Ret (ProCamClient::* func) (Args...),
-      Args... args)
-  {
-    // Helper lambda that fulfills the promise by invoking the method
-    // on the client with the given arguments. By-reference capture is
-    // used in order to capture the variadic template args.
-    auto executor = [&] (
-        std::promise<Ret> promise,
-        std::shared_ptr<ProCamClient> client)
-    {
-      promise.set_value((client.get()->*func) (args...));
-    };
-
-    // Launch all threads & create futures for all results.
-    std::vector<std::future<Ret>> futures;
-    for (const auto &connection : connections_) {
-      std::promise<Ret> promise;
-      futures.push_back(promise.get_future());
-
-      // The thread is created detached - it must be joined before
-      // the future is fulfilled.
-      std::thread(
-          executor,
-          std::move(promise),
-          connection.second.client
-      ).detach();
-    }
-
-    // Return all results from the futures. If a future is not
-    // ready to be retrieved, this thread will block until the
-    // RPC call succeeds.
-    std::vector<Ret> results;
-    for (auto &future : futures) {
-      results.push_back(future.get());
-    }
-    return results;
-  }
+      Args... args);
 
   /**
    * Invokes a client RCP method on all clients.
@@ -193,49 +184,13 @@ class MasterConnectionHandler
    *
    * @tparam Ret    Return type of the RPC call.
    * @tparam Args   List of arguments to the RPC call.
-   *
    * @param func    Pointer to the ProCam API method.
    * @param args... List of arguments.
    */
   template<typename Ret, typename ...Args>
   std::unordered_map<ConnectionID, Ret> InvokeParallel(
       void (ProCamClient::* func) (Ret&, Args...),
-      Args... args)
-  {
-    using HashMap = std::unordered_map<ConnectionID, Ret>;
-
-    // Helper lambda that executes the call and store the return
-    // value in the ret argument. By-reference capture is
-    // used in order to capture the variadic template args.
-    auto executor = [&] (
-        typename HashMap::iterator it,
-        std::shared_ptr<ProCamClient> client)
-    {
-      (client.get()->*func) (it->second, args...);
-    };
-
-    // Launch all threads & create a vector to store results.
-    std::vector<std::thread> threads;
-    HashMap results;
-    for (const auto &connection : connections_) {
-      auto it = results.emplace(connection.first, Ret());
-      if (!it.second) {
-        throw EXCEPTION() << "Cannot create result object.";
-      }
-      threads.push_back(std::thread(
-          executor,
-          it.first,
-          connection.second.client
-      ));
-    }
-
-    // Wait for all the threads to execute. They will emplace their
-    // return values in the result vector.
-    for (auto &thread : threads) {
-      thread.join();
-    }
-    return results;
-  }
+      Args... args);
 
   /// List of connections to procams.
   std::unordered_map<ConnectionID, Connection> connections_;
@@ -250,3 +205,6 @@ class MasterConnectionHandler
 };
 
 }}
+
+#include "MasterConnectionHandler-inl.h"
+

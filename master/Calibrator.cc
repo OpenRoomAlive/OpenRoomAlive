@@ -33,12 +33,10 @@ Calibrator::~Calibrator() {
 }
 
 void Calibrator::displayGrayCodes() {
+  connectionHandler_->clearDisplays();
+
   for (const auto &id : ids_) {
     auto displayParams = system_->proCams_[id]->getDisplayParams();
-
-    std::cout << "Display params for ProCam with ID: " << id << ". Params: "
-              << displayParams.frameWidth << " " << displayParams.frameHeight
-              << std::endl;
 
     size_t level = slave::GrayCode::calculateLevel(displayParams.frameHeight);
     for (size_t i = 0; i < level; i++) {
@@ -51,6 +49,8 @@ void Calibrator::displayGrayCodes() {
       displayAndCapture(id, Orientation::type::VERTICAL, i, false);
       displayAndCapture(id, Orientation::type::VERTICAL, i, true);
     }
+
+    connectionHandler_->clearDisplay(id);
   }
 }
 
@@ -60,7 +60,6 @@ void Calibrator::displayAndCapture(
     size_t level,
     bool inverted)
 {
-  std::cout << "displaying level: " << level << std::endl;
   // Display interchangebly the vertical and horizontal patterns.
   // Display the vertical uninverted gray code.
   connectionHandler_->displayGrayCode(id, orientation, level, inverted);
@@ -69,7 +68,6 @@ void Calibrator::displayAndCapture(
 
   // send a command to slave to save the current frame
   auto captured = connectionHandler_->getUndistortedColorImages();
-
   for (const auto &image : captured) {
     captured_[std::make_pair(id, image.first)].push_back(image.second);
   }

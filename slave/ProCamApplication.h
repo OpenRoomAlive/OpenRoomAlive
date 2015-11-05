@@ -79,6 +79,11 @@ class ProCamApplication : public ProCamIf {
       bool invertedGrayCode) override;
 
   /**
+   * Clears the display (sets it to a black image).
+   */
+  void clearDisplay() override;
+
+  /**
    * Closes the client.
    */
   void close() override;

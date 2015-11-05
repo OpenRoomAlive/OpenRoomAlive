@@ -101,6 +101,11 @@ service ProCam {
       3: bool invertedGrayCode),
 
   /**
+   * Clears the display (sets it to a black image).
+   */
+  void clearDisplay();
+
+  /**
    * Closes the procam app.
    */
   oneway void close()
