@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
         , po::value<uint16_t>()->default_value(11630)
         , "Set the port to listen on."
         )
-        ( "procamTotal"
+        ( "procam-total"
         , po::value<size_t>()->default_value(1)
         , "Set the number of procams expected to connect."
         );
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     // Create & run the app.
     return MasterApplication(
         options["port"].as<uint16_t>(),
-        options["procamTotal"].as<size_t>()
+        options["procam-total"].as<size_t>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;
