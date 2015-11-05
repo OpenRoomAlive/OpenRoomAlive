@@ -9,7 +9,7 @@
 #include "core/Exception.h"
 #include "core/GrayCode.h"
 
-using namespace dv::slave;
+using namespace dv;
 
 
 /**

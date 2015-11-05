@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <opencv2/opencv.hpp>
 
-namespace dv { namespace slave {
+namespace dv {
 
 class GrayCode {
  public:
@@ -49,4 +49,4 @@ class GrayCode {
   std::vector<uint8_t> generate(size_t size, size_t level);
 };
 
-}}
+}

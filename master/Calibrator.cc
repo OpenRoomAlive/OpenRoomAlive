@@ -38,14 +38,14 @@ void Calibrator::displayGrayCodes() {
   for (const auto &id : ids_) {
     auto displayParams = system_->proCams_[id]->getDisplayParams();
 
-    size_t level = slave::GrayCode::calculateLevel(displayParams.frameHeight);
-    for (size_t i = 0; i < level; i++) {
+    const size_t horzLevel = GrayCode::calculateLevel(displayParams.frameHeight);
+    for (size_t i = 0; i < horzLevel; i++) {
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, false);
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, true);
     }
 
-    level = slave::GrayCode::calculateLevel(displayParams.frameWidth);
-    for (size_t i = 0; i < level; i++) {
+    const size_t vertLevel = GrayCode::calculateLevel(displayParams.frameWidth);
+    for (size_t i = 0; i < vertLevel; i++) {
       displayAndCapture(id, Orientation::type::VERTICAL, i, false);
       displayAndCapture(id, Orientation::type::VERTICAL, i, true);
     }
@@ -75,27 +75,68 @@ void Calibrator::displayAndCapture(
 
 Calibrator::GrayCodeMap Calibrator::decode() {
   GrayCodeMap decoded;
-  cv::Mat diff, mask, mask16;
+  cv::Mat diff, mask, mask32;
 
   for (const auto &entry : captured_) {
     const auto &images = entry.second;
-    auto grayCode = cv::Mat(images[0].size(), CV_16U);
+    auto grayCode = cv::Mat(images[0].size(), CV_32S);
 
     for (size_t i = 0; i < images.size() / 2; i++) {
       // Compute the difference in the frames and convert to grayscale.
       cv::subtract(images[i * 2], images[i * 2 + 1], diff);
       cv::cvtColor(diff, mask, CV_BGR2GRAY);
 
-      // Threshold the image and convert to 16 bits (needs tweaking).
+      // Threshold the image and convert to 32 bits (needs tweaking).
       cv::threshold(mask, mask, 50 - i * 2, 1, cv::THRESH_BINARY);
-      mask.convertTo(mask16, CV_16U);
+      mask.convertTo(mask32, CV_32S);
 
       // Construct binary code by left shift the current value and add mask.
-      cv::scaleAdd(grayCode, 2, mask16, grayCode);
+      cv::scaleAdd(grayCode, 2, mask32, grayCode);
     }
     decoded[entry.first] = grayCode;
   }
   return decoded;
+}
+
+Calibrator::CapturedPixelsMap Calibrator::grayCodesToPixels(
+    Calibrator::GrayCodeMap &decodedGrayCodes)
+{
+  Calibrator::CapturedPixelsMap pixelsMap;
+  // Iterate over grayCode maps for all pairs of connections.
+  for (auto &connectionsCodes : decodedGrayCodes) {
+    auto &connection = connectionsCodes.first;
+    auto &grayCodes = connectionsCodes.second;
+
+    // Retrieve number of rows and columns of the captured images.
+    size_t rows = static_cast<size_t>(grayCodes.rows);
+    size_t cols = static_cast<size_t>(grayCodes.cols);
+
+    // Calculate number of bits needed to encode row and column pixel
+    // coordinates.
+    size_t rowLevels = GrayCode::calculateLevel(rows);
+    size_t colLevels = GrayCode::calculateLevel(cols);
+
+    // Mask for bits encoding row and column coordinates.
+    uint32_t rowMask = (1 << rowLevels) - 1;
+    uint32_t colMask = (1 << colLevels) - 1;
+
+    for (size_t i = 0; i < rows; i++) {
+      for (size_t j = 0; j < cols; j++) {
+        uint32_t encoding = grayCodes.at<uint32_t>(i, j);
+        // Only greycoded pixels should satisfy this condition, other should
+        // have been thresholded.
+        if (encoding > 0) {
+          uint32_t rowBits = (encoding >> colLevels) & rowMask;
+          uint32_t colBits = encoding & colMask;
+
+          pixelsMap[connection].emplace(std::pair<size_t, size_t>(
+              grayCodeToBinary(rowBits, rowLevels),
+              grayCodeToBinary(colBits, colLevels)));
+        }
+      }
+    }
+  }
+  return pixelsMap;
 }
 
 void Calibrator::captureBaselines() {

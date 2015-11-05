@@ -76,4 +76,3 @@ TARGET_LINK_LIBRARIES(core_test
     ${GTEST_BOTH_LIBRARIES}
 )
 ADD_TEST(CoreTests core_test)
-

@@ -4,7 +4,6 @@
 
 SET(SOURCES
     Calibrator.cc
-    main.cc
     MasterApplication.cc
     MasterConnectionHandler.cc
     MasterServer.cc
@@ -20,15 +19,39 @@ SET(HEADERS
     ProCam.h
     ProCamSystem.h
 )
-
-ADD_EXECUTABLE(master
-    ${SOURCES}
-    ${HEADERS}
+SET(TESTS
+    CalibratorTest.cc
 )
-TARGET_LINK_LIBRARIES(master
+SET(LIBS
     boost_program_options
     core
     pthread
     ${OpenCV_LIBRARIES}
 )
 
+ADD_LIBRARY(master_lib
+    ${SOURCES}
+    ${HEADERS}
+)
+
+# Master executable.
+ADD_EXECUTABLE(master
+    ${SOURCES}
+    ${HEADERS}
+    main.cc
+)
+TARGET_LINK_LIBRARIES(master
+    master_lib
+    ${LIBS}
+)
+
+# Tests for the master library.
+ADD_EXECUTABLE(master_test
+    ${TESTS}
+)
+TARGET_LINK_LIBRARIES(master_test
+    master_lib
+    ${LIBS}
+    ${GTEST_BOTH_LIBRARIES}
+)
+ADD_TEST(MasterTests master_test)
