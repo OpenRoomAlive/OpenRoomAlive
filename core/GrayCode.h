@@ -25,7 +25,7 @@ class GrayCode {
    * Returns a gray code pattern as a one-dimensional array.
    * Pre: level <= ceil (log2 height)
    */
-  cv::Mat getPattern(Orientation orientation, size_t level);
+  cv::Mat getPattern(Orientation orientation, size_t level) const;
 
   /**
    * Utility function which given a dimension calculates the level.

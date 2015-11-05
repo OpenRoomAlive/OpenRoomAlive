@@ -99,14 +99,14 @@ class ProCamApplication : public ProCamIf {
   const std::string masterIP_;
   /// Port used for conenctions.
   const uint16_t port_;
-  /// Server instance.
-  const std::shared_ptr<apache::thrift::server::TServer> server_;
   /// OpenGL window.
   const std::shared_ptr<Display> display_;
-  /// Gray code generator
-  GrayCode grayCode_;
   /// Kinect camera implementation.
   const std::shared_ptr<BGRDCamera> camera_;
+  /// Gray code generator
+  const GrayCode grayCode_;
+  /// Server instance.
+  const std::shared_ptr<apache::thrift::server::TServer> server_;
   /// True if the master is pinged.
   const bool enableMaster_;
 };

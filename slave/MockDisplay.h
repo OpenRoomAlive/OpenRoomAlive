@@ -20,35 +20,12 @@ class MockDisplay : public Display {
   MockDisplay();
   ~MockDisplay();
 
-  /**
-   * Main display loop.
-   */
-  void run() override;
-
-  /**
-   * Stops the display.
-   */
+  bool isRunning() override;
+  void update() override;
   void stop() override;
-
-  /**
-   * Sets the image displayed on the screen.
-   * @param image [description]
-   */
   void displayImage(const cv::Mat &image) override;
-
-  /**
-   * Retrieves the parameters of the display.
-   */
   DisplayParams getParameters() override;
-
-  /**
-   * Retrieves the width.
-   */
   virtual size_t getWidth() override;
-
-  /**
-   * Retrieves the height.
-   */
   virtual size_t getHeight() override;
 
  private:

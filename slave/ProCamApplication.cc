@@ -70,19 +70,19 @@ ProCamApplication::ProCamApplication(
     const std::string &logFilename)
   : masterIP_(masterIP)
   , port_(port)
+  , display_(enableDisplay
+        ? static_cast<Display*>(new GLDisplay())
+        : static_cast<Display*>(new MockDisplay()))
+  , camera_(enableKinect
+        ? static_cast<BGRDCamera*>(new BGRDCameraImpl(logLevel, logFilename))
+        : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
+  , grayCode_(display_->getWidth(), display_->getHeight())
   , server_(new apache::thrift::server::TSimpleServer(
         boost::make_shared<ProCamProcessor>(
             boost::shared_ptr<ProCamApplication>(this, [](ProCamApplication*){})),
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_ + 1),
         boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
-  , display_(enableDisplay
-        ? static_cast<Display*>(new GLDisplay())
-        : static_cast<Display*>(new MockDisplay()))
-  , grayCode_(display_->getWidth(), display_->getHeight())
-  , camera_(enableKinect
-        ? static_cast<BGRDCamera*>(new BGRDCameraImpl(logLevel, logFilename))
-        : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
   , enableMaster_(enableMaster)
 {
 }
@@ -100,7 +100,9 @@ int ProCamApplication::run() {
     });
 
     pingMaster();
-    display_->run();
+    while (display_->isRunning()) {
+      display_->update();
+    }
 
     // Stop everything.
     std::cerr << "Disconnected from master." << std::endl;

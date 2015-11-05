@@ -19,9 +19,14 @@ class Display {
   virtual ~Display();
 
   /**
+   * Returns true when the display stops running.
+   */
+  virtual bool isRunning() = 0;
+
+  /**
    * Main display loop.
    */
-  virtual void run() = 0;
+  virtual void update() = 0;
 
   /**
    * Closes the display.
@@ -45,7 +50,6 @@ class Display {
 
   /**
    * Sets the image displayed on the screen.
-   * @param image [description]
    */
   virtual void displayImage(const cv::Mat &image) = 0;
 };

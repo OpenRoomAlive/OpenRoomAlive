@@ -21,8 +21,8 @@ KinectCamera::KinectCamera(
   , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
   , logger_(
         new KinectFileLogger(
-            static_cast<KinectFileLogger::Level>(logLevel), 
-            logFilename), 
+            static_cast<KinectFileLogger::Level>(logLevel),
+            logFilename),
         [] (KinectFileLogger*) {
           libfreenect2::setGlobalLogger(libfreenect2::createConsoleLogger(
               libfreenect2::Logger::getDefaultLevel()));
@@ -34,11 +34,11 @@ KinectCamera::KinectCamera(
   , frameCount_(0)
 {
   // Prepare a custom logger for Kinect messages.
-  KinectFileLogger::Level level = 
+  KinectFileLogger::Level level =
     static_cast<KinectFileLogger::Level>(logLevel);
   std::string levelStr          = libfreenect2::Logger::level2str(level);
   libfreenect2::setGlobalLogger(logger_.get());
-  std::cout 
+  std::cout
     << "Logging to \"" << logFilename << "\" at level " << logLevel << " - "
     << levelStr << "." << std::endl;
   logger_->log(level, "<- This log contains msgs up to this importance level.");

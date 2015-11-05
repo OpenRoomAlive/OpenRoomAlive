@@ -49,7 +49,7 @@ std::vector<uint8_t> GrayCode::generate(size_t size, size_t level) {
 GrayCode::~GrayCode() {
 }
 
-cv::Mat GrayCode::getPattern(Orientation orientation, size_t level) {
+cv::Mat GrayCode::getPattern(Orientation orientation, size_t level) const {
   switch (orientation) {
     case Orientation::HORIZONTAL:
       if (level < horizontalBar.size()) {
@@ -57,7 +57,7 @@ cv::Mat GrayCode::getPattern(Orientation orientation, size_t level) {
             static_cast<int>(height_),
             1,
             CV_8UC1,
-            horizontalBar[level].data());
+            const_cast<uint8_t*>(horizontalBar[level].data()));
       }
       throw EXCEPTION()
           << "Level " << level << " out of range ("
@@ -68,7 +68,8 @@ cv::Mat GrayCode::getPattern(Orientation orientation, size_t level) {
         return cv::Mat(
             1,
             static_cast<int>(width_),
-            CV_8UC1, verticalBar[level].data());
+            CV_8UC1,
+            const_cast<uint8_t*>(verticalBar[level].data()));
       }
       throw EXCEPTION()
           << "Level " << level << " out of range ("

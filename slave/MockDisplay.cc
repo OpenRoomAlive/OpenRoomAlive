@@ -22,7 +22,11 @@ MockDisplay::MockDisplay()
 MockDisplay::~MockDisplay() {
 }
 
-void MockDisplay::run() {
+bool MockDisplay::isRunning() {
+  return isRunning_;
+}
+
+void MockDisplay::update() {
   struct termios oldSettings;
   struct termios newSettings;
   const int fd = fileno(stdin);
@@ -38,23 +42,20 @@ void MockDisplay::run() {
   newSettings.c_lflag &= ~ICANON & ~ECHO;
   tcsetattr(fd, TCSANOW, &newSettings);
 
-  while (isRunning_) {
-    // If any key was pressed, break.
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(fd, &set);
-    if (select(fd + 1, &set, NULL, NULL, &tv) > 0) {
-      break;
-    }
-  }
+  // If any key was pressed, break.
+  fd_set set;
+  FD_ZERO(&set);
+  FD_SET(fd, &set);
+  isRunning_ = select(fd + 1, &set, NULL, NULL, &tv) <= 0;
 
+  // Reset attributes.
   tcsetattr(fd, TCSANOW, &oldSettings);
 }
 
 DisplayParams MockDisplay::getParameters() {
   DisplayParams params;
-  params.frameWidth = 1024;
-  params.frameHeight = 1024;
+  params.frameWidth = getWidth();
+  params.frameHeight = getHeight();
   return params;
 }
 

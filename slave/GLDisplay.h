@@ -27,43 +27,15 @@ class GLDisplay : public Display {
   GLDisplay();
   ~GLDisplay();
 
-  /**
-   * Main display loop.
-   */
-  void run() override;
-
-  /**
-   * Stops the displauy.
-   */
+  bool isRunning() override;
+  void update() override;
   void stop() override;
-
-  /**
-   * Sets the image displayed on the screen.
-   * @param image [description]
-   */
   void displayImage(const cv::Mat &image) override;
-
-  /**
-   * Retrieves the parameters of the display.
-   */
   DisplayParams getParameters() override;
-
-  /**
-   * Retrieves the width.
-   */
-  virtual size_t getWidth() override;
-
-  /**
-   * Retrieves the height.
-   */
-  virtual size_t getHeight() override;
+  size_t getWidth() override;
+  size_t getHeight() override;
 
  private:
-  /**
-   * Open a new GLFW window for this display.
-   */
-  void openWindow();
-
   /**
    * GLFW cleanup.
    */
@@ -73,11 +45,6 @@ class GLDisplay : public Display {
    * Called when a key was pressed.
    */
   void onKeyPressed(int key);
-
-  /**
-   * Main rendering loop.
-   */
-  void loop();
 
  private:
   /// Lock protecting the data.
