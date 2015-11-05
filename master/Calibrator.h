@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include <boost/functional/hash.hpp>
+
 #include "master/MasterConnectionHandler.h"
 #include "master/ProCamSystem.h"
 
@@ -15,25 +17,21 @@ namespace dv { namespace master {
  * Class wrapping the functionality responsible for ProCam calibration.
  */
 class Calibrator {
- private:
-  /**
-   * Class to hash pairs of connections.
-   */
-  struct ConnectionPairHasher {
-    size_t operator() (const std::pair<ConnectionID, ConnectionID> &pair) const {
-      return pair.first + (pair.second << 31);
-    }
-  };
-
  public:
+  /// Pair of procams that can see each other.
+  using ProCamPair = std::pair<ConnectionID, ConnectionID>;
+
+  /// Sequence of captured images from which gray codes are decoded.
   using CapturedMap = std::unordered_map<
-      std::pair<ConnectionID, ConnectionID>,
+      ProCamPair,
       std::vector<cv::Mat>,
-      ConnectionPairHasher>;
+      boost::hash<ProCamPair>>;
+
+  /// Decoded gray codes between a procam and a bgrd camera.
   using GrayCodeMap = std::unordered_map<
-      std::pair<ConnectionID, ConnectionID>,
+      ProCamPair,
       cv::Mat,
-      ConnectionPairHasher>;
+      boost::hash<ProCamPair>>;
 
   Calibrator(
       const std::vector<ConnectionID>& ids,
