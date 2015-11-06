@@ -109,6 +109,16 @@ void MasterConnectionHandler::displayGrayCode(
   }
 }
 
+void MasterConnectionHandler::displayWhite(ConnectionID id) {
+  // TODO(hanq): T41
+  auto it = connections_.find(id);
+
+  if (it != connections_.end()) {
+    it->second.client->displayWhite();
+  } else {
+    throw EXCEPTION() << "Connection with a specified ID was not found.";
+  }
+}
 
 void MasterConnectionHandler::clearDisplay(ConnectionID id) {
   // TODO: remove duplication.
@@ -144,6 +154,12 @@ std::unordered_map<ConnectionID, cv::Mat>
 MasterConnectionHandler::getUndistortedColorImages() {
   return conv::thriftFrameToCvMatMap(
       InvokeParallel(&ProCamClient::getUndistortedColorImage));
+}
+
+std::unordered_map<ConnectionID, cv::Mat>
+MasterConnectionHandler::getColorBaselines() {
+  return conv::thriftFrameToCvMatMap(
+      InvokeParallel(&ProCamClient::getColorBaseline));
 }
 
 std::unordered_map<ConnectionID, cv::Mat>

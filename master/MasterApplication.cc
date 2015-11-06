@@ -80,10 +80,11 @@ int MasterApplication::run() {
 
   // Capture baselines.
   calibrator.captureBaselines();
+  calibrator.formProjectorGroups();
 
   // Display the gray code patterns for calibration.
-  calibrator.displayGrayCodes();
-  calibrator.decode();
+  //calibrator.displayGrayCodes();
+  //calibrator.decode();
 
   // Wait for user input.
   getchar();

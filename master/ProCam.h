@@ -8,7 +8,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "core/ProCam.h"
-
+#include "core/Types.h"
 
 namespace dv { namespace master {
 
@@ -46,6 +46,8 @@ friend class Calibrator;
   cv::Mat colorBaseline_;
   /// Depth baseline.
   cv::Mat depthBaseline_;
+  /// Cameras that can observe some part of projector's image.
+  std::vector<ConnectionID> projectorGroup_;
 };
 
 }}

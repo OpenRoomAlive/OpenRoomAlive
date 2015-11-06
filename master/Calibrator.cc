@@ -19,6 +19,9 @@ using namespace std::chrono_literals;
 // Duration of a one element of gray code sequence in milliseconds.
 constexpr auto kGrayCodeDuration = 2000ms;
 
+// Threshold to determine if two color images are the same.
+constexpr auto kColorDiffThreshold = 100;
+
 Calibrator::Calibrator(
     const std::vector<ConnectionID>& ids,
     const boost::shared_ptr<MasterConnectionHandler>& connectionHandler,
@@ -30,6 +33,46 @@ Calibrator::Calibrator(
 }
 
 Calibrator::~Calibrator() {
+}
+
+void Calibrator::captureBaselines() {
+  auto colorBaselines = connectionHandler_->getColorBaselines();
+  auto depthBaselines = connectionHandler_->getDepthBaselines();
+
+  for (const auto &id : ids_) {
+    auto proCam = system_->getProCam(id);
+    proCam->colorBaseline_ = colorBaselines[id];
+    proCam->depthBaseline_ = depthBaselines[id];
+  }
+}
+
+void Calibrator::formProjectorGroups() {
+  for (const auto &id :ids_) {
+
+    // Project white image
+    connectionHandler_->displayWhite(id);
+
+    // Add delay
+    std::this_thread::sleep_for(kGrayCodeDuration);
+
+    // Capture white images
+    auto whiteImages = connectionHandler_->getUndistortedColorImages();
+
+    // Form ProCam group
+    auto proCam = system_->getProCam(id);
+    for (const auto &captured : whiteImages) {
+      // Determine if there's an overlap
+      cv::Mat diff;
+      cv::absdiff(captured.second, proCam->colorBaseline_, diff);
+      cv::threshold(diff, diff, 1, 255, cv::THRESH_BINARY);
+
+      //std::cout << "Sum is : " << sum << std::endl;
+      if (cv::sum(diff)[0] > kColorDiffThreshold) {
+        proCam->projectorGroup_.push_back(captured.first);
+        std::cout << "Adding procam: " << captured.first << std::endl;
+      }
+    }
+  }
 }
 
 void Calibrator::displayGrayCodes() {
@@ -139,13 +182,3 @@ Calibrator::CapturedPixelsMap Calibrator::grayCodesToPixels(
   return pixelsMap;
 }
 
-void Calibrator::captureBaselines() {
-  auto colorBaselines = connectionHandler_->getUndistortedColorImages();
-  auto depthBaselines = connectionHandler_->getDepthBaselines();
-
-  for (const auto &id : ids_) {
-    auto proCam = system_->getProCam(id);
-    proCam->colorBaseline_ = colorBaselines[id];
-    proCam->depthBaseline_ = depthBaselines[id];
-  }
-}

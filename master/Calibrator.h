@@ -46,6 +46,16 @@ class Calibrator {
   ~Calibrator();
 
   /**
+   * Captures and saves baselines.
+   */
+  void captureBaselines();
+
+  /**
+   * Forms projector groups.
+   */
+  void formProjectorGroups();
+
+  /**
    * Function which loops over all connections (procams) and for each
    * procam it sends requests to display a sequence of gray codes. It
    * should be run in a separate thread.
@@ -60,11 +70,6 @@ class Calibrator {
       Orientation::type orientation,
       size_t level,
       bool inverted);
-
-  /**
-   * Captures and saves baselines.
-   */
-  void captureBaselines();
 
   /**
    * Decode the captured gray code pattern into a bit mask.

@@ -7,6 +7,11 @@
 
 namespace dv {
 
+/**
+ * All connections to procams are identified by ID equal to the ID of the
+ * associated ProCam.
+ */
+using ConnectionID = uint64_t;
 
 /**
  * Screen resolution.

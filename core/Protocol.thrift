@@ -88,9 +88,14 @@ service ProCam {
   Frame getUndistortedColorImage(),
 
   /**
+   * Retireves the color baseline.
+   */
+  Frame getColorBaseline();
+
+  /**
    * Retrieves the depth baseline.
    */
-   Frame getDepthBaseline(),
+  Frame getDepthBaseline(),
 
   /**
    * Displays the specified gray code pattern.
@@ -99,6 +104,11 @@ service ProCam {
       1: Orientation orientation,
       2: i16 level,
       3: bool invertedGrayCode),
+
+  /**
+   * Display a white image on projector.
+   */
+  void displayWhite();
 
   /**
    * Clears the display (sets it to a black image).

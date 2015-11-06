@@ -63,6 +63,11 @@ try
   }
 
   const GLFWvidmode* mode = glfwGetVideoMode(projector);
+  glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+  glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+  glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+  glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
   window_ = glfwCreateWindow(
       mode->width,
       mode->height,
@@ -70,6 +75,7 @@ try
       projector,
       nullptr
   );
+
   if (!window_) {
     throw EXCEPTION() << "Cannot open GLFW window.";
   }

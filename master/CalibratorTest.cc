@@ -5,8 +5,10 @@
 #include <gtest/gtest.h>
 
 #include "core/GrayCode.h"
+#include "core/Types.h"
 #include "master/Calibrator.h"
 
+using namespace dv;
 using namespace dv::master;
 
 /*

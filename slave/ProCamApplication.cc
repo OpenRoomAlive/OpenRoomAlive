@@ -144,7 +144,13 @@ void ProCamApplication::getUndistortedColorImage(Frame& frame) {
   conv::cvMatToThriftFrame(image, frame);
 }
 
-void ProCamApplication::getDepthBaseline(Frame& frame) {
+void ProCamApplication::getColorBaseline(Frame &frame) {
+  // TODO(ilijar): figure out how to account for lighting.
+  cv::Mat image = camera_->getUndistortedColorImage();
+  conv::cvMatToThriftFrame(image, frame);
+}
+
+void ProCamApplication::getDepthBaseline(Frame &frame) {
   camera_->freshFrame();
   // TODO: T34
   cv::Mat baseline = camera_->getDepthImage();
@@ -170,6 +176,10 @@ void ProCamApplication::displayGrayCode(
   } else {
     display_->displayImage(grayCodeImage);
   }
+}
+
+void ProCamApplication::displayWhite() {
+  display_->displayImage(cv::Mat(1, 1, CV_8UC3, cv::Scalar(160, 160, 160)));
 }
 
 void ProCamApplication::clearDisplay() {

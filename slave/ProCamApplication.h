@@ -53,17 +53,22 @@ class ProCamApplication : public ProCamIf {
   /**
    * Retrieves the color BGR image (1920x1080).
    */
-  void getColorImage(Frame& frame) override;
+  void getColorImage(Frame &frame) override;
 
   /**
    * Retrieves the undistorted Depth image (512x424).
    */
-  void getDepthImage(Frame& frame) override;
+  void getDepthImage(Frame &frame) override;
 
   /**
    * Retrieves the color image for depth data (512x424).
    */
-  void getUndistortedColorImage(Frame& frame) override;
+  void getUndistortedColorImage(Frame &frame) override;
+
+  /**
+   * Retrieves the color baseline.
+   */
+  void getColorBaseline(Frame &frame) override;
 
   /**
    * Retrieves the depth baseline.
@@ -77,6 +82,11 @@ class ProCamApplication : public ProCamIf {
       const Orientation::type orientation,
       const int16_t level,
       bool invertedGrayCode) override;
+
+  /**
+   * Displays white image on projector.
+   */
+  void displayWhite() override;
 
   /**
    * Clears the display (sets it to a black image).

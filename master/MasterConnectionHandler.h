@@ -22,15 +22,10 @@
 #include "core/Exception.h"
 #include "core/Master.h"
 #include "core/ProCam.h"
+#include "core/Types.h"
 #include "master/MasterServer.h"
 
 namespace dv { namespace master {
-
-/*
- * All connections to procams are identified by ID equal to the ID of the
- * associated ProCam.
- */
-using ConnectionID = uint64_t;
 
 /**
  * Manages ProCam connections.
@@ -71,6 +66,11 @@ class MasterConnectionHandler
       Orientation::type orientation,
       int16_t level,
       bool invertedGrayCode);
+
+  /**
+   * Sends signal to given ProCam to display white image.
+   */
+  void displayWhite(ConnectionID id);
 
   /**
    * Clears the display of a procam.
@@ -117,6 +117,11 @@ class MasterConnectionHandler
    * Invokes getUndistortedColorImage on all clients.
    */
   std::unordered_map<ConnectionID, cv::Mat> getUndistortedColorImages();
+
+  /**
+   * Invokes getColorBaseline on all clients.
+   */
+  std::unordered_map<ConnectionID, cv::Mat> getColorBaselines();
 
   /**
    * Invokes getDepthBaseline on all clients.
