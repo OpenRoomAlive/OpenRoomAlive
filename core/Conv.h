@@ -9,6 +9,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "core/ProCam.h"
+#include "core/Types.h"
 
 
 /**
@@ -20,12 +21,12 @@ namespace dv { namespace conv {
 /**
  * Converts a cv::Mat to a thrift frame.
  */
-void cvMatToThriftFrame(const cv::Mat& image, Frame& frame);
+void cvMatToThriftFrame(const cv::Mat &image, Frame &frame);
 
 /**
  * Converts a thrift frame to a cv::Mat.
  */
-void thriftFrameToCvMat(const Frame& frame, cv::Mat& image);
+void thriftFrameToCvMat(const Frame &frame, cv::Mat &image);
 
 /**
  * Converts a map of thrift frames to a map of cv::Mat.
@@ -49,12 +50,19 @@ thriftFrameToCvMatMap(std::unordered_map<K, Frame> frames)
 /**
  * Converts a thrift camera matrix to a cv::Mat.
  */
-cv::Mat thriftCamMatToCvMat(const CameraMatrix& cameraMat);
+cv::Mat thriftCamMatToCvMat(const CameraMatrix &cameraMat);
 
 /**
  * Converts thrift distortion coefficients to a row cv::Mat with 5 columns.
  */
-cv::Mat thriftDistToCvMat(const DistCoef& distCoef);
+cv::Mat thriftDistToCvMat(const DistCoef &distCoef);
+
+/**
+ * Converts Resolution to thrift DisplayParams.
+ */
+void widthHeightToDisplayParams(
+    const Resolution &resolution,
+    DisplayParams &displayParams);
 
 }}
 

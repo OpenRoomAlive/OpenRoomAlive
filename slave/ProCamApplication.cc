@@ -123,8 +123,7 @@ void ProCamApplication::getCameraParams(CameraParams& cameraParams) {
 }
 
 void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
-  std::cout << "Procam Params\n";
-  displayParams = display_->getParameters();
+  conv::widthHeightToDisplayParams(display_->getParameters(), displayParams);
 }
 
 void ProCamApplication::getColorImage(Frame& frame) {

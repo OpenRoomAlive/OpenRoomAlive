@@ -31,9 +31,9 @@ class GLDisplay : public Display {
   void update() override;
   void stop() override;
   void displayImage(const cv::Mat &image) override;
-  DisplayParams getParameters() override;
-  size_t getWidth() override;
-  size_t getHeight() override;
+  Resolution getParameters() override;
+  virtual size_t getWidth() override;
+  virtual size_t getHeight() override;
 
  private:
   /**
@@ -57,8 +57,8 @@ class GLDisplay : public Display {
   GLuint texture_;
   /// GLFW window handle.
   GLFWwindow *window_;
-  /// Display parameters.
-  DisplayParams params_;
+  /// Resolution.
+  Resolution resolution_;
 
   // GLFW callback functions.
   static void onKeyCallback(GLFWwindow*, int, int, int, int);

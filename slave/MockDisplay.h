@@ -24,7 +24,7 @@ class MockDisplay : public Display {
   void update() override;
   void stop() override;
   void displayImage(const cv::Mat &image) override;
-  DisplayParams getParameters() override;
+  Resolution getParameters() override;
   virtual size_t getWidth() override;
   virtual size_t getHeight() override;
 

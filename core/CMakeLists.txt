@@ -45,8 +45,9 @@ SET(HEADERS
     Async.h
     Conv.h
     Exception.h
-    Projection.h
     GrayCode.h
+    Projection.h
+    Types.h
 )
 
 # List of all tests.

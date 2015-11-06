@@ -88,8 +88,8 @@ try
     if (frameWidth == 0 || frameHeight == 0) {
       throw EXCEPTION() << "Could not retrieve dimensions of the display.";
     }
-    params_.frameWidth = frameWidth;
-    params_.frameHeight = frameHeight;
+    resolution_.width = frameWidth;
+    resolution_.height = frameHeight;
     glViewport(0, 0, frameWidth, frameHeight);
   }
 
@@ -111,16 +111,16 @@ GLDisplay::~GLDisplay() {
   destroy();
 }
 
-DisplayParams GLDisplay::getParameters() {
-  return params_;
+Resolution GLDisplay::getParameters() {
+  return resolution_;
 }
 
 size_t GLDisplay::getWidth() {
-  return params_.frameWidth;
+  return resolution_.width;
 }
 
 size_t GLDisplay::getHeight() {
-  return params_.frameHeight;
+  return resolution_.height;
 }
 
 bool GLDisplay::isRunning() {

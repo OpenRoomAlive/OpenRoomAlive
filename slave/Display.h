@@ -6,7 +6,8 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "core/ProCam.h"
+#include "core/Types.h"
+
 
 namespace dv { namespace slave {
 
@@ -36,7 +37,7 @@ class Display {
   /**
    * Retrieves the parameters of the display.
    */
-  virtual DisplayParams getParameters() = 0;
+  virtual Resolution getParameters() = 0;
 
   /**
    * Retrieves the width.
@@ -52,6 +53,7 @@ class Display {
    * Sets the image displayed on the screen.
    */
   virtual void displayImage(const cv::Mat &image) = 0;
+
 };
 
 }}
