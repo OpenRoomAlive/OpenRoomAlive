@@ -18,7 +18,9 @@ KinectCamera::KinectCamera(
     const std::string &logFilename)
   : freenect_(new libfreenect2::Freenect2())
   , pipeline_(new libfreenect2::OpenGLPacketPipeline())
+  , kinect_(nullptr)
   , listener_(libfreenect2::Frame::Color | libfreenect2::Frame::Depth)
+  , registration_(nullptr)
   , logger_(
         new KinectFileLogger(
             static_cast<KinectFileLogger::Level>(logLevel),
@@ -33,14 +35,14 @@ KinectCamera::KinectCamera(
   , isRunning_(false)
   , frameCount_(0)
 {
+
   // Prepare a custom logger for Kinect messages.
-  KinectFileLogger::Level level =
-    static_cast<KinectFileLogger::Level>(logLevel);
-  std::string levelStr          = libfreenect2::Logger::level2str(level);
+  auto level = static_cast<KinectFileLogger::Level>(logLevel);
+  auto levelStr = libfreenect2::Logger::level2str(level);
   libfreenect2::setGlobalLogger(logger_.get());
   std::cout
-    << "Logging to \"" << logFilename << "\" at level " << logLevel << " - "
-    << levelStr << "." << std::endl;
+      << "Logging to \"" << logFilename << "\" at level " << logLevel << " - "
+      << levelStr << "." << std::endl;
   logger_->log(level, "<- This log contains msgs up to this importance level.");
 
   // Find the kinect device.
@@ -50,8 +52,9 @@ KinectCamera::KinectCamera(
   serial_ = freenect_->getDefaultDeviceSerialNumber();
 
   // Open it.
-  kinect_ = std::shared_ptr<libfreenect2::Freenect2Device>(
-      freenect_->openDevice(serial_, pipeline_.get()));
+  if ((kinect_ = freenect_->openDevice(serial_, pipeline_)) == nullptr) {
+    throw EXCEPTION() << "Cannot connect to kinect device.";
+  }
 
   // Set up the listener.
   kinect_->setColorFrameListener(&listener_);
@@ -62,8 +65,9 @@ KinectCamera::KinectCamera(
   isRunning_ = true;
 
   // Register.
-  registration_ = std::make_shared<libfreenect2::Registration>(
-      kinect_->getIrCameraParams(), kinect_->getColorCameraParams());
+  registration_ = new libfreenect2::Registration(
+      kinect_->getIrCameraParams(),
+      kinect_->getColorCameraParams());
 
   // Start polling the Kinect.
   dataPolling_ = std::thread([this] () {
@@ -74,6 +78,22 @@ KinectCamera::KinectCamera(
 KinectCamera::~KinectCamera() {
   kinect_->stop();
   kinect_->close();
+
+  // Make sure to free stuff in order.
+  if (registration_) {
+    delete registration_;
+  }
+  if (kinect_) {
+    delete kinect_;
+  }
+  if (pipeline_) {
+    delete pipeline_;
+  }
+  if (freenect_) {
+    delete freenect_;
+  }
+
+  // Stop the kinect thread.
   isRunning_ = false;
   dataPolling_.join();
 }

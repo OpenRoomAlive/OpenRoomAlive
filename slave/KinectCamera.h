@@ -60,15 +60,15 @@ class KinectCamera : public BGRDCamera {
 
  private:
   /// Freenect2 library pointer.
-  std::shared_ptr<libfreenect2::Freenect2> freenect_;
+  libfreenect2::Freenect2 *freenect_;
   /// Reference to the kinect pipeline.
-  std::shared_ptr<libfreenect2::PacketPipeline> pipeline_;
+  libfreenect2::PacketPipeline *pipeline_;
   /// Reference to the kinect device.
-  std::shared_ptr<libfreenect2::Freenect2Device> kinect_;
+  libfreenect2::Freenect2Device *kinect_;
   /// Kinect listener.
   libfreenect2::SyncMultiFrameListener listener_;
   /// Kinect registration.
-  std::shared_ptr<libfreenect2::Registration> registration_;
+  libfreenect2::Registration *registration_;
   /// Logger of Kinect messages.
   std::shared_ptr<KinectFileLogger> logger_;
   /// BGR color image (1920x1080).
