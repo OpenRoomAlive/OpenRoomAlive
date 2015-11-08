@@ -19,6 +19,7 @@
 
 #include <thrift/transport/TTransportUtils.h>
 
+#include "core/Conv.h"
 #include "core/Exception.h"
 #include "core/Master.h"
 #include "core/ProCam.h"
@@ -65,17 +66,28 @@ class MasterConnectionHandler
       ConnectionID id,
       Orientation::type orientation,
       int16_t level,
-      bool invertedGrayCode);
+      bool invertedGrayCode) {
+    InvokeOne(
+        id,
+        &ProCamClient::displayGrayCode,
+        orientation,
+        level,
+        invertedGrayCode);
+  }
 
   /**
    * Sends signal to given ProCam to display white image.
    */
-  void displayWhite(ConnectionID id);
+  void displayWhite(ConnectionID id) {
+    InvokeOne(id, &ProCamClient::displayWhite);
+  }
 
   /**
    * Clears the display of a procam.
    */
-  void clearDisplay(ConnectionID id);
+  void clearDisplay(ConnectionID id) {
+    InvokeOne(id, &ProCamClient::clearDisplay);
+  }
 
   /**
    * Disconnects all procams.
@@ -86,47 +98,62 @@ class MasterConnectionHandler
    * Clears the displays of all procams.
    */
   void clearDisplays() {
-    return InvokeParallel(&ProCamClient::clearDisplay);
+    return InvokeAll(&ProCamClient::clearDisplay);
   }
 
   /**
    * Invokes getCameraParams on all clients.
    */
   std::unordered_map<ConnectionID, CameraParams> getCamerasParams() {
-    return InvokeParallel(&ProCamClient::getCameraParams);
+    return InvokeAll(&ProCamClient::getCameraParams);
   }
 
   /**
    * Invokes getDisplayParams on all clients.
    */
   std::unordered_map<ConnectionID, DisplayParams> getDisplaysParams() {
-    return InvokeParallel(&ProCamClient::getDisplayParams);
+    return InvokeAll(&ProCamClient::getDisplayParams);
   }
 
   /**
    * Invokes getColorImage on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getColorImages();
+  std::unordered_map<ConnectionID, cv::Mat> getColorImages() {
+    return conv::thriftFrameToCvMatMap(
+        InvokeAll(&ProCamClient::getColorImage));
+  }
 
   /**
    * Invokes getDepthImage on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getDepthImages();
+  std::unordered_map<ConnectionID, cv::Mat> getDepthImages() {
+    return conv::thriftFrameToCvMatMap(
+        InvokeAll(&ProCamClient::getDepthImage));
+  }
 
   /**
    * Invokes getUndistortedColorImage on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getUndistortedColorImages();
+  std::unordered_map<ConnectionID, cv::Mat> getUndistortedColorImages() {
+    return conv::thriftFrameToCvMatMap(
+        InvokeAll(&ProCamClient::getUndistortedColorImage));
+  }
 
   /**
    * Invokes getColorBaseline on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getColorBaselines();
+  std::unordered_map<ConnectionID, cv::Mat> getColorBaselines() {
+    return conv::thriftFrameToCvMatMap(
+        InvokeAll(&ProCamClient::getColorBaseline));
+  }
 
   /**
    * Invokes getDepthBaseline on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getDepthBaselines();
+  std::unordered_map<ConnectionID, cv::Mat> getDepthBaselines() {
+    return conv::thriftFrameToCvMatMap(
+        InvokeAll(&ProCamClient::getDepthBaseline));
+  }
 
  private:
   /**
@@ -151,51 +178,87 @@ class MasterConnectionHandler
   };
 
   /**
-   * Invokes a client RPC method on all clients.
+   * Invokes a client RPC method on some clients.
    *
    * This RPC call is specialized for methods without any return values.
    *
    * @tparam Args   List of arguments to the RPC call.
-   *
+   * @param ids     List of all connection IDs to call.
    * @param func    Pointer to the ProCam API method.
    * @param args... List of arguments.
    */
   template<typename ...Args>
-  void InvokeParallel(
+  void InvokeGroup(
+      const std::vector<ConnectionID>& ids,
       void (ProCamClient::* func) (Args...),
       Args... args);
 
   /**
-   * Invokes a client RCP method on all clients.
+   * Invokes a client RCP method on some clients.
    *
    * The RPC calls are performed in parrallel, using one thread for each call.
    * This call only works if the return type is a primitive value.
    *
    * @tparam Ret    Return type of the RPC call.
    * @tparam Args   List of arguments to the RPC call.
+   * @param ids     List of all connection IDs to call.
    * @param func    Pointer to the ProCam API method.
    * @param args... List of arguments.
    */
   template<typename Ret, typename ...Args>
-  std::unordered_map<ConnectionID, Ret> InvokeParallel(
+  std::unordered_map<ConnectionID, Ret> InvokeGroup(
+      const std::vector<ConnectionID>& ids,
       Ret (ProCamClient::* func) (Args...),
       Args... args);
 
   /**
-   * Invokes a client RCP method on all clients.
+   * Invokes a client RCP method on some clients.
    *
    * The RPC calls are performed in parrallel, using one thread for each call.
    * This call only works if the return type is a thrift structure.
    *
    * @tparam Ret    Return type of the RPC call.
    * @tparam Args   List of arguments to the RPC call.
+   * @param ids     List of all connection IDs to call.
    * @param func    Pointer to the ProCam API method.
    * @param args... List of arguments.
    */
   template<typename Ret, typename ...Args>
-  std::unordered_map<ConnectionID, Ret> InvokeParallel(
+  std::unordered_map<ConnectionID, Ret> InvokeGroup(
+      const std::vector<ConnectionID>& ids,
       void (ProCamClient::* func) (Ret&, Args...),
       Args... args);
+
+
+  /**
+   * Invokes a client RPC method on all clients.
+   */
+  template<typename ...Args>
+  void InvokeAll(
+      void (ProCamClient::* func) (Args...),
+      Args... args) {
+    return InvokeGroup(getAllIDs(), func, args...);
+  }
+
+  /**
+   * Invokes a client RCP method on all clients.
+   */
+  template<typename Ret, typename ...Args>
+  std::unordered_map<ConnectionID, Ret> InvokeAll(
+      Ret (ProCamClient::* func) (Args...),
+      Args... args) {
+    return InvokeGroup(getAllIDs(), func, args...);
+  }
+
+  /**
+   * Invokes a client RCP method on all clients.
+   */
+  template<typename Ret, typename ...Args>
+  std::unordered_map<ConnectionID, Ret> InvokeAll(
+      void (ProCamClient::* func) (Ret&, Args...),
+      Args... args) {
+    return InvokeGroup(getAllIDs(), func, args...);
+  }
 
   /**
    * Invokes a method on a single ProCam if the given connection ID is found.
@@ -210,6 +273,48 @@ class MasterConnectionHandler
       ConnectionID id,
       void (ProCamClient::* func) (Args...),
       Args... args);
+
+  /**
+   * Invokes a method on a single ProCam if the given connection ID is found.
+   *
+   * @tparam Args   List of arguments to the function call.
+   * @param id      ConnectionID of the target ProCam unit.
+   * @param func    Pointer to the ProCamClient function.
+   * @param args... List of arguments.
+   */
+  template<typename Ret, typename ...Args>
+  Ret InvokeOne(
+      ConnectionID id,
+      Ret (ProCamClient::* func) (Args...),
+      Args... args);
+
+
+  /**
+   * Invokes a method on a single ProCam if the given connection ID is found.
+   *
+   * @tparam Args   List of arguments to the function call.
+   * @param id      ConnectionID of the target ProCam unit.
+   * @param func    Pointer to the ProCamClient function.
+   * @param args... List of arguments.
+   */
+  template<typename Ret, typename ...Args>
+  Ret InvokeOne(
+      ConnectionID id,
+      void (ProCamClient::* func) (Ret&, Args...),
+      Args... args);
+
+  /**
+   * Returns all connection IDs.
+   */
+  std::vector<ConnectionID> getAllIDs();
+
+  /**
+   * Returns a vector of all connections associated to IDs.
+   *
+   * @throws dv::Exception if any of the IDs does not have a connection.
+   */
+  std::vector<std::pair<ConnectionID, Connection>> getConnections(
+      const std::vector<ConnectionID> &ids);
 
   /// List of connections to procams.
   std::unordered_map<ConnectionID, Connection> connections_;

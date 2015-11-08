@@ -11,7 +11,6 @@
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 
-#include "core/Conv.h"
 #include "core/Exception.h"
 #include "master/MasterServer.h"
 #include "master/MasterConnectionHandler.h"
@@ -94,23 +93,6 @@ MasterConnectionHandler::waitForConnections(size_t count) {
   return ids;
 }
 
-void MasterConnectionHandler::displayGrayCode(
-    ConnectionID id,
-    Orientation::type orientation,
-    int16_t level,
-    bool invertedGrayCode)
-{
-  InvokeOne(id, &ProCamClient::displayGrayCode, orientation, level, invertedGrayCode);
-}
-
-void MasterConnectionHandler::displayWhite(ConnectionID id) {
-  InvokeOne(id, &ProCamClient::displayWhite);
-}
-
-void MasterConnectionHandler::clearDisplay(ConnectionID id) {
-  InvokeOne(id, &ProCamClient::clearDisplay);
-}
-
 void MasterConnectionHandler::stop() {
   std::lock_guard<std::mutex> locker(lock_);
   for (const auto &connection : connections_) {
@@ -118,33 +100,29 @@ void MasterConnectionHandler::stop() {
   }
 }
 
-std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getColorImages() {
-  return conv::thriftFrameToCvMatMap(
-      InvokeParallel(&ProCamClient::getColorImage));
+std::vector<ConnectionID> MasterConnectionHandler::getAllIDs() {
+  std::vector<ConnectionID> ids;
+  {
+    std::lock_guard<std::mutex> locker(lock_);
+    for (const auto &connection : connections_) {
+      ids.emplace_back(connection.first);
+    }
+  }
+  return ids;
 }
 
-std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getDepthImages() {
-  return conv::thriftFrameToCvMatMap(
-      InvokeParallel(&ProCamClient::getDepthImage));
+std::vector<std::pair<ConnectionID, MasterConnectionHandler::Connection>>
+MasterConnectionHandler::getConnections(const std::vector<ConnectionID> &ids) {
+  std::vector<std::pair<ConnectionID, Connection>> connections;
+  {
+    std::lock_guard<std::mutex> locker(lock_);
+    for (const auto &id : ids) {
+      auto it = connections_.find(id);
+      if (it == connections_.end()) {
+        throw EXCEPTION() << "Invalid connection ID.";
+      }
+      connections.emplace_back(*it);
+    }
+  }
+  return connections;
 }
-
-std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getUndistortedColorImages() {
-  return conv::thriftFrameToCvMatMap(
-      InvokeParallel(&ProCamClient::getUndistortedColorImage));
-}
-
-std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getColorBaselines() {
-  return conv::thriftFrameToCvMatMap(
-      InvokeParallel(&ProCamClient::getColorBaseline));
-}
-
-std::unordered_map<ConnectionID, cv::Mat>
-MasterConnectionHandler::getDepthBaselines() {
-  return conv::thriftFrameToCvMatMap(
-      InvokeParallel(&ProCamClient::getDepthBaseline));
-}
-

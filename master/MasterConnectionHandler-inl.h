@@ -6,14 +6,14 @@ namespace dv { namespace master {
 
 
 template<typename ...Args>
-void MasterConnectionHandler::InvokeParallel(
+void MasterConnectionHandler::InvokeGroup(
+    const std::vector<ConnectionID>& ids,
     void (ProCamClient::* func) (Args...),
     Args... args)
 {
-  // Launch a thread per connection. They exit after the RPC
-  // call is completed.
+  // Launch a thread per connection. They exit after the RPC call is completed.
   std::vector<std::thread> threads;
-  for (const auto &connection : connections_) {
+  for (const auto &connection : getConnections(ids)) {
     threads.emplace_back(
         [&] (std::shared_ptr<ProCamClient> client) {
           (client.get()->*func) (args...);
@@ -30,7 +30,8 @@ void MasterConnectionHandler::InvokeParallel(
 
 
 template<typename Ret, typename ...Args>
-std::unordered_map<ConnectionID, Ret> MasterConnectionHandler::InvokeParallel(
+std::unordered_map<ConnectionID, Ret> MasterConnectionHandler::InvokeGroup(
+    const std::vector<ConnectionID>& ids,
     Ret (ProCamClient::* func) (Args...),
     Args... args)
 {
@@ -49,7 +50,7 @@ std::unordered_map<ConnectionID, Ret> MasterConnectionHandler::InvokeParallel(
   // Launch all threads & create a vector to store results.
   std::vector<std::thread> threads;
   HashMap results;
-  for (const auto &connection : connections_) {
+  for (const auto &connection : getConnections(ids)) {
     auto it = results.emplace(connection.first, Ret());
     if (!it.second) {
       throw EXCEPTION() << "Cannot create result object.";
@@ -71,7 +72,8 @@ std::unordered_map<ConnectionID, Ret> MasterConnectionHandler::InvokeParallel(
 
 
 template<typename Ret, typename ...Args>
-std::unordered_map<ConnectionID, Ret> MasterConnectionHandler::InvokeParallel(
+std::unordered_map<ConnectionID, Ret> MasterConnectionHandler::InvokeGroup(
+    const std::vector<ConnectionID>& ids,
     void (ProCamClient::* func) (Ret&, Args...),
     Args... args)
 {
@@ -90,7 +92,7 @@ std::unordered_map<ConnectionID, Ret> MasterConnectionHandler::InvokeParallel(
   // Launch all threads & create a vector to store results.
   std::vector<std::thread> threads;
   HashMap results;
-  for (const auto &connection : connections_) {
+  for (const auto &connection : getConnections(ids)) {
     auto it = results.emplace(connection.first, Ret());
     if (!it.second) {
       throw EXCEPTION() << "Cannot create result object.";
@@ -118,11 +120,43 @@ void MasterConnectionHandler::InvokeOne(
 {
   auto it = connections_.find(id);
 
-  if (it != connections_.end()) {
-    (it->second.client.get()->*func) (args...);
-  } else {
+  if (it == connections_.end()) {
     throw EXCEPTION() << "Connection with a specified ID was not found.";
   }
+
+  (it->second.client.get()->*func) (args...);
+}
+
+template<typename Ret, typename ...Args>
+Ret MasterConnectionHandler::InvokeOne(
+    ConnectionID id,
+    Ret (ProCamClient::* func) (Args...),
+    Args... args)
+{
+  auto it = connections_.find(id);
+
+  if (it == connections_.end()) {
+    throw EXCEPTION() << "Connection with a specified ID was not found.";
+  }
+
+  return (it->second.client.get()->*func) (args...);
+}
+
+template<typename Ret, typename ...Args>
+Ret MasterConnectionHandler::InvokeOne(
+    ConnectionID id,
+    void (ProCamClient::* func) (Ret&, Args...),
+    Args... args)
+{
+  auto it = connections_.find(id);
+
+  if (it == connections_.end()) {
+    throw EXCEPTION() << "Connection with a specified ID was not found.";
+  }
+
+  Ret ret;
+  (it->second.client.get()->*func) (ret, args...);
+  return ret;
 }
 
 }}
