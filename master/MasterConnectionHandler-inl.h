@@ -110,4 +110,19 @@ std::unordered_map<ConnectionID, Ret> MasterConnectionHandler::InvokeParallel(
   return results;
 }
 
+template<typename ...Args>
+void MasterConnectionHandler::InvokeOne(
+    ConnectionID id,
+    void (ProCamClient::* func) (Args...),
+    Args... args)
+{
+  auto it = connections_.find(id);
+
+  if (it != connections_.end()) {
+    (it->second.client.get()->*func) (args...);
+  } else {
+    throw EXCEPTION() << "Connection with a specified ID was not found.";
+  }
+}
+
 }}

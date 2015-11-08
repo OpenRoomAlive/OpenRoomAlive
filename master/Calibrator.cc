@@ -17,7 +17,7 @@ using namespace dv;
 using namespace std::chrono_literals;
 
 // Duration of a one element of gray code sequence in milliseconds.
-constexpr auto kGrayCodeDuration = 2000ms;
+constexpr auto kGrayCodeDuration = 500ms;
 
 // Threshold to determine if two color images are the same.
 constexpr auto kColorDiffThreshold = 100;
@@ -122,7 +122,7 @@ Calibrator::GrayCodeMap Calibrator::decode() {
 
   for (const auto &entry : captured_) {
     const auto &images = entry.second;
-    auto grayCode = cv::Mat(images[0].size(), CV_32S);
+    cv::Mat grayCode = cv::Mat::zeros(images[0].size(), CV_32S);
 
     for (size_t i = 0; i < images.size() / 2; i++) {
       // Compute the difference in the frames and convert to grayscale.

@@ -100,35 +100,15 @@ void MasterConnectionHandler::displayGrayCode(
     int16_t level,
     bool invertedGrayCode)
 {
-  auto it = connections_.find(id);
-
-  if (it != connections_.end()) {
-    it->second.client->displayGrayCode(orientation, level, invertedGrayCode);
-  } else {
-    throw EXCEPTION() << "Connection with a specified ID was not found.";
-  }
+  InvokeOne(id, &ProCamClient::displayGrayCode, orientation, level, invertedGrayCode);
 }
 
 void MasterConnectionHandler::displayWhite(ConnectionID id) {
-  // TODO(hanq): T41
-  auto it = connections_.find(id);
-
-  if (it != connections_.end()) {
-    it->second.client->displayWhite();
-  } else {
-    throw EXCEPTION() << "Connection with a specified ID was not found.";
-  }
+  InvokeOne(id, &ProCamClient::displayWhite);
 }
 
 void MasterConnectionHandler::clearDisplay(ConnectionID id) {
-  // TODO: remove duplication.
-  auto it = connections_.find(id);
-
-  if (it != connections_.end()) {
-    it->second.client->clearDisplay();
-  } else {
-    throw EXCEPTION() << "Connection with a specified ID was not found.";
-  }
+  InvokeOne(id, &ProCamClient::clearDisplay);
 }
 
 void MasterConnectionHandler::stop() {

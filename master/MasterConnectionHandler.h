@@ -197,6 +197,20 @@ class MasterConnectionHandler
       void (ProCamClient::* func) (Ret&, Args...),
       Args... args);
 
+  /**
+   * Invokes a method on a single ProCam if the given connection ID is found.
+   *
+   * @tparam Args   List of arguments to the function call.
+   * @param id      ConnectionID of the target ProCam unit.
+   * @param func    Pointer to the ProCamClient function.
+   * @param args... List of arguments.
+   */
+  template<typename ...Args>
+  void InvokeOne(
+      ConnectionID id,
+      void (ProCamClient::* func) (Args...),
+      Args... args);
+
   /// List of connections to procams.
   std::unordered_map<ConnectionID, Connection> connections_;
   /// Mutex protecting the connections.

@@ -17,6 +17,9 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
 ENDIF()
 
+# Macro definitions
+ADD_DEFINITIONS(-DGTEST_HAS_TR1_TUPLE=0)
+
 # Create a __FILENAME__ macro that only contains a relative path.
 SET(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'"

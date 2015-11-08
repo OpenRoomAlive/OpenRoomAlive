@@ -83,8 +83,8 @@ int MasterApplication::run() {
   calibrator.formProjectorGroups();
 
   // Display the gray code patterns for calibration.
-  //calibrator.displayGrayCodes();
-  //calibrator.decode();
+  calibrator.displayGrayCodes();
+  calibrator.decode();
 
   // Wait for user input.
   getchar();
