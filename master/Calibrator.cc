@@ -47,32 +47,45 @@ void Calibrator::captureBaselines() {
 }
 
 void Calibrator::formProjectorGroups() {
+  connectionHandler_->clearDisplays();
+
   for (const auto &id :ids_) {
 
-    // Project white image
-    connectionHandler_->displayWhite(id);
+    auto proCam = system_->getProCam(id);
+    auto displayParams = proCam->getDisplayParams();
 
-    // Add delay
+    // Project alternative black and white strips
+    auto level = GrayCode::calculateLevel(displayParams.frameHeight) - 1;
+
+    // Capture base images
+    connectionHandler_->displayGrayCode(id, Orientation::type::HORIZONTAL, level, false);
     std::this_thread::sleep_for(kGrayCodeDuration);
+    auto base = connectionHandler_->getUndistortedColorImages();
 
-    // Capture white images
-    auto whiteImages = connectionHandler_->getUndistortedColorImages();
+    // Capture inverted images
+    connectionHandler_->displayGrayCode(id, Orientation::type::HORIZONTAL, level, true);
+    std::this_thread::sleep_for(kGrayCodeDuration);
+    auto inverted = connectionHandler_->getUndistortedColorImages();
 
     // Form ProCam group
-    auto proCam = system_->getProCam(id);
-    for (const auto &captured : whiteImages) {
+    for (const auto &target : ids_) {
       // Determine if there's an overlap
       cv::Mat diff;
-      cv::absdiff(captured.second, proCam->colorBaseline_, diff);
-      cv::threshold(diff, diff, 1, 255, cv::THRESH_BINARY);
+      cv::absdiff(base[target], inverted[target], diff);
+
+      // Base and inverted images are captured in BGR32 so we convert to grayscale
+      cv::cvtColor(diff, diff, CV_BGR2GRAY);
+      cv::threshold(diff, diff, 30, 1, cv::THRESH_BINARY);
 
       //std::cout << "Sum is : " << sum << std::endl;
       if (cv::sum(diff)[0] > kColorDiffThreshold) {
-        proCam->projectorGroup_.push_back(captured.first);
-        std::cout << "Adding procam: " << captured.first << std::endl;
+        proCam->projectorGroup_.push_back(target);
+        std::cout << "Adding procam: " << target << std::endl;
       }
     }
   }
+
+  connectionHandler_->clearDisplays();
 }
 
 void Calibrator::displayGrayCodes() {
