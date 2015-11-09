@@ -17,7 +17,7 @@ using namespace dv;
 using namespace std::chrono_literals;
 
 // Duration of a one element of gray code sequence in milliseconds.
-constexpr auto kGrayCodeDuration = 500ms;
+constexpr auto kGrayCodeDuration = 300ms;
 
 // Threshold to determine if two color images are the same.
 constexpr auto kColorDiffThreshold = 100;
@@ -55,17 +55,25 @@ void Calibrator::formProjectorGroups() {
     auto displayParams = proCam->getDisplayParams();
 
     // Project alternative black and white strips
-    auto level = GrayCode::calculateLevel(displayParams.frameHeight) - 1;
+    auto maxLevel = std::min(5ul, GrayCode::calculateLevel(displayParams.frameHeight) - 1);
 
     // Capture base images
-    connectionHandler_->displayGrayCode(id, Orientation::type::HORIZONTAL, level, false);
+    connectionHandler_->displayGrayCode(
+        id,
+        Orientation::type::HORIZONTAL,
+        maxLevel,
+        false);
     std::this_thread::sleep_for(kGrayCodeDuration);
-    auto base = connectionHandler_->getUndistortedColorImages();
+    auto base = connectionHandler_->getColorImages();
 
     // Capture inverted images
-    connectionHandler_->displayGrayCode(id, Orientation::type::HORIZONTAL, level, true);
+    connectionHandler_->displayGrayCode(
+        id,
+        Orientation::type::HORIZONTAL,
+        maxLevel,
+        true);
     std::this_thread::sleep_for(kGrayCodeDuration);
-    auto inverted = connectionHandler_->getUndistortedColorImages();
+    auto inverted = connectionHandler_->getColorImages();
 
     // Form ProCam group
     for (const auto &target : ids_) {
@@ -76,11 +84,8 @@ void Calibrator::formProjectorGroups() {
       // Base and inverted images are captured in BGR32 so we convert to grayscale
       cv::cvtColor(diff, diff, CV_BGR2GRAY);
       cv::threshold(diff, diff, 30, 1, cv::THRESH_BINARY);
-
-      //std::cout << "Sum is : " << sum << std::endl;
       if (cv::sum(diff)[0] > kColorDiffThreshold) {
         proCam->projectorGroup_.push_back(target);
-        std::cout << "Adding procam: " << target << std::endl;
       }
     }
   }
