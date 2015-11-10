@@ -46,6 +46,10 @@ friend class Calibrator;
   cv::Mat colorBaseline_;
   /// Depth baseline.
   cv::Mat depthBaseline_;
+  /// Mean depth image.
+  cv::Mat meanDepth_;
+  /// Variance depth image.
+  cv::Mat varianceDepth_;
   /// Cameras that can observe some part of projector's image.
   std::vector<ConnectionID> projectorGroup_;
 };

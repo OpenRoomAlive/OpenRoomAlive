@@ -124,6 +124,16 @@ class MasterConnectionHandler
   }
 
   /**
+   * Retrieves the depth image of a procam.
+   */
+  cv::Mat getDepthImage(ConnectionID id) {
+    cv::Mat image;
+    conv::thriftFrameToCvMat(
+        InvokeOne(id, &ProCamClient::getDepthImage), image);
+    return image;
+  }
+
+  /**
    * Invokes getDepthImage on all clients.
    */
   std::unordered_map<ConnectionID, cv::Mat> getDepthImages() {
