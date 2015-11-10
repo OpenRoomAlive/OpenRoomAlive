@@ -18,9 +18,12 @@
 using namespace dv::master;
 using namespace dv;
 
-MasterConnectionHandler::MasterConnectionHandler(uint16_t proCamPort)
-  : proCamPort_(proCamPort)
-  , nextID_(0)
+MasterConnectionHandler::MasterConnectionHandler(
+    uint16_t proCamPort,
+    const std::shared_ptr<EventStream>& stream)
+  : nextID_(0)
+  , proCamPort_(proCamPort)
+  , stream_(stream)
 {
 }
 
@@ -49,6 +52,8 @@ MasterConnectionHandler::getHandler(const TConnectionInfo& connInfo) {
   auto transport = boost::make_shared<att::TBufferedTransport>(socket);
   auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
 
+  ConnectionID id;
+
   // Open the reverse connection.
   try {
     transport->open();
@@ -56,7 +61,7 @@ MasterConnectionHandler::getHandler(const TConnectionInfo& connInfo) {
     // Add the connection.
     {
       std::lock_guard<std::mutex> locker(lock_);
-      auto id = nextID_++;
+      id = nextID_++;
       connections_.emplace(id, Connection(transport,
           std::make_shared<ProCamClient>(protocol)));
     }
@@ -68,7 +73,7 @@ MasterConnectionHandler::getHandler(const TConnectionInfo& connInfo) {
     throw;
   }
 
-  return new MasterServer();
+  return new MasterServer(stream_, id);
 }
 
 void MasterConnectionHandler::releaseHandler(MasterIf* handler) {

@@ -59,6 +59,15 @@ enum Orientation {
 }
 
 /**
+ * Laser position coordinates
+ */
+struct Point {
+  1: double x;
+  2: double y;
+  3: double z;
+}
+
+/**
  * Definition of the API exposed by the ProCam unit.
  */
 service ProCam {
@@ -129,4 +138,9 @@ service Master {
    * Send Procam's IP to master node.
    */
   bool ping()
+
+  /**
+   * Sends a new laser position to master.
+   */
+  void detectedLaser(1: Point point 2: i64 color);
 }

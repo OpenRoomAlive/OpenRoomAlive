@@ -145,6 +145,7 @@ void ProCamApplication::getUndistortedColorImage(Frame& frame) {
 }
 
 void ProCamApplication::getColorBaseline(Frame &frame) {
+  camera_->freshFrame();
   // TODO(ilijar): figure out how to account for lighting.
   cv::Mat image = camera_->getUndistortedColorImage();
   conv::cvMatToThriftFrame(image, frame);

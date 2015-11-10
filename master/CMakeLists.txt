@@ -4,6 +4,8 @@
 
 SET(SOURCES
     Calibrator.cc
+    Event.cc
+    EventStream.cc
     MasterApplication.cc
     MasterConnectionHandler.cc
     MasterServer.cc
@@ -12,6 +14,8 @@ SET(SOURCES
 )
 SET(HEADERS
     Calibrator.h
+    Event.h
+    EventStream.h
     MasterApplication.h
     MasterConnectionHandler.h
     MasterConnectionHandler-inl.h

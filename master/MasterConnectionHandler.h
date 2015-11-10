@@ -24,6 +24,7 @@
 #include "core/Master.h"
 #include "core/ProCam.h"
 #include "core/Types.h"
+#include "master/EventStream.h"
 #include "master/MasterServer.h"
 
 namespace dv { namespace master {
@@ -40,7 +41,9 @@ class MasterConnectionHandler
   using TConnectionInfo = apache::thrift::TConnectionInfo;
 
  public:
-  MasterConnectionHandler(uint16_t proCamPort);
+  MasterConnectionHandler(
+      uint16_t proCamPort,
+      const std::shared_ptr<EventStream>& stream);
   ~MasterConnectionHandler();
 
   /**
@@ -326,16 +329,19 @@ class MasterConnectionHandler
   std::vector<std::pair<ConnectionID, Connection>> getConnections(
       const std::vector<ConnectionID> &ids);
 
+ private:
   /// List of connections to procams.
   std::unordered_map<ConnectionID, Connection> connections_;
   /// Mutex protecting the connections.
   std::mutex lock_;
   /// Condition variable to check on client count.
   std::condition_variable connectionCountCondition_;
-  // Port on which every ProCam listens to requests from the master.
-  const uint16_t proCamPort_;
   /// ID assigned to the next incomming connection to the master.
   std::atomic<ConnectionID> nextID_;
+  /// Port on which every ProCam listens to requests from the master.
+  const uint16_t proCamPort_;
+  /// Stream of events sent by ProCams for processing.
+  const std::shared_ptr<EventStream> stream_;
 };
 
 }}

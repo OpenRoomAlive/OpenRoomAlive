@@ -2,6 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include <atomic>
 #include <cassert>
 #include <iostream>
 #include <thread>
@@ -24,9 +25,10 @@ using namespace dv::master;
 
 
 MasterApplication::MasterApplication(uint16_t port, size_t procamTotal)
-  : port_(port)
+  : stream_(new EventStream())
+  , port_(port)
   , procamTotal_(procamTotal)
-  , connectionHandler_(new MasterConnectionHandler(port_ + 1))
+  , connectionHandler_(new MasterConnectionHandler(port_ + 1, stream_))
   , server_(new apache::thrift::server::TThreadedServer(
         boost::make_shared<MasterProcessorFactory>(connectionHandler_),
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_),
@@ -45,7 +47,7 @@ MasterApplication::~MasterApplication() {
 int MasterApplication::run() {
   // Spawn a thread that runs the server.
   std::cout << "Starting server." << std::endl;
-  auto future = asyncExecute([this] () {
+  auto futureServer = asyncExecute([this] () {
     server_->serve();
   });
 
@@ -85,7 +87,7 @@ int MasterApplication::run() {
   // Display the gray code patterns for calibration.
   calibrator.displayGrayCodes();
   //calibrator.decode();
-  Calibrator::CalibrationParams params = calibrator.calibrate();
+  /*Calibrator::CalibrationParams params = calibrator.calibrate();
 
   for (auto &record : params) {
     auto param = record.second;
@@ -94,17 +96,35 @@ int MasterApplication::run() {
 
     std::cout << "Rotation vector: " << rot << std::endl;
     std::cout << "Translation vector: " << trans << std::endl;
+  }*/
+
+  // TODO: Perform 3D reconstruction.
+
+  // Spawn thread waiting for user input - input => quit.
+  std::atomic<bool> run = {true};
+  auto futureInput = asyncExecute([&, this] () {
+    getchar();
+    run = false;
+    // Send to itself a breaking ("empty") event.
+    stream_->push(Event());
+  });
+
+  // Process events from Procams.
+  while(run) {
+    auto event = stream_->poll();
+    (void) event;
+    // TODO: Process event using the 3D reconstruction.
+    // TODO: Send updates to Procams (1 or many per event)
   }
 
-  // Wait for user input.
-  getchar();
 
   // Disconnect all clients.
   connectionHandler_->stop();
 
   // Wait for networking to finish excution.
   server_->stop();
-  future.get();
+  futureServer.get();
+  futureInput.get();
 
   return EXIT_SUCCESS;
 }

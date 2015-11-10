@@ -4,11 +4,17 @@
 
 #include <iostream>
 
+#include "master/Event.h"
 #include "master/MasterServer.h"
 
 using namespace dv::master;
 
-MasterServer::MasterServer() {
+MasterServer::MasterServer(
+    const std::shared_ptr<EventStream>& stream,
+    const ConnectionID id)
+  : stream_(stream) 
+  , id_(id)
+{
 }
 
 MasterServer::~MasterServer() {
@@ -16,4 +22,8 @@ MasterServer::~MasterServer() {
 
 bool MasterServer::ping() {
   return true;
+}
+
+void MasterServer::detectedLaser(const Point& point, const int64_t color) {
+  stream_->push(Event(id_, point, color));
 }

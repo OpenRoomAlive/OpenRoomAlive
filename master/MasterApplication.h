@@ -8,6 +8,7 @@
 
 #include <thrift/server/TServer.h>
 
+#include "master/EventStream.h"
 #include "master/ProCamSystem.h"
 
 
@@ -27,6 +28,8 @@ class MasterApplication {
   int run();
 
  private:
+  /// Stream of events sent by ProCams for processing.
+  const std::shared_ptr<EventStream> stream_;
   /// Port number the server is listening on.
   const uint16_t port_;
   /// Number of procams expected to connect.

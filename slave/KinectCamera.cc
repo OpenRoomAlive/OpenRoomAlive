@@ -149,14 +149,6 @@ void KinectCamera::poll() {
     // Wait untill the frames are available.
     listener_.waitForNewFrame(frames);
 
-    // Increment the frame counter.
-    {
-      std::unique_lock<std::mutex> locker(countLock_);
-      frameCount_++;
-      countLock_.unlock();
-      countCond_.notify_all();
-    }
-
     {
       std::lock_guard<std::mutex> locker(framesLock_);
 
@@ -190,6 +182,15 @@ void KinectCamera::poll() {
     }
 
     listener_.release(frames);
+
+    // Increment the frame counter.
+    {
+      std::unique_lock<std::mutex> locker(countLock_);
+      frameCount_++;
+      countLock_.unlock();
+      countCond_.notify_all();
+    }
+
   }
 }
 
