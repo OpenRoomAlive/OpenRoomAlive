@@ -22,7 +22,7 @@ TEST(ProjectionTest, InvertTestOrigin) {
     0.0f, 0.5f, 0.5f,
     0.0f, 0.0f, 1.0f
   };
-  const cv::Mat cameraParams(3, 3, CV_32F, &params);
+  const cv::Mat cameraParams(3, 3, CV_32FC1, &params);
 
   // Radial distortion.
   const float k1 = 0.5f;
@@ -31,7 +31,7 @@ TEST(ProjectionTest, InvertTestOrigin) {
   // Depth image (z coordinate).
   const float z = 5550.0f;
   float depth[1] {z};
-  const cv::Mat depthImage(1, 1, CV_32F, &depth);
+  const cv::Mat depthImage(1, 1, CV_32FC1, &depth);
 
   // Get 3D coordinates from the depth image.
   const auto point3d = projection::map3D(
@@ -57,7 +57,7 @@ TEST(ProjectionTest, InvertTestRandomPoint) {
     0.0f, 0.3f, 0.05f,
     0.0f, 0.0f, 1.0f
   };
-  const cv::Mat cameraParams(3, 3, CV_32F, &params);
+  const cv::Mat cameraParams(3, 3, CV_32FC1, &params);
 
   // Radial distortion.
   const float k1 = 0.5f;
@@ -69,7 +69,7 @@ TEST(ProjectionTest, InvertTestRandomPoint) {
      507.1f,  804.6f,  607.6f,
      406.3f,  500.9f, 2056.8f
   };
-  const cv::Mat depthImage(3, 3, CV_32F, &depth);
+  const cv::Mat depthImage(3, 3, CV_32FC1, &depth);
 
   // Get 3D coordinates from the depth image.
   const auto point3d = projection::map3D(

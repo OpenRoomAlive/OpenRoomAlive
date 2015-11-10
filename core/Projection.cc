@@ -40,18 +40,17 @@ cv::Point3f map3D(
     size_t c)
 {
   // Principal points of the camera.
-  const float cx = camera.at<float>(0, 2);
-  const float cy = camera.at<float>(1, 2);
+  const double cx = camera.at<double>(0, 2);
+  const double cy = camera.at<double>(1, 2);
 
   // Focal points.
-  const float fx = camera.at<float>(0, 0);
-  const float fy = camera.at<float>(1, 1);
-
+  const double fx = camera.at<double>(0, 0);
+  const double fy = camera.at<double>(1, 1);
   const float depthValue = depth.at<float>(r, c);
 
-  const float x = ((static_cast<float>(r) - cx) * depthValue) / fx;
-  const float y = ((static_cast<float>(c) - cy) * depthValue) / fy;
-  const float z = depthValue;
+  const double x = ((static_cast<double>(c) - cx) * static_cast<double>(depthValue)) / fx;
+  const double y = ((static_cast<double>(r) - cy) * static_cast<double>(depthValue)) / fy;
+  const double z = static_cast<double>(depthValue);
 
   return cv::Point3f(x, y, z);
 }

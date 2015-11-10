@@ -21,6 +21,8 @@ class Calibrator {
  public:
   /// Pair of procams that can see each other.
   using ProCamPair = std::pair<ConnectionID, ConnectionID>;
+  /// Coordinates of a pixel in a captured image.
+  using PixelCoords = std::pair<size_t, size_t>;
 
   /// Sequence of captured images from which gray codes are decoded.
   using CapturedMap = std::unordered_map<
@@ -34,9 +36,34 @@ class Calibrator {
       ProCamPair,
       cv::Mat,
       boost::hash<ProCamPair>>;
+  /// Map from decoded gray codes to their position in the colour image.
+  using PatternPosMap = std::unordered_map<
+      PixelCoords,
+      PixelCoords,
+      boost::hash<PixelCoords>>;
+  /**
+   * Mapping from projector and camera ID to pixels displayed by the
+   * projector, captured by the camera.
+   */
   using CapturedPixelsMap = std::unordered_map<
       std::pair<ConnectionID, ConnectionID>,
-      std::set<std::pair<size_t, size_t>>,
+      PatternPosMap,
+      boost::hash<ProCamPair>>;
+  /**
+   * Mapping from 3D points in the projector space to projections of those
+   * points to UV spaces of kinects that recorded those points.
+   */
+  using CalibrationInput = std::unordered_map<
+      ProCamPair,
+      std::pair<std::vector<cv::Point3f>, std::vector<cv::Point2f>>,
+      boost::hash<ProCamPair>>;
+  /**
+   * Mapping from IDs of projector and kinect to calibration parameters
+   * (rotation and traslation vector).
+   */
+  using CalibrationParams = std::unordered_map<
+      ProCamPair,
+      std::pair<cv::Mat, cv::Mat>,
       boost::hash<ProCamPair>>;
 
   Calibrator(
@@ -79,7 +106,9 @@ class Calibrator {
   /**
    * Retrieve pixel coordinates from the captured gray codes.
    */
-  static CapturedPixelsMap grayCodesToPixels(GrayCodeMap &decodedGrayCodes);
+  static CapturedPixelsMap grayCodesToPixels(
+      GrayCodeMap &decodedGrayCodes,
+      ProCamSystem &proCamSys);
 
   /**
    * Converts gray code encoding to binary according to the method outlined
@@ -104,6 +133,28 @@ class Calibrator {
     }
     return res;
   }
+
+  /*
+   * Get the data required to conduct ProCam calibration.
+   */
+  static CalibrationInput calibrationInput(
+      CapturedPixelsMap &capturedPixels,
+      std::unordered_map<ConnectionID, cv::Mat> &depthBaseline,
+      const std::vector<ConnectionID> &ids,
+      ProCamSystem &proCamSys);
+
+  /*
+   * Retrieves the calibration parameters of the proCam system.
+   */
+  static CalibrationParams calibrationParams(
+    CalibrationInput &input,
+    const std::vector<ConnectionID> &ids,
+    ProCamSystem &proCamSys);
+
+  /*
+   * Calibrates the proCam system.
+   */
+  CalibrationParams calibrate();
 
  private:
   /// IDs of the procam connections

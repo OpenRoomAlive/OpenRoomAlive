@@ -41,7 +41,7 @@ cv::Point2f project(
  * @param depth  Depth image captured by the procam unit.
  * @param r      Row from in which the depth pixel occurs.
  * @param c      Column in which the depth pixel occurs.
- * @return #D coordinate
+ * @return 3D coordinate
  */
 cv::Point3f map3D(
     const cv::Mat& camera,

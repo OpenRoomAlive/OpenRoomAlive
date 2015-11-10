@@ -84,7 +84,17 @@ int MasterApplication::run() {
 
   // Display the gray code patterns for calibration.
   calibrator.displayGrayCodes();
-  calibrator.decode();
+  //calibrator.decode();
+  Calibrator::CalibrationParams params = calibrator.calibrate();
+
+  for (auto &record : params) {
+    auto param = record.second;
+    auto rot = param.first;
+    auto trans = param.second;
+
+    std::cout << "Rotation vector: " << rot << std::endl;
+    std::cout << "Translation vector: " << trans << std::endl;
+  }
 
   // Wait for user input.
   getchar();

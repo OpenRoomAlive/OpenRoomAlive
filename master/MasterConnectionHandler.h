@@ -67,7 +67,7 @@ class MasterConnectionHandler
       Orientation::type orientation,
       int16_t level,
       bool invertedGrayCode) {
-    InvokeOne(
+    InvokeOne<Orientation::type, int16_t, bool>(
         id,
         &ProCamClient::displayGrayCode,
         orientation,

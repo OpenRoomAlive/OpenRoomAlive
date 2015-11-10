@@ -10,6 +10,7 @@
 #include "core/ProCam.h"
 #include "core/GrayCode.h"
 #include "master/Calibrator.h"
+#include "core/Projection.h"
 
 using namespace dv::master;
 using namespace dv;
@@ -160,29 +161,30 @@ Calibrator::GrayCodeMap Calibrator::decode() {
 }
 
 Calibrator::CapturedPixelsMap Calibrator::grayCodesToPixels(
-    Calibrator::GrayCodeMap &decodedGrayCodes)
+    Calibrator::GrayCodeMap &decodedGrayCodes,
+    ProCamSystem &proCamSys)
 {
   Calibrator::CapturedPixelsMap pixelsMap;
   // Iterate over grayCode maps for all pairs of connections.
   for (auto &connectionsCodes : decodedGrayCodes) {
-    auto &connection = connectionsCodes.first;
+    auto &connectionPair = connectionsCodes.first;
     auto &grayCodes = connectionsCodes.second;
 
-    // Retrieve number of rows and columns of the captured images.
-    size_t rows = static_cast<size_t>(grayCodes.rows);
-    size_t cols = static_cast<size_t>(grayCodes.cols);
+    auto projId = connectionPair.first;
+    // Retrieve parameters of the projector.
+    auto displayParams = proCamSys.getProCam(projId)->displayParams_;
 
     // Calculate number of bits needed to encode row and column pixel
     // coordinates.
-    size_t rowLevels = GrayCode::calculateLevel(rows);
-    size_t colLevels = GrayCode::calculateLevel(cols);
+    size_t rowLevels = GrayCode::calculateLevel(displayParams.frameHeight);
+    size_t colLevels = GrayCode::calculateLevel(displayParams.frameWidth);
 
     // Mask for bits encoding row and column coordinates.
     uint32_t rowMask = (1 << rowLevels) - 1;
     uint32_t colMask = (1 << colLevels) - 1;
 
-    for (size_t i = 0; i < rows; i++) {
-      for (size_t j = 0; j < cols; j++) {
+    for (size_t i = 0; i < static_cast<size_t>(grayCodes.rows); i++) {
+      for (size_t j = 0; j < static_cast<size_t>(grayCodes.cols); j++) {
         uint32_t encoding = grayCodes.at<uint32_t>(i, j);
         // Only greycoded pixels should satisfy this condition, other should
         // have been thresholded.
@@ -190,9 +192,12 @@ Calibrator::CapturedPixelsMap Calibrator::grayCodesToPixels(
           uint32_t rowBits = (encoding >> colLevels) & rowMask;
           uint32_t colBits = encoding & colMask;
 
-          pixelsMap[connection].emplace(std::pair<size_t, size_t>(
-              grayCodeToBinary(rowBits, rowLevels),
-              grayCodeToBinary(colBits, colLevels)));
+          const uint32_t encRow = grayCodeToBinary(rowBits, rowLevels);
+          const uint32_t encCol = grayCodeToBinary(colBits, colLevels);
+
+          pixelsMap[connectionPair].emplace(
+              std::make_pair(encRow, encCol),
+              std::make_pair(i, j));
         }
       }
     }
@@ -200,3 +205,161 @@ Calibrator::CapturedPixelsMap Calibrator::grayCodesToPixels(
   return pixelsMap;
 }
 
+// TODO: T42
+Calibrator::CalibrationInput Calibrator::calibrationInput(
+      Calibrator::CapturedPixelsMap &capturedPixels,
+      std::unordered_map<ConnectionID, cv::Mat> &depthBaseline,
+      const std::vector<ConnectionID> &ids,
+      ProCamSystem &proCamSys)
+{
+  Calibrator::CalibrationInput input;
+
+  // Retrieve depth baseline images needed for retrieving 3D coordinates.
+  //auto depthBaseline = connectionHandler_->getDepthBaselines();
+
+  for (auto &projId : ids) {
+    for (auto &kinectId : ids) {
+      auto currKinectPtr = proCamSys.getProCam(kinectId);
+
+      // Get the depth image captured by the kinect camera.
+      auto &depthImg = depthBaseline[kinectId];
+
+      auto it = capturedPixels.find(std::make_pair(projId, kinectId));
+      // Check if the kinect with kinectID can see the pattern projected by
+      // projection with projId, i.e. if they are in the same proCam group.
+      if (it != capturedPixels.end()) {
+        auto &pixels = it->second;
+
+        std::vector<cv::Point3f> objectPoints;
+        std::vector<cv::Point2f> patternPoints;
+
+        for (auto &patternPos : pixels) {
+          // Position in the colour image where the gray code pattern was
+          // observed (corresponds to the position in the depth image).
+          auto pos = patternPos.second;
+          // Coordinates of the gray code pixel in the projector space.
+          auto pattern = patternPos.first;
+
+          // 3D point in projector space reconstructed from kinect depth image.
+          auto point3d = projection::map3D(
+              currKinectPtr->irCamMat_,
+              depthImg,
+              pos.first,
+              pos.second);
+
+          // Projection of the 3D point from the projector space to UV space of
+          // the kinect.
+          // TODO: remove hardcoded value of radial distortion.
+          /*auto point2d = projection::project(
+              currKinectPtr->colorCamMat_,
+              0.18f,
+              -0.4f,
+              point3d);*/
+
+          // Record the correspondence between the 3D and 2D points.
+          if (point3d.z != 0.0f) {
+            objectPoints.push_back(point3d);
+            patternPoints.emplace_back(pattern.first, pattern.second);
+          }
+        }
+        input.emplace(
+            std::make_pair(projId, kinectId),
+            std::make_pair(objectPoints, patternPoints));
+      }
+    }
+  }
+  return input;
+}
+
+Calibrator::CalibrationParams Calibrator::calibrationParams(
+    Calibrator::CalibrationInput &input,
+    const std::vector<ConnectionID> &ids,
+    ProCamSystem &proCamSys)
+{
+  Calibrator::CalibrationParams params;
+
+  for (auto &projId : ids) {
+    auto displayParams = proCamSys.getProCam(projId)->displayParams_;
+    // Size of the projected image.
+    cv::Size projectorSize(displayParams.frameWidth, displayParams.frameHeight);
+
+    std::vector<ConnectionID> procamGroup;
+    // 3D coordinates of the projected patterns in the projector space.
+    std::vector<std::vector<cv::Point3f>> objectPoints;
+    // Projections of the 3D points onto kinect UV space.
+    std::vector<std::vector<cv::Point2f>> patternPoints;
+
+    for (auto &kinectId : ids) {
+      auto it = input.find(std::make_pair(projId, kinectId));
+      if (it != input.end()) {
+        auto &points = it->second;
+        // Remember the kinects in the current proCam group.
+        procamGroup.emplace_back(kinectId);
+        // Use the 3D to 2D point mapping calculated by calibrationInput.
+        objectPoints.push_back(points.first);
+        patternPoints.push_back(points.second);
+      }
+    }
+
+    cv::Mat projMat = cv::Mat::eye(3, 3, cv::DataType<double>::type);
+    projMat.at<double>(0, 0) = 530.0f;
+    projMat.at<double>(1, 1) = 530.0f;
+    projMat.at<double>(0, 2) = 315.0f;
+    projMat.at<double>(1, 2) = 260.0f;
+
+    cv::Mat distCoeffs = cv::Mat::zeros(4, 1, cv::DataType<double>::type);
+    std::vector<cv::Mat> rvecs, tvecs;
+
+    /*for (size_t i=0; i<objectPoints[0].size(); i++) {
+      std::cout << objectPoints[0][i].x << " "
+                << objectPoints[0][i].y << " "
+                << objectPoints[0][i].z << " "
+                << patternPoints[0][i].x << " "
+                << patternPoints[0][i].y
+                << std::endl;
+    }*/
+    // Calibrate the cameras which can see the pattern displayed by projector
+    // with projId.
+    double rms = cv::calibrateCamera(
+        objectPoints,
+        patternPoints,
+        projectorSize,
+        projMat,
+        distCoeffs,
+        rvecs,
+        tvecs,
+        CV_CALIB_USE_INTRINSIC_GUESS);
+
+    std::cout << "Calibration RMS: " << rms << std::endl;
+
+    // Record the output rotation and tranlation vectors.
+    for (size_t i = 0; i < procamGroup.size(); i++) {
+      params.emplace(
+          std::make_pair(projId, procamGroup[i]),
+          std::make_pair(rvecs[i], tvecs[i]));
+    }
+  }
+  return params;
+}
+
+Calibrator::CalibrationParams Calibrator::calibrate() {
+  // TODO: add a guard preventing calling this function before the gray code
+  // images are captured.
+
+  auto encodedPixels = decode();
+
+  // Convert gray code encoding to binary.
+  auto capturedPixels = grayCodesToPixels(encodedPixels, *system_);
+
+  // Retrieve depth baselines.
+  auto depthBaselines = connectionHandler_->getDepthBaselines();
+
+  // Convert the point correspondences to a format suitable for calibration.
+  Calibrator::CalibrationInput input = calibrationInput(
+      capturedPixels,
+      depthBaselines,
+      ids_,
+      *system_);
+
+  return calibrationParams(input, ids_, *system_);
+}
