@@ -16,8 +16,9 @@
 
 namespace dv { namespace slave {
 
-class Display;
+class BaselineCapture;
 class BGRDCamera;
+class Display;
 
 
 /**
@@ -117,6 +118,8 @@ class ProCamApplication : public ProCamIf {
   const GrayCode grayCode_;
   /// Server instance.
   const std::shared_ptr<apache::thrift::server::TServer> server_;
+  /// Baseline capture.
+  const std::shared_ptr<BaselineCapture> baseline_;
   /// True if the master is pinged.
   const bool enableMaster_;
 };

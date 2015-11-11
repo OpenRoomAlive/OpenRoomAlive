@@ -19,6 +19,7 @@
 #include "core/Conv.h"
 #include "core/Master.h"
 #include "core/Exception.h"
+#include "slave/BaselineCapture.h"
 #include "slave/Display.h"
 #include "slave/GLDisplay.h"
 #include "core/GrayCode.h"
@@ -83,6 +84,7 @@ ProCamApplication::ProCamApplication(
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_ + 1),
         boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
+  , baseline_(new BaselineCapture())
   , enableMaster_(enableMaster)
 {
 }
@@ -101,6 +103,7 @@ int ProCamApplication::run() {
 
     pingMaster();
     while (display_->isRunning()) {
+      baseline_->process(camera_->getDepthImage());
       display_->update();
     }
 
@@ -111,7 +114,9 @@ int ProCamApplication::run() {
     // Debug stuff here.
     cv::namedWindow("test");
     while (cv::waitKey(1) != 'q') {
-      cv::imshow("test", camera_->getColorImage());
+      auto depth = camera_->getDepthImage();
+      baseline_->process(depth);
+      cv::imshow("test", baseline_->getDepthImage());
     }
   }
 

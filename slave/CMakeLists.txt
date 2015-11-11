@@ -4,6 +4,7 @@
 
 SET(SOURCES ${SOURCES}
     main.cc
+    BaselineCapture.cc
     BGRDCamera.cc
     Display.cc
     GLDisplay.cc
@@ -13,6 +14,7 @@ SET(SOURCES ${SOURCES}
 )
 
 SET(HEADERS ${HEADERS}
+    BaselineCapture.h
     BGRDCamera.h
     Display.h
     GLDisplay.h
