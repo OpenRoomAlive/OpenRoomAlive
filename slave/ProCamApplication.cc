@@ -103,7 +103,7 @@ int ProCamApplication::run() {
 
     pingMaster();
     while (display_->isRunning()) {
-      baseline_->process(camera_->getDepthImage());
+      //baseline_->process(camera_->getDepthImage());
       display_->update();
     }
 

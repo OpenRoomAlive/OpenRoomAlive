@@ -100,7 +100,8 @@ void Calibrator::formProjectorGroups() {
     auto displayParams = proCam->getDisplayParams();
 
     // Project alternative black and white strips
-    auto maxLevel = std::min(5ul, GrayCode::calculateLevel(displayParams.frameHeight) - 1);
+    auto maxLevel = 
+      GrayCode::calculateDisplayedLevels(displayParams.frameHeight) - 1;
 
     // Capture base images
     connectionHandler_->displayGrayCode(
@@ -144,14 +145,16 @@ void Calibrator::displayGrayCodes() {
   for (const auto &id : ids_) {
     auto displayParams = system_->proCams_[id]->getDisplayParams();
 
-    const size_t horzLevel = GrayCode::calculateLevel(displayParams.frameHeight);
-    for (size_t i = 0; i < horzLevel; i++) {
+    const size_t horzLevels = 
+      GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
+    for (size_t i = 0; i < horzLevels; i++) {
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, false);
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, true);
     }
 
-    const size_t vertLevel = GrayCode::calculateLevel(displayParams.frameWidth);
-    for (size_t i = 0; i < vertLevel; i++) {
+    const size_t vertLevels = 
+      GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
+    for (size_t i = 0; i < vertLevels; i++) {
       displayAndCapture(id, Orientation::type::VERTICAL, i, false);
       displayAndCapture(id, Orientation::type::VERTICAL, i, true);
     }
@@ -220,8 +223,10 @@ Calibrator::CapturedPixelsMap Calibrator::grayCodesToPixels(
 
     // Calculate number of bits needed to encode row and column pixel
     // coordinates.
-    size_t rowLevels = GrayCode::calculateLevel(displayParams.frameHeight);
-    size_t colLevels = GrayCode::calculateLevel(displayParams.frameWidth);
+    size_t rowLevels = 
+      GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
+    size_t colLevels = 
+      GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
 
     // Mask for bits encoding row and column coordinates.
     uint32_t rowMask = (1 << rowLevels) - 1;

@@ -36,7 +36,7 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion2) {
   uint32_t binaryValue = 143851;
   uint32_t grayCodeValue = binaryValue ^ (binaryValue >> 1);
   uint32_t retrievedBinaryValue = Calibrator::grayCodeToBinary(
-    grayCodeValue, dv::GrayCode::calculateLevel(binaryValue));
+    grayCodeValue, dv::GrayCode::calculateMaxLevels(binaryValue));
   ASSERT_EQ(binaryValue, retrievedBinaryValue);
 }
 
@@ -47,7 +47,7 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
   uint32_t binaryValue = 0;
   uint32_t grayCodeValue = binaryValue ^ (binaryValue >> 1);
   uint32_t retrievedBinaryValue = Calibrator::grayCodeToBinary(
-    grayCodeValue, dv::GrayCode::calculateLevel(binaryValue));
+    grayCodeValue, dv::GrayCode::calculateMaxLevels(binaryValue));
   ASSERT_EQ(binaryValue, retrievedBinaryValue);
 }
 
@@ -130,7 +130,7 @@ TEST_F(CalibrationTest, GrayCodesToPixels1) {
   const size_t cols = 512;
   uint32_t grayCodes[rows * cols];
 
-  size_t colLevel = dv::GrayCode::calculateLevel(cols);
+  size_t colLevel = dv::GrayCode::calculateMaxLevels(cols);
 
   for (size_t i = 0; i < rows; i++) {
     for (size_t j = 0; j < cols; j++) {
@@ -172,7 +172,7 @@ TEST_F(CalibrationTest, GrayCodesToPixels2) {
   const size_t cols = 512;
   uint32_t grayCodes[rows * cols], rowCode;
 
-  size_t colLevel = dv::GrayCode::calculateLevel(cols);
+  size_t colLevel = dv::GrayCode::calculateMaxLevels(cols);
 
   for (size_t i = 0; i < rows * cols; i++) {
     grayCodes[i] = 0;

@@ -19,26 +19,30 @@ GrayCode::GrayCode(size_t width, size_t height)
   : width_(width),
     height_(height)
 {
-  size_t numXBits = calculateLevel(width);
-  size_t numYBits = calculateLevel(height);
-
-  for (size_t x = 0; x < numXBits; x++) {
-    size_t level = numXBits - x - 1;
-    verticalBar.emplace_back(generate(width, level));
+  size_t maxXLevel = calculateMaxLevels(width) - 1;
+  size_t maxYLevel = calculateMaxLevels(height) - 1;
+  for (size_t x = 0; x <= maxXLevel; x++) {
+    verticalBar.emplace_back(generate(width, x, maxXLevel));
   }
 
-  for (size_t y = 0; y < numYBits; y++) {
-    size_t level = numYBits - y - 1;
-    horizontalBar.emplace_back(generate(height, level));
+  for (size_t y = 0; y <= maxYLevel; y++) {
+    horizontalBar.emplace_back(generate(height, y, maxYLevel));
   }
 }
 
-std::vector<uint8_t> GrayCode::generate(size_t size, size_t level) {
+std::vector<uint8_t> GrayCode::generate(
+    size_t size,
+    size_t level,
+    size_t maxLevel) {
+  // In the formula, level 0 is the one with THINNEST stripes and for us the 
+  // level 0 is the first one displayed - with THCICKEST stripes. Hence we use
+  // this mask instead of "1 << level".
+  auto mask = 1 << (maxLevel - level);
   std::vector<uint8_t> pattern(size);
   for (size_t i = 0; i < size; i++) {
     // compute the levels that the ith pixel should be white
     size_t grayCode = i ^ (i >> 1);
-    if (grayCode & (1 << level)) {
+    if (grayCode & mask) {
       // default is 0
       pattern[i] = 255;
     }
