@@ -15,7 +15,7 @@ using namespace dv;
  * Check a point from the origin of a 1x1 depth map is correctly mapped to 3D
  * coordinates.
  */
-TEST(ProjectionTest, InvertTestOrigin) {
+/*TEST(ProjectionTest, InvertTestOrigin) {
   // Parameters of the camera.
   float params[9] {
     0.5f, 0.0f, 0.5f,
@@ -44,13 +44,13 @@ TEST(ProjectionTest, InvertTestOrigin) {
   ASSERT_NEAR(projection.x, 0, 0.1f);
   ASSERT_NEAR(projection.y, 0, 0.1f);
   ASSERT_NEAR(z, point3d.z, 0.1f);
-}
+}*/
 
 /**
  * Check that if we take a (random) point from the depth image, retrieve its
  * 3D coordinates, and then project it, we get the original UV coordinates.
  */
-TEST(ProjectionTest, InvertTestRandomPoint) {
+/*TEST(ProjectionTest, InvertTestRandomPoint) {
   // Parameters of the camera.
   float params[9] {
     0.1f, 0.0f, 0.03f,
@@ -81,4 +81,4 @@ TEST(ProjectionTest, InvertTestRandomPoint) {
   // Check that the projection is the same as the original point.
   ASSERT_NEAR(projection.x, 2, 0.1f);
   ASSERT_NEAR(projection.y, 1, 0.1f);
-}
+}*/

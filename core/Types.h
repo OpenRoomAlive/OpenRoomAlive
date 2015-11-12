@@ -21,5 +21,14 @@ struct Resolution {
   size_t height;
 };
 
+
+/**
+ * Structure representing the equation of a plane.
+ */
+struct Plane {
+  float nx, ny, nz;
+  float d;
+};
+
 }
 
