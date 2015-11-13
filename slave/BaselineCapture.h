@@ -33,15 +33,13 @@ class BaselineCapture {
 
  private:
   /// Number of candidate frames to use to find the still baseline.
-  static constexpr int kCandidateFrames = 10;
+  static constexpr int kCandidateFrames = 100;
   /// Buffer containing candidate frames.
   std::array<cv::Mat, kCandidateFrames> frames_;
   /// Number of frames processed.
   uint64_t count_;
   /// Extracted depth baseline.
-  cv::Mat depth_;
-  /// Previous frame.
-  cv::Mat prev_;
+  cv::Mat baseline_;
 };
 
 }}

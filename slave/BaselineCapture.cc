@@ -2,19 +2,22 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include <algorithm>
+#include <vector>
+
 #include "slave/BaselineCapture.h"
 #include "slave/BGRDCamera.h"
+#include <iostream>
 
 namespace dv { namespace slave {
 
 /// Max variance tracking threshold.
-constexpr float kMaxVarianceThreshold = 1000.0f;
+constexpr float kMinDepth = 0.01f;
 
 
 BaselineCapture::BaselineCapture()
   : count_(0)
-  , depth_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
-  , prev_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
+  , baseline_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
 {
 }
 
@@ -22,64 +25,50 @@ BaselineCapture::~BaselineCapture() {
 }
 
 void BaselineCapture::process(const cv::Mat &frame) {
-  // If two consecutive frames are identical, drop the new frame.
-  cv::Mat diff;
-  cv::absdiff(frame, prev_, diff);
-  if (cv::sum(diff)[0] == 0) {
+  // Stop capturing if enough frames were processed.
+  if (count_ > kCandidateFrames) {
     return;
   }
-  frame.copyTo(prev_);
-  frame.copyTo(frames_[count_++ % kCandidateFrames]);
-
   if (count_ < kCandidateFrames) {
+    frame.convertTo(frames_[count_++], CV_32FC1);
     return;
   }
-  cv::Mat mask = cv::Mat::zeros(frame.rows, frame.cols, CV_32FC1);
-  cv::Mat mean = cv::Mat::zeros(frame.rows, frame.cols, CV_32FC1);
 
-  // Compute a float mask to discard any pixels that contain no information.
-  for (const auto &frame : frames_) {
-    cv::Mat temp;
-    cv::threshold(frame, temp, 0.01f, 1.0f, cv::THRESH_BINARY);
-    cv::add(mask, temp, mask);
-    cv::add(frame, mean, mean);
-  }
-  cv::divide(mean, cv::Scalar(kCandidateFrames), mean);
+  // Traverse the image pixel by pixel.
+  std::vector<float> buf;
+  for (size_t i = 0; i < kDepthImageHeight; ++i) {
+    for (size_t j = 0; j < kDepthImageWidth; ++j) {
+      buf.reserve(kCandidateFrames);
+      for (const auto &frame : frames_) {
+        const auto depth = frame.at<const float>(i, j);
+        if (depth > kMinDepth) {
+          buf.push_back(depth);
+        }
+      }
 
-  // Reduce noise in the image. This step aims to maximise the
-  // size of contigouos blobs lacking information. If isolated pixels
-  // with no information are present, they are not considered as noise.
-  cv::erode(
-      mask,
-      mask,
-      cv::getStructuringElement(
-          cv::MORPH_ELLIPSE,
-          cv::Size(5, 5),
-          cv::Point(2, 2)));
-  cv::threshold(mask, mask, 1.0f, 1.0f, cv::THRESH_BINARY);
-
-  // Compute the variance in the image batch.
-  cv::Mat var = cv::Mat::zeros(frame.rows, frame.cols, CV_32FC1);
-  for (const auto &frame : frames_) {
-    cv::Mat temp;
-    cv::subtract(frame, mean, temp);
-    cv::multiply(temp, temp, temp);
-    cv::add(temp, var, var);
+      // If there are enough pixels, compute the median. Otherwise discard
+      // the pixel and consider it to be noise.
+      if (buf.size() < kCandidateFrames / 2) {
+        baseline_.at<float>(i, j) = 0.0f;
+      } else {
+        std::nth_element(buf.begin(), buf.begin() + buf.size() / 2, buf.end());
+        baseline_.at<float>(i, j) = buf[buf.size() / 2];
+      }
+      buf.clear();
+    }
   }
 
-  cv::multiply(var, mask, var);
+  // Free all images.
+  for (auto &frame : frames_) {
+    frame.release();
+  }
 
-  const float noise = std::sqrt(cv::sum(var)[0] / cv::sum(mask)[0]) / kCandidateFrames;
-  std::cerr << noise << std::endl;
-  (void) kMaxVarianceThreshold;
-
-  cv::Mat tmp;
-  cv::multiply(mask, frame, tmp);
-  tmp.convertTo(depth_, CV_32FC1);
+  // Stop processing.
+  ++count_;
 }
 
 cv::Mat BaselineCapture::getDepthImage() {
-  return depth_ / 5000.0f;
+  return baseline_;
 }
 
 }}

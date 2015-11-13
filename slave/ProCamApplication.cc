@@ -103,7 +103,7 @@ int ProCamApplication::run() {
 
     pingMaster();
     while (display_->isRunning()) {
-      //baseline_->process(camera_->getDepthImage());
+      baseline_->process(camera_->getDepthImage());
       display_->update();
     }
 
@@ -116,7 +116,7 @@ int ProCamApplication::run() {
     while (cv::waitKey(1) != 'q') {
       auto depth = camera_->getDepthImage();
       baseline_->process(depth);
-      cv::imshow("test", baseline_->getDepthImage());
+      cv::imshow("test", baseline_->getDepthImage() / 5000.0f);
     }
   }
 
