@@ -25,18 +25,10 @@ Plane planeFit(
 {
   const float PI = boost::math::constants::pi<float>();
 
-  // Compute the center point of the dataset.
-  cv::Point3f center(0.0f);
-  for (const auto &point : points) {
-    center += point;
-  }
-  center = center * (1.0f /points.size());
-
   // Compute the range for r.
   auto maxR = std::numeric_limits<float>::min();
   for (const auto &point : points) {
-    auto diff = point - center;
-    maxR = std::max(maxR, std::sqrt(diff.dot(diff)));
+    maxR = std::max(maxR, std::sqrt(point.dot(point)));
   }
 
   // 3D hough transform.
@@ -65,15 +57,14 @@ Plane planeFit(
   // used because sin and cos are periodic, so phi and theta can be sensibly
   // subdivided into a finite number of intervals.
   for (const auto &point : points) {
-    auto diff = point - center;
-    for (size_t p = 0; p < SPLIT_PHI; ++p) {
+    for (size_t p = 0; p <= SPLIT_PHI; ++p) {
       const float phi = static_cast<float>(p) / SPLIT_PHI * PI;
-      for (size_t t = 0; t < SPLIT_THETA; ++t) {
+      for (size_t t = 0; t <= SPLIT_THETA; ++t) {
         const float theta = static_cast<float>(t) / SPLIT_THETA * (2.0f * PI);
         const float r =
-            std::cos(phi) * std::cos(theta) * diff.x +
-            std::cos(phi) * std::sin(theta) * diff.y +
-            std::sin(phi) * diff.z;
+            std::cos(phi) * std::cos(theta) * point.x +
+            std::cos(phi) * std::sin(theta) * point.y +
+            std::sin(phi) * point.z;
         const size_t index = (r / (2 * maxR) + 0.5f) * SPLIT_R;
         hough[p][t][index]++;
       }
@@ -82,9 +73,9 @@ Plane planeFit(
 
   // Find the bucket with the most votes.
   size_t idxP = 0, idxT = 0, idxR = 0;
-  for (size_t p = 0; p < SPLIT_PHI; ++p) {
-    for (size_t t = 0; t < SPLIT_THETA; ++t) {
-      for (size_t r = 0; r < SPLIT_R; ++r) {
+  for (size_t p = 0; p <= SPLIT_PHI; ++p) {
+    for (size_t t = 0; t <= SPLIT_THETA; ++t) {
+      for (size_t r = 0; r <= SPLIT_R; ++r) {
         if (hough[p][t][r] > hough[idxP][idxT][idxR]) {
           idxP = p;
           idxT = t;

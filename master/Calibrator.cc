@@ -7,6 +7,7 @@
 #include <iostream>
 #include <thread>
 
+#include "core/Geometry.h"
 #include "core/GrayCode.h"
 #include "core/Projection.h"
 #include "core/ProCam.h"
@@ -328,16 +329,14 @@ void Calibrator::calibrate() {
     auto projector = system_->getProCam(projectorId);
 
     // Vector of vectors of points per each view.
-    std::vector<std::vector<cv::Point3f>> worldPointsCalib;
-    std::vector<std::vector<cv::Point2f>> projectorPointsCalib;
+    std::vector<std::vector<cv::Point3f>> worldPointsCalib(ids_.size());
+    std::vector<std::vector<cv::Point2f>> projectorPointsCalib(ids_.size());
 
     // TODO(ilijar): iterate only over the projector group memebers.
-    for (const auto &kinectId : ids_) {
-
-      // 3D points in the world space.
-      std::vector<cv::Point3f> worldPoints;
-      // 2D points in the projector screen sapce.
-      std::vector<cv::Point2f> projectorPoints;
+    for (size_t i = 0; i < ids_.size(); ++i) {
+      const auto &kinectId = ids_[i];
+      auto &worldPoints = worldPointsCalib[i];
+      auto &projectorPoints = projectorPointsCalib[i];
 
       // Construct the 3D - 2D (projector) point correspondences.
       for (const auto &pointPair : kinect3D2D[kinectId]) {
@@ -366,9 +365,31 @@ void Calibrator::calibrate() {
         worldPoints.push_back(kinect3DPoint);
         projectorPoints.push_back(projPoint);
       }
+    }
 
-      worldPointsCalib.push_back(worldPoints);
-      projectorPointsCalib.push_back(projectorPoints);
+    std::vector<std::vector<cv::Point3f>> worldPointsPlane(ids_.size());
+    std::vector<std::vector<cv::Point2f>> projectorPointsPlane(ids_.size());
+
+    for (size_t i = 0; i < ids_.size(); ++i) {
+      auto &worldPoints = worldPointsPlane[i];
+      auto &projectorPoints = projectorPointsPlane[i];
+
+      auto plane = planeFit(worldPointsCalib[i], 200, 100, 0.1f);
+      for (size_t j = 0; j < worldPointsCalib[i].size(); ++j) {
+        const auto &world = worldPointsCalib[i][j];
+        const auto &proj = projectorPointsCalib[i][j];
+
+        const float d =
+            plane.nx * world.x +
+            plane.ny * world.y +
+            plane.nz * world.z -
+            plane.d;
+
+        if (std::abs(d) < 0.05f) {
+          worldPoints.push_back(world);
+          projectorPoints.push_back(proj);
+        }
+      }
     }
 
     std::vector<cv::Mat> rvecs, tvecs;
@@ -380,8 +401,8 @@ void Calibrator::calibrate() {
 
     // Calibrate the projector.
     auto rms = cv::calibrateCamera(
-        worldPointsCalib,
-        projectorPointsCalib,
+        worldPointsPlane,
+        projectorPointsPlane,
         projectorSize,
         projector->projMat_,
         projector->projDist_,
@@ -390,7 +411,7 @@ void Calibrator::calibrate() {
         CV_CALIB_USE_INTRINSIC_GUESS);
 
     std::cout << "Calibration RMS: " << rms << std::endl;
-
+    // TODO(nand): refine with all points.
     // TODO(ilijar): remove.
     for (size_t i = 0; i < worldPointsCalib[0].size(); i++) {
       std::cout << worldPointsCalib[0][i].x << " "
