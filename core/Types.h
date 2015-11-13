@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cmath>
+
 
 namespace dv {
 
@@ -21,7 +23,6 @@ struct Resolution {
   size_t height;
 };
 
-
 /**
  * Structure representing the equation of a plane.
  */
@@ -29,6 +30,12 @@ struct Plane {
   float nx, ny, nz;
   float d;
 };
+
+
+static inline bool equals(float x, float y) {
+  const float epsilon = 0.000001f;
+  return std::abs(x - y) <= epsilon * std::abs(x);
+}
 
 }
 

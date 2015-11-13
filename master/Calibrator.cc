@@ -3,25 +3,38 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include <algorithm>
-#include <thread>
 #include <chrono>
 #include <iostream>
+#include <thread>
 
-#include "core/ProCam.h"
 #include "core/GrayCode.h"
-#include "master/Calibrator.h"
 #include "core/Projection.h"
+#include "core/ProCam.h"
+#include "core/Types.h"
+#include "master/Calibrator.h"
+
 
 using namespace dv::master;
 using namespace dv;
 
 using namespace std::chrono_literals;
 
+
 // Duration of a one element of gray code sequence in milliseconds.
 constexpr auto kGrayCodeDuration = 300ms;
 
 // Threshold to determine if two color images are the same.
 constexpr auto kColorDiffThreshold = 100;
+
+// Depth image resolution -- TODO(ilijar): apply D98 comment.
+constexpr size_t kDepthImageWidth = 512;
+constexpr size_t kDepthImageHeight = 424;
+
+// Treshold used to filter out some of the depth image noise.
+constexpr auto kDepthVarianceTreshold = 10;
+
+// 1m = 1000mm
+constexpr float kMilimetersToMeters = 1000.0f;
 
 Calibrator::Calibrator(
     const std::vector<ConnectionID>& ids,
@@ -47,6 +60,7 @@ void Calibrator::captureBaselines() {
   }
 }
 
+// TODO(ilijar): refactor and get frames in parallel.
 void Calibrator::processDepth() {
   for (const auto &id : ids_) {
     auto proCam = system_->getProCam(id);
@@ -100,7 +114,7 @@ void Calibrator::formProjectorGroups() {
     auto displayParams = proCam->getDisplayParams();
 
     // Project alternative black and white strips
-    auto maxLevel = 
+    auto maxLevel =
       GrayCode::calculateDisplayedLevels(displayParams.frameHeight) - 1;
 
     // Capture base images
@@ -145,14 +159,14 @@ void Calibrator::displayGrayCodes() {
   for (const auto &id : ids_) {
     auto displayParams = system_->proCams_[id]->getDisplayParams();
 
-    const size_t horzLevels = 
+    const size_t horzLevels =
       GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
     for (size_t i = 0; i < horzLevels; i++) {
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, false);
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, true);
     }
 
-    const size_t vertLevels = 
+    const size_t vertLevels =
       GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
     for (size_t i = 0; i < vertLevels; i++) {
       displayAndCapture(id, Orientation::type::VERTICAL, i, false);
@@ -223,9 +237,9 @@ Calibrator::CapturedPixelsMap Calibrator::grayCodesToPixels(
 
     // Calculate number of bits needed to encode row and column pixel
     // coordinates.
-    size_t rowLevels = 
+    size_t rowLevels =
       GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
-    size_t colLevels = 
+    size_t colLevels =
       GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
 
     // Mask for bits encoding row and column coordinates.
@@ -359,14 +373,14 @@ Calibrator::CalibrationParams Calibrator::calibrationParams(
     cv::Mat distCoeffs = cv::Mat::zeros(4, 1, cv::DataType<double>::type);
     std::vector<cv::Mat> rvecs, tvecs;
 
-    /*for (size_t i=0; i<objectPoints[0].size(); i++) {
+    for (size_t i=0; i<objectPoints[0].size(); i++) {
       std::cout << objectPoints[0][i].x << " "
                 << objectPoints[0][i].y << " "
                 << objectPoints[0][i].z << " "
                 << patternPoints[0][i].x << " "
                 << patternPoints[0][i].y
                 << std::endl;
-    }*/
+    }
     // Calibrate the cameras which can see the pattern displayed by projector
     // with projId.
     double rms = cv::calibrateCamera(
@@ -412,3 +426,213 @@ Calibrator::CalibrationParams Calibrator::calibrate() {
 
   return calibrationParams(input, ids_, *system_);
 }
+
+void Calibrator::derpderp() {
+  // KinectID -> [(3D point, 2D Kinect color image)]
+  std::unordered_map<
+      ConnectionID, std::vector<std::pair<cv::Point3f, cv::Point2f>>>
+  kinect3D2D;
+
+  // Find (3D, 2D color image) points captured by the kinects.
+  for (const auto &kinectId : ids_) {
+    kinect3D2D.emplace(
+        kinectId, std::vector<std::pair<cv::Point3f, cv::Point2f>>());
+
+    auto kinect = system_->getProCam(kinectId);
+    auto depthImage = kinect->depthBaseline_;
+
+    // Use the depth frame to compute the 3D points.
+    for (size_t r = 0; r < kDepthImageHeight; ++r) {
+      for (size_t c = 0; c < kDepthImageWidth; ++c) {
+
+        // Extract depth (in meters) and the corresponding variance.
+        auto depth = depthImage.at<float>(r, c) / kMilimetersToMeters;
+        auto variance = kinect->varianceDepth_.at<float>(r, c);
+
+        // Filter out the noisy points.
+        if (equals(depth, 0.0f) || variance > kDepthVarianceTreshold) {
+          continue;
+        }
+
+        // Compute the 3D point out of the depth info.
+        auto point3D = projection::map3D(
+            kinect->irCamMat_,
+            depthImage,
+            r,
+            c);
+
+        // We're working on undistorted images.
+        // Hence, use (r, c) to construct a 2D point in Kinect's color image.
+        // Note that the point is wrt the origin in the top left corner.
+        auto point2D = cv::Point2f(r, c);
+
+        // Construct the 3D - 2D (color image) correspondence.
+        kinect3D2D[kinectId].push_back(std::make_pair(point3D, point2D));
+      }
+    }
+  }
+
+  // Decode the gray codes and obtain the mappings.
+  // TODO(ilijar): T48
+  auto encodedPixels = decode();
+  auto colorToProj = colorToProjUV(encodedPixels);
+
+  // Calibrate each projector.
+  for (const auto &projectorId : ids_) {
+    auto projector = system_->getProCam(projectorId);
+
+    // Vector of vectors of points per each view.
+    std::vector<std::vector<cv::Point3f>> worldPointsCalib;
+    std::vector<std::vector<cv::Point2f>> projectorPointsCalib;
+
+    // TODO(ilijar): iterate only over the projector group memebers.
+    for (const auto &kinectId : ids_) {
+
+      // 3D points in the world space.
+      std::vector<cv::Point3f> worldPoints;
+      // 2D points in the projector screen sapce.
+      std::vector<cv::Point2f> projectorPoints;
+
+      // Construct the 3D - 2D (projector) point correspondences.
+      for (const auto &pointPair : kinect3D2D[kinectId]) {
+        auto kinectColorPoint = pointPair.second;
+        auto kinect3DPoint = pointPair.first;
+
+        auto r = kinectColorPoint.x;
+        auto c = kinectColorPoint.y;
+
+        // Get the projector point corresponding to the kinect color point.
+        auto decodedPoint =
+            colorToProj[std::make_pair(projectorId, kinectId)][r][c];
+
+        // Check if the decoded point is valid.
+        if (decodedPoint.x == -1 && decodedPoint.y == -1) {
+          continue;
+        }
+
+        // TODO(ilijar): Handle resolution/ gray levels -- T51.
+        //auto projPoint = cv::Point2f(
+        //    768 - decodedPoint.y, 1024 - decodedPoint.x);
+        auto projPoint = cv::Point2f(
+            64 - decodedPoint.y - 1, 64 - decodedPoint.x - 1);
+
+        // Construct 3D -> 2D correspondance.
+        worldPoints.push_back(kinect3DPoint);
+        projectorPoints.push_back(projPoint);
+      }
+
+      worldPointsCalib.push_back(worldPoints);
+      projectorPointsCalib.push_back(projectorPoints);
+    }
+
+    std::vector<cv::Mat> rvecs, tvecs;
+
+    // TODO(ilijar): make procams use cv::Size for storing resolution
+    // TODO(ilijar): same comment as above regarding the resolution/ levels
+    auto displayParams = projector->displayParams_;
+    cv::Size projectorSize(displayParams.frameWidth, displayParams.frameHeight);
+
+    // Calibrate the projector.
+    auto rms = cv::calibrateCamera(
+        worldPointsCalib,
+        projectorPointsCalib,
+        projectorSize,
+        projector->projMat_,
+        projector->projDist_,
+        rvecs,
+        tvecs,
+        CV_CALIB_USE_INTRINSIC_GUESS);
+
+    std::cout << "Calibration RMS: " << rms << std::endl;
+
+    // TODO(ilijar): remove.
+    // -----
+    for (size_t i = 0; i < worldPointsCalib[0].size(); i++) {
+      std::cout << worldPointsCalib[0][i].x << " "
+                << worldPointsCalib[0][i].y << " "
+                << worldPointsCalib[0][i].z << " "
+                << projectorPointsCalib[0][i].x << " "
+                << projectorPointsCalib[0][i].y << " "
+                << std::endl;
+    }
+
+    std::cout << "projMat: "  << std::endl;
+    std::cout << projector->projMat_ << std::endl;
+
+    std::cout << "Rotation vectors: " << std::endl;
+    for (const auto &r : rvecs) {
+      std::cout << r << " " << std::endl;
+    }
+
+    std::cout << "Translation vectors: " << std::endl;
+    for (const auto &t : tvecs) {
+      std::cout << "Translation vector: " << t << std::endl;
+    }
+    // -----
+  }
+}
+
+// TODO(ilijar): T48
+std::unordered_map<
+    Calibrator::ProCamPair,
+    std::vector<std::vector<cv::Point2f>>,
+    boost::hash<Calibrator::ProCamPair>>
+Calibrator::colorToProjUV(Calibrator::GrayCodeMap &decodedGrayCodes)
+{
+  std::unordered_map<
+    ProCamPair,
+    std::vector<std::vector<cv::Point2f>>,
+    boost::hash<ProCamPair>> colorToProj;
+
+  // Iterate over grayCode maps for all pairs of connections.
+  for (auto &connectionsCodes : decodedGrayCodes) {
+
+    colorToProj.emplace(
+        connectionsCodes.first, std::vector<std::vector<cv::Point2f>>());
+
+    auto &connectionPair = connectionsCodes.first;
+    auto &grayCodes = connectionsCodes.second;
+
+    auto projId = connectionPair.first;
+    // Retrieve parameters of the projector.
+    auto displayParams = system_->getProCam(projId)->displayParams_;
+
+    // Calculate number of bits needed to encode row and column pixel
+    // coordinates.
+    size_t rowLevels = GrayCode::calculateDisplayedLevels(
+        displayParams.frameHeight);
+    size_t colLevels = GrayCode::calculateDisplayedLevels(
+        displayParams.frameWidth);
+
+    // Mask for bits encoding row and column coordinates.
+    uint32_t rowMask = (1 << rowLevels) - 1;
+    uint32_t colMask = (1 << colLevels) - 1;
+
+    for (size_t r = 0; r < static_cast<size_t>(grayCodes.rows); r++) {
+      colorToProj[connectionPair].push_back({});
+
+      for (size_t c = 0; c < static_cast<size_t>(grayCodes.cols); c++) {
+        uint32_t encoding = grayCodes.at<uint32_t>(r, c);
+        int32_t decRow = -1;
+        int32_t decCol = -1;
+
+        // Only greycoded pixels should satisfy this condition, other should
+        // have been thresholded.
+        //if (encoding > 0 && c > 200 && c < 250 && r > 200 && r < 250) {
+        if (encoding > 0) {
+          uint32_t rowBits = (encoding >> colLevels) & rowMask;
+          uint32_t colBits = encoding & colMask;
+
+          decRow = grayCodeToBinary(rowBits, rowLevels);
+          decCol = grayCodeToBinary(colBits, colLevels);
+        }
+
+        colorToProj[connectionPair][r].emplace_back(
+            cv::Point2f(decRow, decCol));
+      }
+    }
+  }
+
+  return colorToProj;
+}
+

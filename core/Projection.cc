@@ -33,6 +33,7 @@ cv::Point2f project(
   return cv::Point2f(u, v);
 }
 
+// TODO(ilijar): pass depth value instead of the depth frame -- after T50.
 cv::Point3f map3D(
     const cv::Mat& camera,
     const cv::Mat& depth,
@@ -46,10 +47,14 @@ cv::Point3f map3D(
   // Focal points.
   const double fx = camera.at<double>(0, 0);
   const double fy = camera.at<double>(1, 1);
-  const float depthValue = depth.at<float>(r, c);
+  const float depthValue = depth.at<float>(r, c) / 1000.0f;
 
-  const double x = ((static_cast<double>(c) - cx) * static_cast<double>(depthValue)) / fx;
-  const double y = ((static_cast<double>(r) - cy) * static_cast<double>(depthValue)) / fy;
+  const double x =
+      ((static_cast<double>(c) - cx) *
+        static_cast<double>(depthValue)) / fx;
+  const double y =
+      ((static_cast<double>(424 - r - 1) - cy) *
+        static_cast<double>(depthValue)) / fy;
   const double z = static_cast<double>(depthValue);
 
   return cv::Point3f(x, y, z);

@@ -159,6 +159,22 @@ class Calibrator {
    */
   CalibrationParams calibrate();
 
+  /**
+   * derp derp
+   */
+  void derpderp();
+
+
+  // TODO(ilijar): T48
+  /**
+   * UV in color image space -> UV in projector space
+   */
+  std::unordered_map<
+    ProCamPair,
+    std::vector<std::vector<cv::Point2f>>,
+    boost::hash<ProCamPair>>
+  colorToProjUV(GrayCodeMap &decodedGrayCodes);
+
  private:
   /// IDs of the procam connections
   const std::vector<ConnectionID> ids_;
@@ -170,4 +186,5 @@ class Calibrator {
   CapturedMap captured_;
 };
 
-} }
+}}
+

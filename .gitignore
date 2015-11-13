@@ -2,6 +2,7 @@ build
 
 # Swap files.
 *.swp
+*.swo
 
 # IDE Files
 .idea

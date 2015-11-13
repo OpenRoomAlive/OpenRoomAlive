@@ -78,17 +78,21 @@ int MasterApplication::run() {
         displaysParams[id]);
   }
 
+  // TODO(ilijar): T48, T49 & T50
   Calibrator calibrator(connectionIds, connectionHandler_, system_);
 
   // Capture baselines.
   calibrator.captureBaselines();
-  calibrator.formProjectorGroups();
+  //calibrator.formProjectorGroups();
+  calibrator.processDepth();
+  calibrator.displayGrayCodes();
+  calibrator.derpderp();
 
   // Display the gray code patterns for calibration.
-  calibrator.displayGrayCodes();
+  //calibrator.displayGrayCodes();
   //calibrator.decode();
-  /*Calibrator::CalibrationParams params = calibrator.calibrate();
-
+  //Calibrator::CalibrationParams params = calibrator.calibrate();
+  /*
   for (auto &record : params) {
     auto param = record.second;
     auto rot = param.first;
@@ -116,7 +120,6 @@ int MasterApplication::run() {
     // TODO: Process event using the 3D reconstruction.
     // TODO: Send updates to Procams (1 or many per event)
   }
-
 
   // Disconnect all clients.
   connectionHandler_->stop();

@@ -42,6 +42,10 @@ friend class Calibrator;
   const cv::Mat irDist_;
   /// Parameters of the display.
   const dv::DisplayParams displayParams_;
+  /// Projector matrix.
+  cv::Mat projMat_;
+  /// Projector distortion coefficients.
+  cv::Mat projDist_;
   /// Color baseline.
   cv::Mat colorBaseline_;
   /// Depth baseline.
