@@ -232,15 +232,10 @@ void Calibrator::decodeGrayCodes() {
 void Calibrator::colorToProjPoints(
     Calibrator::GrayCodeBitMaskMap &decodedGrayCodes)
 {
-  std::unordered_map<
-    ProCamPair,
-    std::vector<std::vector<cv::Point2f>>,
-    boost::hash<ProCamPair>> colorToProj;
-
   // Iterate over grayCode maps for all pairs of connections.
   for (auto &connectionsCodes : decodedGrayCodes) {
 
-    colorToProj.emplace(
+    colorToProj_.emplace(
         connectionsCodes.first, std::vector<std::vector<cv::Point2f>>());
 
     auto &connectionPair = connectionsCodes.first;
@@ -262,7 +257,7 @@ void Calibrator::colorToProjPoints(
     uint32_t colMask = (1 << colLevels) - 1;
 
     for (size_t r = 0; r < static_cast<size_t>(grayCodes.rows); r++) {
-      colorToProj[connectionPair].push_back({});
+      colorToProj_[connectionPair].push_back({});
 
       for (size_t c = 0; c < static_cast<size_t>(grayCodes.cols); c++) {
         uint32_t encoding = grayCodes.at<uint32_t>(r, c);
@@ -397,7 +392,6 @@ void Calibrator::calibrate() {
     std::cout << "Calibration RMS: " << rms << std::endl;
 
     // TODO(ilijar): remove.
-    // -----
     for (size_t i = 0; i < worldPointsCalib[0].size(); i++) {
       std::cout << worldPointsCalib[0][i].x << " "
                 << worldPointsCalib[0][i].y << " "
@@ -419,7 +413,6 @@ void Calibrator::calibrate() {
     for (const auto &t : tvecs) {
       std::cout << "Translation vector: " << t << std::endl;
     }
-    // -----
   }
 }
 
