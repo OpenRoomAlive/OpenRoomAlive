@@ -48,12 +48,12 @@ class MasterConnectionHandler
   /**
    * Retrieves the handler and sets up the inverse connection.
    */
-  MasterServer* getHandler(const TConnectionInfo& connInfo);
+  MasterServer* getHandler(const TConnectionInfo& connInfo) override;
 
   /**
    * Free the handler.
    */
-  void releaseHandler(MasterIf* handler);
+  void releaseHandler(MasterIf* handler) override;
 
   /**
    * Blocks until a specific number of procams connect.

@@ -122,7 +122,8 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
  * Check if all the pixels occuring in camera images captured by kinects are
  * correctly decoded.
  */
-/*TEST_F(CalibrationTest, GrayCodesToPixels1) {
+/*
+TEST_F(CalibrationTest, GrayCodesToPixels1) {
   Calibrator::GrayCodeMap capture;
   std::pair<ConnectionID, ConnectionID> connections(1, 1);
 
@@ -159,12 +160,14 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
       }
     }
   }
-}*/
+}
+*/
 
 /*
  * Check that (random) pixel coordinates are correctly encoded.
  */
-/*TEST_F(CalibrationTest, GrayCodesToPixels2) {
+/*
+TEST_F(CalibrationTest, GrayCodesToPixels2) {
   Calibrator::GrayCodeMap capture;
   std::pair<ConnectionID, ConnectionID> connections(1, 1);
 
@@ -200,14 +203,16 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
       pixelCoords.end());
   EXPECT_TRUE(pixelCoords.find(std::pair<size_t, size_t>(332, 420)) !=
       pixelCoords.end());
-}*/
+}
+*/
 
 /*
  * Easy test. We assume a ProCam system made of one ProCam unit. The resolution
  * of the projector is assumed to be the same as the resolution of the depth
  * camera. All pattern pixels are visible by the BGR camra.
  */
-/*TEST_F(CalibrationTest, SingleProCamCalibration) {
+/*
+TEST_F(CalibrationTest, SingleProCamCalibration) {
   Calibrator::CapturedPixelsMap capturedPixels;
 
   for (size_t i = 0; i < kDepthImageHeight; i++) {
@@ -248,4 +253,6 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
   connections = params.begin()->first;
   EXPECT_EQ(connections.first, 1);
   EXPECT_EQ(connections.second, 1);
-}*/
+}
+*/
+

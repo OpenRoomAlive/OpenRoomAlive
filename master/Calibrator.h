@@ -137,33 +137,10 @@ class Calibrator {
     return res;
   }
 
-  /*
-   * Get the data required to conduct ProCam calibration.
-   */
-  static CalibrationInput calibrationInput(
-      CapturedPixelsMap &capturedPixels,
-      std::unordered_map<ConnectionID, cv::Mat> &depthBaseline,
-      const std::vector<ConnectionID> &ids,
-      ProCamSystem &proCamSys);
-
-  /*
-   * Retrieves the calibration parameters of the proCam system.
-   */
-  static CalibrationParams calibrationParams(
-    CalibrationInput &input,
-    const std::vector<ConnectionID> &ids,
-    ProCamSystem &proCamSys);
-
-  /*
-   * Calibrates the proCam system.
-   */
-  CalibrationParams calibrate();
-
   /**
    * derp derp
    */
   void derpderp();
-
 
   // TODO(ilijar): T48
   /**

@@ -88,20 +88,6 @@ int MasterApplication::run() {
   calibrator.displayGrayCodes();
   calibrator.derpderp();
 
-  // Display the gray code patterns for calibration.
-  //calibrator.displayGrayCodes();
-  //calibrator.decode();
-  //Calibrator::CalibrationParams params = calibrator.calibrate();
-  /*
-  for (auto &record : params) {
-    auto param = record.second;
-    auto rot = param.first;
-    auto trans = param.second;
-
-    std::cout << "Rotation vector: " << rot << std::endl;
-    std::cout << "Translation vector: " << trans << std::endl;
-  }*/
-
   // TODO: Perform 3D reconstruction.
 
   // Spawn thread waiting for user input - input => quit.
