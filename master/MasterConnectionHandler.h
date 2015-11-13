@@ -10,8 +10,6 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <unordered_map>
-#include <vector>
 
 #include <boost/enable_shared_from_this.hpp>
 
@@ -23,7 +21,7 @@
 #include "core/Exception.h"
 #include "core/Master.h"
 #include "core/ProCam.h"
-#include "core/Types.h"
+#include "master/ConnectionHandler.h"
 #include "master/EventStream.h"
 #include "master/MasterServer.h"
 
@@ -33,7 +31,8 @@ namespace dv { namespace master {
  * Manages ProCam connections.
  */
 class MasterConnectionHandler
-  : public MasterIfFactory
+  : public ConnectionHandler
+  , public MasterIfFactory
   , public boost::enable_shared_from_this<MasterConnectionHandler>
 {
  private:
@@ -60,7 +59,7 @@ class MasterConnectionHandler
    * Blocks until a specific number of procams connect.
    * Returns the IDs of the ProCams that connected.
    */
-  std::vector<ConnectionID> waitForConnections(size_t count);
+  std::vector<ConnectionID> waitForConnections(size_t count) override;
 
   /**
    * Sends signal to given ProCam to display specified gray code.
@@ -69,7 +68,7 @@ class MasterConnectionHandler
       ConnectionID id,
       Orientation::type orientation,
       int16_t level,
-      bool invertedGrayCode) {
+      bool invertedGrayCode) override {
     InvokeOne<Orientation::type, int16_t, bool>(
         id,
         &ProCamClient::displayGrayCode,
@@ -81,47 +80,47 @@ class MasterConnectionHandler
   /**
    * Sends signal to given ProCam to display white image.
    */
-  void displayWhite(ConnectionID id) {
+  void displayWhite(ConnectionID id) override {
     InvokeOne(id, &ProCamClient::displayWhite);
   }
 
   /**
    * Clears the display of a procam.
    */
-  void clearDisplay(ConnectionID id) {
+  void clearDisplay(ConnectionID id) override {
     InvokeOne(id, &ProCamClient::clearDisplay);
   }
 
   /**
    * Disconnects all procams.
    */
-  void stop();
+  void stop() override;
 
   /**
    * Clears the displays of all procams.
    */
-  void clearDisplays() {
+  void clearDisplays() override {
     return InvokeAll(&ProCamClient::clearDisplay);
   }
 
   /**
    * Invokes getCameraParams on all clients.
    */
-  std::unordered_map<ConnectionID, CameraParams> getCamerasParams() {
+  std::unordered_map<ConnectionID, CameraParams> getCamerasParams() override {
     return InvokeAll(&ProCamClient::getCameraParams);
   }
 
   /**
    * Invokes getDisplayParams on all clients.
    */
-  std::unordered_map<ConnectionID, DisplayParams> getDisplaysParams() {
+  std::unordered_map<ConnectionID, DisplayParams> getDisplaysParams() override {
     return InvokeAll(&ProCamClient::getDisplayParams);
   }
 
   /**
    * Invokes getColorImage on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getColorImages() {
+  FrameMap getColorImages() override {
     return conv::thriftFrameToCvMatMap(
         InvokeAll(&ProCamClient::getColorImage));
   }
@@ -129,7 +128,7 @@ class MasterConnectionHandler
   /**
    * Retrieves the depth image of a procam.
    */
-  cv::Mat getDepthImage(ConnectionID id) {
+  cv::Mat getDepthImage(ConnectionID id) override {
     cv::Mat image;
     conv::thriftFrameToCvMat(
         InvokeOne(id, &ProCamClient::getDepthImage), image);
@@ -139,7 +138,7 @@ class MasterConnectionHandler
   /**
    * Invokes getDepthImage on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getDepthImages() {
+  FrameMap getDepthImages() override {
     return conv::thriftFrameToCvMatMap(
         InvokeAll(&ProCamClient::getDepthImage));
   }
@@ -147,7 +146,8 @@ class MasterConnectionHandler
   /**
    * Invokes getUndistortedColorImage on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getUndistortedColorImages() {
+  FrameMap getUndistortedColorImages() override
+  {
     return conv::thriftFrameToCvMatMap(
         InvokeAll(&ProCamClient::getUndistortedColorImage));
   }
@@ -155,7 +155,7 @@ class MasterConnectionHandler
   /**
    * Invokes getColorBaseline on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getColorBaselines() {
+  FrameMap getColorBaselines() override {
     return conv::thriftFrameToCvMatMap(
         InvokeAll(&ProCamClient::getColorBaseline));
   }
@@ -163,7 +163,7 @@ class MasterConnectionHandler
   /**
    * Invokes getDepthBaseline on all clients.
    */
-  std::unordered_map<ConnectionID, cv::Mat> getDepthBaselines() {
+  FrameMap getDepthBaselines() override {
     return conv::thriftFrameToCvMatMap(
         InvokeAll(&ProCamClient::getDepthBaseline));
   }
