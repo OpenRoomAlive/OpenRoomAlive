@@ -196,8 +196,8 @@ void Calibrator::displayAndCapture(
   }
 }
 
-Calibrator::GrayCodeMap Calibrator::decode() {
-  GrayCodeMap decoded;
+Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
+  GrayCodeBitMaskMap decoded;
   cv::Mat diff, mask, mask32;
 
   for (const auto &entry : captured_) {
@@ -221,54 +221,73 @@ Calibrator::GrayCodeMap Calibrator::decode() {
   return decoded;
 }
 
-Calibrator::CapturedPixelsMap Calibrator::grayCodesToPixels(
-    Calibrator::GrayCodeMap &decodedGrayCodes,
-    ProCamSystem &proCamSys)
+
+void Calibrator::decodeGrayCodes() {
+  // Construct the bit mask.
+  auto decodedBitMask = decodeToBitMask();
+  // Consturct the mappings from color image points to projector points.
+  colorToProjPoints(decodedBitMask);
+}
+
+void Calibrator::colorToProjPoints(
+    Calibrator::GrayCodeBitMaskMap &decodedGrayCodes)
 {
-  Calibrator::CapturedPixelsMap pixelsMap;
+  std::unordered_map<
+    ProCamPair,
+    std::vector<std::vector<cv::Point2f>>,
+    boost::hash<ProCamPair>> colorToProj;
+
   // Iterate over grayCode maps for all pairs of connections.
   for (auto &connectionsCodes : decodedGrayCodes) {
+
+    colorToProj.emplace(
+        connectionsCodes.first, std::vector<std::vector<cv::Point2f>>());
+
     auto &connectionPair = connectionsCodes.first;
     auto &grayCodes = connectionsCodes.second;
 
     auto projId = connectionPair.first;
     // Retrieve parameters of the projector.
-    auto displayParams = proCamSys.getProCam(projId)->displayParams_;
+    auto displayParams = system_->getProCam(projId)->displayParams_;
 
     // Calculate number of bits needed to encode row and column pixel
     // coordinates.
-    size_t rowLevels =
-      GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
-    size_t colLevels =
-      GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
+    size_t rowLevels = GrayCode::calculateDisplayedLevels(
+        displayParams.frameHeight);
+    size_t colLevels = GrayCode::calculateDisplayedLevels(
+        displayParams.frameWidth);
 
     // Mask for bits encoding row and column coordinates.
     uint32_t rowMask = (1 << rowLevels) - 1;
     uint32_t colMask = (1 << colLevels) - 1;
 
-    for (size_t i = 0; i < static_cast<size_t>(grayCodes.rows); i++) {
-      for (size_t j = 0; j < static_cast<size_t>(grayCodes.cols); j++) {
-        uint32_t encoding = grayCodes.at<uint32_t>(i, j);
+    for (size_t r = 0; r < static_cast<size_t>(grayCodes.rows); r++) {
+      colorToProj[connectionPair].push_back({});
+
+      for (size_t c = 0; c < static_cast<size_t>(grayCodes.cols); c++) {
+        uint32_t encoding = grayCodes.at<uint32_t>(r, c);
+        int32_t decRow = -1;
+        int32_t decCol = -1;
+
         // Only greycoded pixels should satisfy this condition, other should
         // have been thresholded.
+        //if (encoding > 0 && c > 200 && c < 250 && r > 200 && r < 250) {
         if (encoding > 0) {
           uint32_t rowBits = (encoding >> colLevels) & rowMask;
           uint32_t colBits = encoding & colMask;
 
-          const uint32_t encRow = grayCodeToBinary(rowBits, rowLevels);
-          const uint32_t encCol = grayCodeToBinary(colBits, colLevels);
-
-          pixelsMap[connectionPair].emplace(
-              std::make_pair(encRow, encCol),
-              std::make_pair(i, j));
+          decRow = GrayCode::grayCodeToBinary(rowBits, rowLevels);
+          decCol = GrayCode::grayCodeToBinary(colBits, colLevels);
         }
+
+        colorToProj_[connectionPair][r].emplace_back(
+            cv::Point2f(decRow, decCol));
       }
     }
   }
-  return pixelsMap;
 }
 
-void Calibrator::derpderp() {
+void Calibrator::calibrate() {
   // KinectID -> [(3D point, 2D Kinect color image)]
   std::unordered_map<
       ConnectionID, std::vector<std::pair<cv::Point3f, cv::Point2f>>>
@@ -309,11 +328,6 @@ void Calibrator::derpderp() {
     }
   }
 
-  // Decode the gray codes and obtain the mappings.
-  // TODO(ilijar): T48
-  auto encodedPixels = decode();
-  auto colorToProj = colorToProjUV(encodedPixels);
-
   // Calibrate each projector.
   for (const auto &projectorId : ids_) {
     auto projector = system_->getProCam(projectorId);
@@ -340,7 +354,7 @@ void Calibrator::derpderp() {
 
         // Get the projector point corresponding to the kinect color point.
         auto decodedPoint =
-            colorToProj[std::make_pair(projectorId, kinectId)][r][c];
+            colorToProj_[std::make_pair(projectorId, kinectId)][r][c];
 
         // Check if the decoded point is valid.
         if (decodedPoint.x == -1 && decodedPoint.y == -1) {
@@ -407,69 +421,5 @@ void Calibrator::derpderp() {
     }
     // -----
   }
-}
-
-// TODO(ilijar): T48
-std::unordered_map<
-    Calibrator::ProCamPair,
-    std::vector<std::vector<cv::Point2f>>,
-    boost::hash<Calibrator::ProCamPair>>
-Calibrator::colorToProjUV(Calibrator::GrayCodeMap &decodedGrayCodes)
-{
-  std::unordered_map<
-    ProCamPair,
-    std::vector<std::vector<cv::Point2f>>,
-    boost::hash<ProCamPair>> colorToProj;
-
-  // Iterate over grayCode maps for all pairs of connections.
-  for (auto &connectionsCodes : decodedGrayCodes) {
-
-    colorToProj.emplace(
-        connectionsCodes.first, std::vector<std::vector<cv::Point2f>>());
-
-    auto &connectionPair = connectionsCodes.first;
-    auto &grayCodes = connectionsCodes.second;
-
-    auto projId = connectionPair.first;
-    // Retrieve parameters of the projector.
-    auto displayParams = system_->getProCam(projId)->displayParams_;
-
-    // Calculate number of bits needed to encode row and column pixel
-    // coordinates.
-    size_t rowLevels = GrayCode::calculateDisplayedLevels(
-        displayParams.frameHeight);
-    size_t colLevels = GrayCode::calculateDisplayedLevels(
-        displayParams.frameWidth);
-
-    // Mask for bits encoding row and column coordinates.
-    uint32_t rowMask = (1 << rowLevels) - 1;
-    uint32_t colMask = (1 << colLevels) - 1;
-
-    for (size_t r = 0; r < static_cast<size_t>(grayCodes.rows); r++) {
-      colorToProj[connectionPair].push_back({});
-
-      for (size_t c = 0; c < static_cast<size_t>(grayCodes.cols); c++) {
-        uint32_t encoding = grayCodes.at<uint32_t>(r, c);
-        int32_t decRow = -1;
-        int32_t decCol = -1;
-
-        // Only greycoded pixels should satisfy this condition, other should
-        // have been thresholded.
-        //if (encoding > 0 && c > 200 && c < 250 && r > 200 && r < 250) {
-        if (encoding > 0) {
-          uint32_t rowBits = (encoding >> colLevels) & rowMask;
-          uint32_t colBits = encoding & colMask;
-
-          decRow = grayCodeToBinary(rowBits, rowLevels);
-          decCol = grayCodeToBinary(colBits, colLevels);
-        }
-
-        colorToProj[connectionPair][r].emplace_back(
-            cv::Point2f(decRow, decCol));
-      }
-    }
-  }
-
-  return colorToProj;
 }
 

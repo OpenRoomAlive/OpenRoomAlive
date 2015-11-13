@@ -80,3 +80,21 @@ cv::Mat GrayCode::getPattern(Orientation orientation, size_t level) const {
           << verticalBar.size() << ").";
   }
 }
+
+uint32_t GrayCode::grayCodeToBinary(uint32_t encodedBits, size_t signifBits) {
+  // Set the MSB of the binary number to MSB of the gray code encoding.
+  uint32_t res = encodedBits & (1 << (signifBits - 1));
+
+  bool prevSet = res > 0;
+
+  for (int i = signifBits - 2; i >= 0; i--) {
+    // If the current bit of the encoding is 1, flip the preSet flag.
+    if (encodedBits & (1 << i)) {
+      prevSet = !prevSet;
+    }
+    // If prevSet flag is set, set the current bit of the binary result.
+    res = prevSet ? res | (1 << i) : res;
+  }
+  return res;
+}
+

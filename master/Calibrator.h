@@ -21,8 +21,6 @@ class Calibrator {
  public:
   /// Pair of procams that can see each other.
   using ProCamPair = std::pair<ConnectionID, ConnectionID>;
-  /// Coordinates of a pixel in a captured image.
-  using PixelCoords = std::pair<size_t, size_t>;
 
   /// Sequence of captured images from which gray codes are decoded.
   using CapturedMap = std::unordered_map<
@@ -30,41 +28,16 @@ class Calibrator {
       std::vector<cv::Mat>,
       boost::hash<ProCamPair>>;
 
- public:
-  /// Decoded gray codes between a procam and a bgrd camera.
-  using GrayCodeMap = std::unordered_map<
+  /// Decoded gray code bit masks between a procam and a bgrd camera.
+  using GrayCodeBitMaskMap = std::unordered_map<
       ProCamPair,
       cv::Mat,
       boost::hash<ProCamPair>>;
-  /// Map from decoded gray codes to their position in the colour image.
-  using PatternPosMap = std::unordered_map<
-      PixelCoords,
-      PixelCoords,
-      boost::hash<PixelCoords>>;
-  /**
-   * Mapping from projector and camera ID to pixels displayed by the
-   * projector, captured by the camera.
-   */
-  using CapturedPixelsMap = std::unordered_map<
-      std::pair<ConnectionID, ConnectionID>,
-      PatternPosMap,
-      boost::hash<ProCamPair>>;
-  /**
-   * Mapping from 3D points in the projector space to projections of those
-   * points to UV spaces of kinects that recorded those points.
-   */
-  using CalibrationInput = std::unordered_map<
-      ProCamPair,
-      std::pair<std::vector<cv::Point3f>, std::vector<cv::Point2f>>,
-      boost::hash<ProCamPair>>;
-  /**
-   * Mapping from IDs of projector and kinect to calibration parameters
-   * (rotation and traslation vector).
-   */
-  using CalibrationParams = std::unordered_map<
-      ProCamPair,
-      std::pair<cv::Mat, cv::Mat>,
-      boost::hash<ProCamPair>>;
+
+  using ColorProjectorMap = std::unordered_map<
+    ProCamPair,
+    std::vector<std::vector<cv::Point2f>>,
+    boost::hash<ProCamPair>>;
 
   Calibrator(
       const std::vector<ConnectionID>& ids,
@@ -102,55 +75,26 @@ class Calibrator {
       bool inverted);
 
   /**
+   * Decodes the gray codes.
+   */
+  void decodeGrayCodes();
+
+  /**
+   * Calibrates the ProCam system.
+   */
+  void calibrate();
+
+ private:
+  /**
    * Decode the captured gray code pattern into a bit mask.
    */
-  GrayCodeMap decode();
+  GrayCodeBitMaskMap decodeToBitMask();
 
   /**
-   * Retrieve pixel coordinates from the captured gray codes.
+   * Constructs the mapping from points in the color image to
+   * the points in the projector screen space.
    */
-  static CapturedPixelsMap grayCodesToPixels(
-      GrayCodeMap &decodedGrayCodes,
-      ProCamSystem &proCamSys);
-
-  /**
-   * Converts gray code encoding to binary according to the method outlined
-   * at: http://www.electrical4u.com.
-   */
-  static inline uint32_t grayCodeToBinary(
-      uint32_t encodedBits,
-      size_t signifBits)
-  {
-    // Set the MSB of the binary number to MSB of the gray code encoding.
-    uint32_t res = encodedBits & (1 << (signifBits - 1));
-
-    bool prevSet = res > 0;
-
-    for (int i = signifBits - 2; i >= 0; i--) {
-      // If the current bit of the encoding is 1, flip the preSet flag.
-      if (encodedBits & (1 << i)) {
-        prevSet = !prevSet;
-      }
-      // If prevSet flag is set, set the current bit of the binary result.
-      res = prevSet ? res | (1 << i) : res;
-    }
-    return res;
-  }
-
-  /**
-   * derp derp
-   */
-  void derpderp();
-
-  // TODO(ilijar): T48
-  /**
-   * UV in color image space -> UV in projector space
-   */
-  std::unordered_map<
-    ProCamPair,
-    std::vector<std::vector<cv::Point2f>>,
-    boost::hash<ProCamPair>>
-  colorToProjUV(GrayCodeMap &decodedGrayCodes);
+  void colorToProjPoints(GrayCodeBitMaskMap &decodedGrayCodes);
 
  private:
   /// IDs of the procam connections
@@ -161,6 +105,12 @@ class Calibrator {
   const std::shared_ptr<ProCamSystem> system_;
   /// Map of captured gray code pattern
   CapturedMap captured_;
+  /**
+   * Contains mappings from the points in the kinect color image
+   * to the points in the projector's screen.
+   */
+  ColorProjectorMap colorToProj_;
+
 };
 
 }}

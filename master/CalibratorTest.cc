@@ -24,7 +24,7 @@ using namespace dv::master;
  */
 TEST(CalibratorTest, GrayCodeToBinaryConversion1) {
   uint32_t grayCodeValue = 0b01101;
-  uint32_t binaryValue = Calibrator::grayCodeToBinary(grayCodeValue, 5);
+  uint32_t binaryValue = GrayCode::grayCodeToBinary(grayCodeValue, 5);
   ASSERT_EQ(binaryValue, 0b01001);
 }
 
@@ -35,7 +35,7 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion1) {
 TEST(CalibratorTest, GrayCodeToBinaryConversion2) {
   uint32_t binaryValue = 143851;
   uint32_t grayCodeValue = binaryValue ^ (binaryValue >> 1);
-  uint32_t retrievedBinaryValue = Calibrator::grayCodeToBinary(
+  uint32_t retrievedBinaryValue = GrayCode::grayCodeToBinary(
     grayCodeValue, dv::GrayCode::calculateMaxLevels(binaryValue));
   ASSERT_EQ(binaryValue, retrievedBinaryValue);
 }
@@ -46,7 +46,7 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion2) {
 TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
   uint32_t binaryValue = 0;
   uint32_t grayCodeValue = binaryValue ^ (binaryValue >> 1);
-  uint32_t retrievedBinaryValue = Calibrator::grayCodeToBinary(
+  uint32_t retrievedBinaryValue = GrayCode::grayCodeToBinary(
     grayCodeValue, dv::GrayCode::calculateMaxLevels(binaryValue));
   ASSERT_EQ(binaryValue, retrievedBinaryValue);
 }

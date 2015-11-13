@@ -86,7 +86,8 @@ int MasterApplication::run() {
   //calibrator.formProjectorGroups();
   calibrator.processDepth();
   calibrator.displayGrayCodes();
-  calibrator.derpderp();
+  calibrator.decodeGrayCodes();
+  calibrator.calibrate();
 
   // TODO: Perform 3D reconstruction.
 

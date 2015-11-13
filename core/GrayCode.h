@@ -50,6 +50,12 @@ class GrayCode {
     return std::min(6ul, calculateMaxLevels(pixels));
   }
 
+  /**
+   * Converts gray code encoding to binary according to the method outlined
+   * at: http://www.electrical4u.com.
+   */
+  static uint32_t grayCodeToBinary(uint32_t encodedBits, size_t signifBits);
+
  private:
   size_t width_;
   size_t height_;
