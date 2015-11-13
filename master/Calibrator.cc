@@ -400,9 +400,19 @@ void Calibrator::calibrate() {
     cv::Size projectorSize(displayParams.frameWidth, displayParams.frameHeight);
 
     // Calibrate the projector.
-    auto rms = cv::calibrateCamera(
+    // TODO(nand): rotate points so all Z's are 0.
+    /*auto rms1 = cv::calibrateCamera(
         worldPointsPlane,
         projectorPointsPlane,
+        projectorSize,
+        projector->projMat_,
+        projector->projDist_,
+        {},
+        {},
+        0);*/
+    auto rms2 = cv::calibrateCamera(
+        worldPointsCalib,
+        projectorPointsCalib,
         projectorSize,
         projector->projMat_,
         projector->projDist_,
@@ -410,16 +420,16 @@ void Calibrator::calibrate() {
         tvecs,
         CV_CALIB_USE_INTRINSIC_GUESS);
 
-    std::cout << "Calibration RMS: " << rms << std::endl;
-    // TODO(nand): refine with all points.
+    std::cout << "Calibration RMS: " << rms2 << std::endl;
     // TODO(ilijar): remove.
     for (size_t i = 0; i < worldPointsCalib[0].size(); i++) {
-      std::cout << worldPointsCalib[0][i].x << " "
-                << worldPointsCalib[0][i].y << " "
-                << worldPointsCalib[0][i].z << " "
-                << projectorPointsCalib[0][i].x << " "
-                << projectorPointsCalib[0][i].y << " "
-                << std::endl;
+      std::cout
+          << worldPointsCalib[0][i].x << " "
+          << worldPointsCalib[0][i].y << " "
+          << worldPointsCalib[0][i].z << " "
+          << projectorPointsCalib[0][i].x << " "
+          << projectorPointsCalib[0][i].y << " "
+          << std::endl;
     }
 
     std::cout << "projMat: "  << std::endl;
