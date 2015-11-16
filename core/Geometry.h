@@ -16,10 +16,14 @@ namespace dv {
 /**
  * Finds a plane in a set of points using hough transform.
  *
+ * @note The equation of the plane will be returned normalized.
+ *
  * @param points    Set of input points.
  * @param maxIter   Maximum number of iterations.
  * @param minPoints Minmum number of points to find on the plane.
  * @param eps       Maximum distance from a point to a plane.
+ *
+ * @return Plane equation.
  */
 Plane planeFit(
     const std::vector<cv::Point3f> &points,
@@ -27,4 +31,21 @@ Plane planeFit(
     unsigned minPoints,
     float eps);
 
+
+/**
+ * Maps all points on a plane to another plane defined by an equation.
+ *
+ * This is required because apparently in OpenCV 'planar' means 'all points
+ * are on a plane parallel to zy, with a variance in z of 1e-5'.
+ *
+ * @param points   Set of coplanar points.
+ * @param nx       New plane normal x.
+ * @param ny       New plane normal y.
+ * @param nz       New plane normal z.
+ *
+ * @return Adjusted points.
+ */
+std::vector<cv::Point3f> transformPlane(
+    const std::vector<cv::Point3f> &points,
+    const cv::Point3f &n);
 }

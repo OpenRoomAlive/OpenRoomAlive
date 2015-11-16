@@ -2,20 +2,35 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include <algorithm>
 #include <limits>
 #include <random>
 
 #include <boost/math/constants/constants.hpp>
 
+#include "core/Exception.h"
 #include "core/Geometry.h"
 
+
+constexpr size_t kSplitPhi = 10;
+constexpr size_t kSplitTheta = 20;
+constexpr size_t kSplitR = 30;
+constexpr float kEps = 1e-5;
+
+
+static cv::Point3f findCenter(const std::vector<cv::Point3f> &pts) {
+  const auto sum = std::accumulate(pts.begin(), pts.end(), cv::Point3f(0.0f));
+  return sum * (1.0f / pts.size());
+}
+
+
+static cv::Point3f normalize(const cv::Point3f p) {
+  const auto length = std::sqrt(p.dot(p));
+  return cv::Point3f(p.x / length, p.y / length, p.z / length);
+}
+
+
 namespace dv {
-
-
-constexpr size_t SPLIT_PHI   = 10;
-constexpr size_t SPLIT_THETA = 20;
-constexpr size_t SPLIT_R     = 30;
-
 
 Plane planeFit(
     const std::vector<cv::Point3f> &points,
@@ -23,20 +38,25 @@ Plane planeFit(
     unsigned minPoints,
     float eps)
 {
-  const float PI = boost::math::constants::pi<float>();
+  constexpr auto PI = boost::math::constants::pi<float>();
+
+  // Compute the center point. The hough transform is performed in this
+  // system in order to make best use of the buckets on R.
+  const auto center = findCenter(points);
 
   // Compute the range for r.
   auto maxR = std::numeric_limits<float>::min();
   for (const auto &point : points) {
-    maxR = std::max(maxR, std::sqrt(point.dot(point)));
+    const auto diff = point - center;
+    maxR = std::max(maxR, std::sqrt(diff.dot(diff)));
   }
 
   // 3D hough transform.
   // R \in [-maxR to maxR], p \in [0 to PI], theta \in [0 to 2PI]
-  unsigned hough[SPLIT_PHI + 1][SPLIT_THETA + 1][SPLIT_R + 1];
-  for (size_t p = 0; p <= SPLIT_PHI; ++p) {
-    for (size_t t = 0; t <= SPLIT_THETA; ++t) {
-      for (size_t r = 0; r <= SPLIT_R; ++r) {
+  unsigned hough[kSplitPhi + 1][kSplitTheta + 1][kSplitR + 1];
+  for (size_t p = 0; p <= kSplitPhi; ++p) {
+    for (size_t t = 0; t <= kSplitTheta; ++t) {
+      for (size_t r = 0; r <= kSplitR; ++r) {
         hough[p][t][r] = 0;
       }
     }
@@ -57,25 +77,30 @@ Plane planeFit(
   // used because sin and cos are periodic, so phi and theta can be sensibly
   // subdivided into a finite number of intervals.
   for (const auto &point : points) {
-    for (size_t p = 0; p <= SPLIT_PHI; ++p) {
-      const float phi = static_cast<float>(p) / SPLIT_PHI * PI;
-      for (size_t t = 0; t <= SPLIT_THETA; ++t) {
-        const float theta = static_cast<float>(t) / SPLIT_THETA * (2.0f * PI);
+    const auto diff = point - center;
+    for (size_t p = 0; p <= kSplitPhi; ++p) {
+      const float phi = static_cast<float>(p) / kSplitPhi * PI;
+      for (size_t t = 0; t <= kSplitTheta; ++t) {
+        const float theta = static_cast<float>(t) / kSplitTheta * (2.0f * PI);
         const float r =
-            std::cos(phi) * std::cos(theta) * point.x +
-            std::cos(phi) * std::sin(theta) * point.y +
-            std::sin(phi) * point.z;
-        const size_t index = (r / (2 * maxR) + 0.5f) * SPLIT_R;
-        hough[p][t][index]++;
+            std::cos(phi) * std::cos(theta) * diff.x +
+            std::cos(phi) * std::sin(theta) * diff.y +
+            std::sin(phi) * diff.z;
+
+        // TODO(nand): mirror normals so all R's are positive.
+        const size_t index = (r / (2 * maxR) + 0.5f) * kSplitR;
+        if (index <= kSplitR) {
+          hough[p][t][index]++;
+        }
       }
     }
   }
 
   // Find the bucket with the most votes.
   size_t idxP = 0, idxT = 0, idxR = 0;
-  for (size_t p = 0; p <= SPLIT_PHI; ++p) {
-    for (size_t t = 0; t <= SPLIT_THETA; ++t) {
-      for (size_t r = 0; r <= SPLIT_R; ++r) {
+  for (size_t p = 0; p <= kSplitPhi; ++p) {
+    for (size_t t = 0; t <= kSplitTheta; ++t) {
+      for (size_t r = 0; r <= kSplitR; ++r) {
         if (hough[p][t][r] > hough[idxP][idxT][idxR]) {
           idxP = p;
           idxT = t;
@@ -86,21 +111,83 @@ Plane planeFit(
   }
 
   // Find the parameters of that plane.
-  const float phi = static_cast<float>(idxP) / SPLIT_PHI * PI;
-  const float theta = static_cast<float>(idxT) / SPLIT_THETA * (2.0f * PI);
-  const float r = (static_cast<float>(idxR) / SPLIT_R - 0.5f) * 2.0f * maxR;
+  const float phi = static_cast<float>(idxP) / kSplitPhi * PI;
+  const float theta = static_cast<float>(idxT) / kSplitTheta * (2.0f * PI);
+  const float r = (static_cast<float>(idxR) / kSplitR - 0.5f) * 2.0f * maxR;
 
-  // TODO(nand): Refine using RANSAC
-  (void) maxIter;
-  (void) minPoints;
-  (void) eps;
+  // The hough transform produces only a rough estimate, try to refine it
+  // using RANSAC.
+  {
+    // TODO(nand): research & implement this.
+    (void) maxIter;
+    (void) minPoints;
+    (void) eps;
+  }
 
-  const float nx = std::cos(phi) * std::cos(theta);
-  const float ny = std::cos(phi) * std::sin(theta);
-  const float nz = std::sin(phi);
-  const float l = std::sqrt(nx * nx + ny * ny + nz * nz + r * r);
+  // Compute the normal vector of the estimated plane.
+  const cv::Point3f n(
+      std::cos(phi) * std::cos(theta),
+      std::cos(phi) * std::sin(theta),
+      std::sin(phi));
 
-  return { nx / l, ny / l, nz / l, r / l};
+  // Since the hough transform was performed in a coordinate system whose
+  // center was not the origin, we find a point on the plane (n * r) and
+  // find out the d coefficient of the plane in the original system using
+  // the old normal vector.
+  const auto d = (center + n * r).dot(n);
+
+  // The equation of the plane has to be normalized.
+  const float l = std::sqrt(n.dot(n) + d * d);
+
+  return { n.x / l, n.y / l, n.z / l, d / l};
+}
+
+
+std::vector<cv::Point3f> transformPlane(
+    const std::vector<cv::Point3f> &points,
+    const cv::Point3f &n)
+{
+
+  // Find the normal vector of the old plane and normalize it.
+  const auto ab = points[1] - points[0];
+  cv::Point3f planeNormal(0.0f);
+  for (const auto &point : points) {
+    const auto ac = point - points[0];
+    const auto cross = ab.cross(ac);
+    const float l = std::sqrt(cross.dot(cross));
+    if (l > kEps) {
+      planeNormal = cross * (1.0f / l);
+      break;
+    }
+  }
+  if (planeNormal.dot(planeNormal) < kEps) {
+    throw EXCEPTION() << "Points cannot be collinear.";
+  }
+
+  // Normalize the vector of the new plane.
+  auto l = std::sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
+  const cv::Point3f m(n.x / l, n.y / l, n.z / l);
+
+  // Find out the three orthogonal axes of the rotation matrix.
+  const auto r0 = planeNormal;
+  const auto r2 = normalize(planeNormal.cross(m));
+  const auto r1 = normalize(r2.cross(planeNormal));
+
+  // Find the center point on the old plane - points will be rotated around it.
+  const auto &c = findCenter(points);
+
+  // Rotate all points around the center using the matrix.
+  std::vector<cv::Point3f> newPoints;
+  for (const auto &point : points) {
+    const cv::Point3f d = point - c;
+
+    const float px = d.x * r0.x + d.y * r1.x + d.z * r2.x;
+    const float py = d.x * r0.y + d.y * r1.y + d.z * r2.y;
+    const float pz = d.x * r0.z + d.y * r1.z + d.z * r2.z;
+
+    newPoints.emplace_back(c.x + px, c.y + py, c.z + pz);
+  }
+  return newPoints;
 }
 
 }
