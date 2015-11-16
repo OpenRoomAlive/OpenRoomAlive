@@ -168,6 +168,14 @@ class MasterConnectionHandler
         InvokeAll(&ProCamClient::getDepthBaseline));
   }
 
+  /**
+   * Invokes getDepthVariance on all clients.
+   */
+  FrameMap getDepthVariances() override {
+    return conv::thriftFrameToCvMatMap(
+        InvokeAll(&ProCamClient::getDepthVariance));
+  }
+
  private:
   /**
    * Information about a connection.

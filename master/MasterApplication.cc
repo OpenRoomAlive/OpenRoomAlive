@@ -84,7 +84,6 @@ int MasterApplication::run() {
   // Capture baselines.
   calibrator.captureBaselines();
   //calibrator.formProjectorGroups();
-  calibrator.processDepth();
   calibrator.displayGrayCodes();
   calibrator.decodeGrayCodes();
   calibrator.calibrate();

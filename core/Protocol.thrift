@@ -107,6 +107,11 @@ service ProCam {
   Frame getDepthBaseline(),
 
   /**
+   * Retrieves the depth variance.
+   */
+  Frame getDepthVariance(),
+
+  /**
    * Displays the specified gray code pattern.
    */
   void displayGrayCode(

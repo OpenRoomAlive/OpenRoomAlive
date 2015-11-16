@@ -53,56 +53,13 @@ Calibrator::~Calibrator() {
 void Calibrator::captureBaselines() {
   auto colorBaselines = connectionHandler_->getColorBaselines();
   auto depthBaselines = connectionHandler_->getDepthBaselines();
+  auto depthVariances = connectionHandler_->getDepthVariances();
 
   for (const auto &id : ids_) {
     auto proCam = system_->getProCam(id);
     proCam->colorBaseline_ = colorBaselines[id];
     proCam->depthBaseline_ = depthBaselines[id];
-  }
-}
-
-// TODO(ilijar): refactor and get frames in parallel.
-void Calibrator::processDepth() {
-  for (const auto &id : ids_) {
-    auto proCam = system_->getProCam(id);
-
-    cv::Mat sum = cv::Mat::zeros(424, 512, CV_32FC1);
-    cv::Mat sum2 = cv::Mat::zeros(424, 512, CV_32FC1);
-    cv::Mat count = cv::Mat::zeros(424, 512, CV_32FC1);
-
-    for (auto i = 0; i < 100; ++i) {
-      auto depthImage = connectionHandler_->getDepthImage(id);
-
-      for (auto r = 0; r < 424; ++r) {
-        for (auto c = 0; c < 512; ++c) {
-          auto depth = depthImage.at<float>(r, c);
-
-          if (depth != 0.0) {
-            count.at<float>(r, c) = count.at<float>(r, c) + 1;
-            sum.at<float>(r, c) = sum.at<float>(r, c) + depth;
-            sum2.at<float>(r, c) = sum2.at<float>(r, c) + depth * depth;
-          }
-        }
-      }
-    }
-
-    cv::Mat meanImage = cv::Mat::zeros(424, 512, CV_32FC1);
-    cv::Mat varianceImage = cv::Mat::zeros(424, 512, CV_32FC1);
-
-    for (auto r = 0; r < 424; ++r) {
-      for (auto c = 0; c < 512; ++c) {
-        auto cnt = count.at<float>(r, c);
-
-        if (cnt > 50) {
-          auto m = sum.at<float>(r, c) / cnt;
-          meanImage.at<float>(r, c) = m;
-          varianceImage.at<float>(r, c) = sum2.at<float>(r, c) / cnt - m * m;
-        }
-      }
-    }
-
-    proCam->meanDepth_ = meanImage;
-    proCam->varianceDepth_ = varianceImage;
+    proCam->depthVariance_ = depthVariances[id];
   }
 }
 
@@ -303,7 +260,7 @@ void Calibrator::calibrate() {
 
         // Extract depth (in meters) and the corresponding variance.
         auto depth = depthImage.at<float>(r, c) / kMilimetersToMeters;
-        auto variance = kinect->varianceDepth_.at<float>(r, c);
+        auto variance = kinect->depthVariance_.at<float>(r, c);
 
         // Filter out the noisy points.
         if (equals(depth, 0.0f) || variance > kDepthVarianceTreshold) {
@@ -422,6 +379,7 @@ void Calibrator::calibrate() {
 
     std::cout << "Calibration RMS: " << rms2 << std::endl;
     // TODO(ilijar): remove.
+    return;
     for (size_t i = 0; i < worldPointsCalib[0].size(); i++) {
       std::cout
           << worldPointsCalib[0][i].x << " "

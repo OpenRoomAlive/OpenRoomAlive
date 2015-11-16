@@ -91,6 +91,11 @@ class ConnectionHandler {
    * Invokes getDepthBaseline on all clients.
    */
   virtual FrameMap getDepthBaselines() = 0;
+
+  /**
+   * Invokes getDepthVariance on all clients.
+   */
+  virtual FrameMap getDepthVariances() = 0;
 };
 
 }}

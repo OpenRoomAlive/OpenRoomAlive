@@ -157,10 +157,13 @@ void ProCamApplication::getColorBaseline(Frame &frame) {
 }
 
 void ProCamApplication::getDepthBaseline(Frame &frame) {
-  camera_->freshFrame();
-  // TODO: T34
-  cv::Mat baseline = camera_->getDepthImage();
-  conv::cvMatToThriftFrame(baseline, frame);
+  baseline_->framesProcessed();
+  conv::cvMatToThriftFrame(baseline_->getDepthImage(), frame);
+}
+
+void ProCamApplication::getDepthVariance(Frame &frame) {
+  baseline_->framesProcessed();
+  conv::cvMatToThriftFrame(baseline_->getDepthVariance(), frame);
 }
 
 void ProCamApplication::displayGrayCode(

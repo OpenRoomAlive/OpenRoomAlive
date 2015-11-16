@@ -77,6 +77,11 @@ class ProCamApplication : public ProCamIf {
   void getDepthBaseline(Frame& frame) override;
 
   /**
+   * Retrieves the depth variance.
+   */
+  void getDepthVariance(Frame& frame) override;
+
+  /**
    * Displays the specified gray code pattern.
    */
   void displayGrayCode(

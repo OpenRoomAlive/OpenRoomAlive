@@ -3,21 +3,22 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include <algorithm>
+#include <iostream>
 #include <vector>
 
 #include "slave/BaselineCapture.h"
 #include "slave/BGRDCamera.h"
-#include <iostream>
 
 namespace dv { namespace slave {
 
-/// Max variance tracking threshold.
-constexpr float kMinDepth = 0.01f;
+/// Minimal range of the kinect is 40 cm.
+constexpr float kMinDepth = 400.0f;
 
 
 BaselineCapture::BaselineCapture()
   : count_(0)
   , baseline_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
+  , variance_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
 {
 }
 
@@ -30,30 +31,52 @@ void BaselineCapture::process(const cv::Mat &frame) {
     return;
   }
   if (count_ < kCandidateFrames) {
+    std::lock_guard<std::mutex> locker(countLock_);
     frame.convertTo(frames_[count_++], CV_32FC1);
     return;
   }
 
   // Traverse the image pixel by pixel.
   std::vector<float> buf;
-  for (size_t i = 0; i < kDepthImageHeight; ++i) {
-    for (size_t j = 0; j < kDepthImageWidth; ++j) {
+  for (size_t r = 0; r < kDepthImageHeight; ++r) {
+    for (size_t c = 0; c < kDepthImageWidth; ++c) {
       buf.reserve(kCandidateFrames);
+      size_t count = 0;
+
       for (const auto &frame : frames_) {
-        const auto depth = frame.at<const float>(i, j);
+        const auto depth = frame.at<const float>(r, c);
+        buf.push_back(depth);
+
         if (depth > kMinDepth) {
-          buf.push_back(depth);
+          ++count;
         }
       }
 
-      // If there are enough pixels, compute the median. Otherwise discard
-      // the pixel and consider it to be noise.
-      if (buf.size() < kCandidateFrames / 2) {
-        baseline_.at<float>(i, j) = 0.0f;
+      // If there are enough pixels, compute the median and variance.
+      // Otherwise discard the pixel and consider it to be noise.
+      if (count < kCandidateFrames / 2) {
+        baseline_.at<float>(r, c) = 0.0f;
+        variance_.at<float>(r, c) = 0.0f;
       } else {
+        // Compute the median.
         std::nth_element(buf.begin(), buf.begin() + buf.size() / 2, buf.end());
-        baseline_.at<float>(i, j) = buf[buf.size() / 2];
+        baseline_.at<float>(r, c) = buf[buf.size() / 2];
+
+        // Compute the variance.
+        float sum = 0.0f;
+        float sum2 = 0.0f;
+
+        for (const auto &d : buf) {
+          if (d > kMinDepth) {
+            sum += d;
+            sum2 += d * d;
+          }
+        }
+
+        float mean = sum / count;
+        variance_.at<float>(r, c) = sum2 / count - mean * mean;
       }
+
       buf.clear();
     }
   }
@@ -64,11 +87,27 @@ void BaselineCapture::process(const cv::Mat &frame) {
   }
 
   // Stop processing.
-  ++count_;
+  {
+    std::unique_lock<std::mutex> locker(countLock_);
+    ++count_;
+    countLock_.unlock();
+    countCond_.notify_all();
+  }
 }
 
 cv::Mat BaselineCapture::getDepthImage() {
   return baseline_;
+}
+
+cv::Mat BaselineCapture::getDepthVariance() {
+  return variance_;
+}
+
+void BaselineCapture::framesProcessed() {
+  std::unique_lock<std::mutex> locker(countLock_);
+  countCond_.wait(locker, [this]() {
+    return count_ > kCandidateFrames;
+  });
 }
 
 }}

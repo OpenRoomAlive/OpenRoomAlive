@@ -50,9 +50,6 @@ class Calibrator {
    */
   void captureBaselines();
 
-  // TODO(ilijar): Refactor or remove completely.
-  void processDepth();
-
   /**
    * Forms projector groups.
    */
