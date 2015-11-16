@@ -25,25 +25,11 @@ SET(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'"
 )
 
-# Don't judge.
-IF ($ENV{HANQ})
-  INCLUDE_DIRECTORIES(/vol/bitbucket/qh812/include)
-  INCLUDE_DIRECTORIES(/homes/qh812/work/libfreenect2/src)
-  SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /vol/bitbucket/qh812/lib)
-  ADD_LIBRARY(glfw3 STATIC IMPORTED)
-  ADD_LIBRARY(thrift STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(glfw3 PROPERTIES
-    IMPORTED_LOCATION /vol/bitbucket/qh812/lib/libglfw3.a)
-  SET_TARGET_PROPERTIES(thrift PROPERTIES
-    IMPORTED_LOCATION /vol/bitbucket/qh812/lib/libthrift.a)
-ELSE()
-  FIND_PACKAGE(freenect2)
-ENDIF()
-
 # Enable unit testing.
 ENABLE_TESTING()
 
 # Find packages using CMake.
+FIND_PACKAGE(freenect2)
 FIND_PACKAGE(GLUT REQUIRED)
 FIND_PACKAGE(GTest REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
@@ -62,3 +48,4 @@ INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIRS})
 ADD_SUBDIRECTORY(core)
 ADD_SUBDIRECTORY(slave)
 ADD_SUBDIRECTORY(master)
+ADD_SUBDIRECTORY(test)

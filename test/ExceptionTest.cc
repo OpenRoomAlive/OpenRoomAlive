@@ -16,7 +16,7 @@ TEST(ExceptionTest, TestFileName) {
   try {
     throw EXCEPTION() << "test";
   } catch (const Exception &ex) {
-    ASSERT_EQ("core/ExceptionTest.cc", ex.getFile());
+    ASSERT_EQ("test/ExceptionTest.cc", ex.getFile());
     return;
   }
   FAIL() << "Exception not thrown.";

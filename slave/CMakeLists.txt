@@ -3,7 +3,6 @@
 # (C) 2015 Group 13. All rights reserved.
 
 SET(SOURCES ${SOURCES}
-    main.cc
     BaselineCapture.cc
     BGRDCamera.cc
     Display.cc
@@ -64,11 +63,19 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 ENDIF()
 
-ADD_EXECUTABLE(slave
+# Slave without main (unit testing).
+ADD_LIBRARY(slave_lib
     ${SOURCES}
     ${HEADERS}
 )
-
-TARGET_LINK_LIBRARIES(slave
+TARGET_LINK_LIBRARIES(slave_lib
     ${LIBS}
+)
+
+# Slave executable.
+ADD_EXECUTABLE(slave
+    main.cc
+)
+TARGET_LINK_LIBRARIES(slave
+    slave_lib
 )
