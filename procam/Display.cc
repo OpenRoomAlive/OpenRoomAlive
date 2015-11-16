@@ -2,11 +2,11 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
-#include "slave/BGRDCamera.h"
+#include "procam/Display.h"
 
-using namespace dv::slave;
+namespace dv { namespace procam {
 
-
-BGRDCamera::~BGRDCamera() {
+Display::~Display() {
 }
 
+}}

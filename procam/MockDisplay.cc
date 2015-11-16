@@ -7,10 +7,10 @@
 #include <termios.h>
 #include <sys/select.h>
 
-#include "slave/MockDisplay.h"
+#include "procam/MockDisplay.h"
 
 using namespace std::literals;
-using namespace dv::slave;
+using namespace dv::procam;
 using namespace dv;
 
 

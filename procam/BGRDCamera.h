@@ -9,7 +9,7 @@
 #include "core/ProCam.h"
 
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 
 constexpr size_t kColorImageWidth = 1920;

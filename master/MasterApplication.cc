@@ -61,7 +61,7 @@ int MasterApplication::run() {
   }
 
   // Fetch camera params, display params
-  std::cout << "Fetching params from slaves..." << std::endl;
+  std::cout << "Fetching params from ProCams..." << std::endl;
   auto camerasParams  = connectionHandler_->getCamerasParams();
   auto displaysParams = connectionHandler_->getDisplaysParams();
   std::cout << "Fetching completed." << std::endl;

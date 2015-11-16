@@ -11,10 +11,10 @@
 
 #include "core/GrayCode.h"
 #include "core/ProCam.h"
-#include "slave/GLDisplay.h"
+#include "procam/GLDisplay.h"
 
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 class BaselineCapture;
 class BGRDCamera;

@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "slave/BGRDCamera.h"
+#include "procam/BGRDCamera.h"
 
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 /**
  * Mock implementation to run the application without an actual kinect.

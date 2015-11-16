@@ -9,7 +9,7 @@
 #include "core/Types.h"
 
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 
 /**

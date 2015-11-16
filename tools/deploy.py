@@ -60,14 +60,14 @@ class ProCam(Task):
     self.run_command('git clone %s' % GIT, self.path)
     self.run_command('mkdir -p %s', build_dir)
     self.run_command('cmake ..', build_dir)
-    self.run_command('make slave', build_dir)
+    self.run_command('make procam', build_dir)
 
   def run(self):
     """Runs the program client."""
 
     self.logger.info('Running ProCam client.')
 
-    self.run_command('slave/slave --ip %s' % self.master_ip, build_dir)
+    self.run_command('procam/procam --ip %s' % self.master_ip, build_dir)
 
   def run_command(self, command, cwd='.'):
     """Runs a single command."""

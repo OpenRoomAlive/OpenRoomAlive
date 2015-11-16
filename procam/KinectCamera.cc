@@ -7,10 +7,10 @@
 #include <libfreenect2/packet_pipeline.h>
 
 #include "core/Exception.h"
-#include "slave/KinectCamera.h"
+#include "procam/KinectCamera.h"
 
 using namespace dv;
-using namespace dv::slave;
+using namespace dv::procam;
 
 
 KinectCamera::KinectCamera(

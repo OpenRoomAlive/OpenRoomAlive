@@ -63,19 +63,19 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 ENDIF()
 
-# Slave without main (unit testing).
-ADD_LIBRARY(slave_lib
+# Procam without main (unit testing).
+ADD_LIBRARY(procam_lib
     ${SOURCES}
     ${HEADERS}
 )
-TARGET_LINK_LIBRARIES(slave_lib
+TARGET_LINK_LIBRARIES(procam_lib
     ${LIBS}
 )
 
-# Slave executable.
-ADD_EXECUTABLE(slave
+# Procam executable.
+ADD_EXECUTABLE(procam
     main.cc
 )
-TARGET_LINK_LIBRARIES(slave
-    slave_lib
+TARGET_LINK_LIBRARIES(procam
+    procam_lib
 )

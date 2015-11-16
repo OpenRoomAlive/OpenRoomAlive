@@ -3,7 +3,7 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include "core/Exception.h"
-#include "slave/KinectFileLogger.h"
+#include "procam/KinectFileLogger.h"
 
 using namespace dv;
 

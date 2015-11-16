@@ -17,25 +17,25 @@
 
 #include "core/Async.h"
 #include "core/Conv.h"
-#include "core/Master.h"
 #include "core/Exception.h"
-#include "slave/BaselineCapture.h"
-#include "slave/Display.h"
-#include "slave/GLDisplay.h"
 #include "core/GrayCode.h"
-#include "slave/MockCamera.h"
-#include "slave/MockDisplay.h"
-#include "slave/ProCamApplication.h"
+#include "core/Master.h"
+#include "procam/BaselineCapture.h"
+#include "procam/Display.h"
+#include "procam/GLDisplay.h"
+#include "procam/MockCamera.h"
+#include "procam/MockDisplay.h"
+#include "procam/ProCamApplication.h"
 
 #if defined(KINECT_CAMERA)
-  #include "slave/KinectCamera.h"
-  using BGRDCameraImpl = dv::slave::KinectCamera;
+  #include "procam/KinectCamera.h"
+  using BGRDCameraImpl = dv::procam::KinectCamera;
 #else
-  using BGRDCameraImpl = dv::slave::MockCamera;
+  using BGRDCameraImpl = dv::procam::MockCamera;
 #endif
 
 using namespace dv;
-using namespace dv::slave;
+using namespace dv::procam;
 using namespace std::literals;
 
 

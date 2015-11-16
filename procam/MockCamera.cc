@@ -2,10 +2,10 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
-#include "slave/MockCamera.h"
+#include "procam/MockCamera.h"
 
 using namespace dv;
-using namespace dv::slave;
+using namespace dv::procam;
 
 MockCamera::MockCamera(uint16_t logLevel, const std::string &logFilename) {
   std::cout 

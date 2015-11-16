@@ -6,10 +6,10 @@
 
 #include <atomic>
 
-#include "slave/Display.h"
+#include "procam/Display.h"
 
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 
 /**

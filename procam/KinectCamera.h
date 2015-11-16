@@ -12,11 +12,11 @@
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/registration.h>
 
-#include "slave/BGRDCamera.h"
-#include "slave/KinectFileLogger.h"
+#include "procam/BGRDCamera.h"
+#include "procam/KinectFileLogger.h"
 
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 
 /**

@@ -14,7 +14,7 @@
 #include <opencv2/opencv.hpp>
 
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 /**
  * Class that is responsible for capture the depth baseline.

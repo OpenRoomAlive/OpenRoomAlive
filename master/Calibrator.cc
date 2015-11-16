@@ -149,7 +149,7 @@ void Calibrator::displayAndCapture(
 
   std::this_thread::sleep_for(kGrayCodeDuration);
 
-  // send a command to slave to save the current frame
+  // send a command to ProCam to save the current frame
   auto captured = connectionHandler_->getUndistortedColorImages();
   for (const auto &image : captured) {
     captured_[std::make_pair(id, image.first)].push_back(image.second);

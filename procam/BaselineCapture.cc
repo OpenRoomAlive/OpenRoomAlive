@@ -6,10 +6,10 @@
 #include <iostream>
 #include <vector>
 
-#include "slave/BaselineCapture.h"
-#include "slave/BGRDCamera.h"
+#include "procam/BaselineCapture.h"
+#include "procam/BGRDCamera.h"
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 /// Minimal range of the kinect is 40 cm.
 constexpr float kMinDepth = 400.0f;

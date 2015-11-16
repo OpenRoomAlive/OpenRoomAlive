@@ -3,10 +3,10 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include "core/Exception.h"
-#include "slave/GLDisplay.h"
+#include "procam/GLDisplay.h"
 
 using namespace dv;
-using namespace dv::slave;
+using namespace dv::procam;
 
 
 void GLDisplay::onKeyCallback(

@@ -10,9 +10,9 @@
 
 #include "core/Master.h"
 #include "core/ProCam.h"
-#include "slave/ProCamApplication.h"
+#include "procam/ProCamApplication.h"
 
-using namespace dv::slave;
+using namespace dv::procam;
 
 /**
  * Null output for thrift logging.

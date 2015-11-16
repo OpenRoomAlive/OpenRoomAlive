@@ -13,10 +13,10 @@
 #endif
 #include <GLFW/glfw3.h>
 
-#include "slave/Display.h"
+#include "procam/Display.h"
 
 
-namespace dv { namespace slave {
+namespace dv { namespace procam {
 
 
 /**
