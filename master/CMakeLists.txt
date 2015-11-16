@@ -6,6 +6,7 @@ SET(SOURCES
     Calibrator.cc
     Event.cc
     EventStream.cc
+    GLViewer.cc
     MasterApplication.cc
     MasterConnectionHandler.cc
     MasterServer.cc
@@ -16,18 +17,13 @@ SET(HEADERS
     Calibrator.h
     Event.h
     EventStream.h
+    GLViewer.h
     MasterApplication.h
     MasterConnectionHandler.h
     MasterConnectionHandler-inl.h
     MasterServer.h
     ProCam.h
     ProCamSystem.h
-)
-SET(LIBS
-    boost_program_options
-    core
-    pthread
-    ${OpenCV_LIBRARIES}
 )
 
 # Master library (unit testing).
@@ -36,7 +32,11 @@ ADD_LIBRARY(master_lib
     ${HEADERS}
 )
 TARGET_LINK_LIBRARIES(master_lib
-    ${LIBS}
+    boost_program_options
+    core
+    pthread
+    ${OpenCV_LIBRARIES}
+    ${GL_LIBS}
 )
 
 # Master executable.

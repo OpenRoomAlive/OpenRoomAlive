@@ -23,16 +23,10 @@
 #include "procam/BaselineCapture.h"
 #include "procam/Display.h"
 #include "procam/GLDisplay.h"
+#include "procam/KinectCamera.h"
 #include "procam/MockCamera.h"
 #include "procam/MockDisplay.h"
 #include "procam/ProCamApplication.h"
-
-#if defined(KINECT_CAMERA)
-  #include "procam/KinectCamera.h"
-  using BGRDCameraImpl = dv::procam::KinectCamera;
-#else
-  using BGRDCameraImpl = dv::procam::MockCamera;
-#endif
 
 using namespace dv;
 using namespace dv::procam;
@@ -75,7 +69,7 @@ ProCamApplication::ProCamApplication(
         ? static_cast<Display*>(new GLDisplay())
         : static_cast<Display*>(new MockDisplay()))
   , camera_(enableKinect
-        ? static_cast<BGRDCamera*>(new BGRDCameraImpl(logLevel, logFilename))
+        ? static_cast<BGRDCamera*>(new KinectCamera(logLevel, logFilename))
         : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
   , grayCode_(display_->getWidth(), display_->getHeight())
   , server_(new apache::thrift::server::TSimpleServer(

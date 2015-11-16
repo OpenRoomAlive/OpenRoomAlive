@@ -17,9 +17,10 @@
 #include "core/Async.h"
 #include "core/Conv.h"
 #include "core/Exception.h"
+#include "master/Calibrator.h"
+#include "master/GLViewer.h"
 #include "master/MasterApplication.h"
 #include "master/MasterConnectionHandler.h"
-#include "master/Calibrator.h"
 
 using namespace dv::master;
 

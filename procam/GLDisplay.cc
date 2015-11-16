@@ -20,7 +20,7 @@ void GLDisplay::onKeyCallback(
   (void) mods;
 
   // Check if the window has a pointer to our display class attached.
-  GLDisplay *display = static_cast<GLDisplay*>(glfwGetWindowUserPointer(window));
+  auto display = static_cast<GLDisplay*>(glfwGetWindowUserPointer(window));
   if (!display) {
     return;
   }

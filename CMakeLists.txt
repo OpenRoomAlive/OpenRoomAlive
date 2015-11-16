@@ -29,7 +29,7 @@ SET(CMAKE_CXX_FLAGS
 ENABLE_TESTING()
 
 # Find packages using CMake.
-FIND_PACKAGE(freenect2)
+FIND_PACKAGE(freenect2 REQUIRED)
 FIND_PACKAGE(GLUT REQUIRED)
 FIND_PACKAGE(GTest REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
@@ -43,6 +43,28 @@ INCLUDE_DIRECTORIES(${GLUT_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIRS})
+
+# Collect the set of libraries required to link with OpenGL.
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    SET(GL_LIBS
+        dl
+        glfw3
+        X11
+        Xcursor
+        Xrandr
+        Xi
+        Xinerama
+        Xxf86vm
+        ${GLUT_LIBRARY}
+        ${OPENGL_LIBRARIES}
+    )
+ELSE()
+    SET(GL_LIBS
+        glfw3
+        ${GLUT_LIBRARY}
+        ${OPENGL_LIBRARIES}
+    )
+ENDIF()
 
 # Build everything in subfolders.
 ADD_SUBDIRECTORY(core)

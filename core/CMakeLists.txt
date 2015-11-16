@@ -47,6 +47,7 @@ SET(HEADERS
     Conv.h
     Exception.h
     Geometry.h
+    GL.h
     GrayCode.h
     Projection.h
     Types.h

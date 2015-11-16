@@ -7,6 +7,8 @@ SET(SOURCES ${SOURCES}
     BGRDCamera.cc
     Display.cc
     GLDisplay.cc
+    KinectCamera.cc
+    KinectFileLogger.cc
     MockCamera.cc
     MockDisplay.cc
     ProCamApplication.cc
@@ -17,65 +19,23 @@ SET(HEADERS ${HEADERS}
     BGRDCamera.h
     Display.h
     GLDisplay.h
+    KinectCamera.h
+    KinectFileLogger.h
     MockCamera.h
     MockDisplay.h
     ProCamApplication.h
 )
 
-SET(LIBS
-    core
-    glfw3
-    ${GLUT_LIBRARY}
-    ${OPENGL_LIBRARIES}
-    ${OpenCV_LIBRARIES}
-    pthread
-)
-
-# Choose mock or kinect implementation.
-IF (${freenect2_FOUND})
-    ADD_DEFINITIONS(-DKINECT_CAMERA)
-
-    SET(SOURCES ${SOURCES}
-        KinectCamera.cc
-        KinectFileLogger.cc
-    )
-
-    SET(HEADERS ${HEADERS}
-        KinectCamera.h
-        KinectFileLogger.h
-    )
-
-    SET(LIBS ${LIBS}
-        ${freenect2_LIBRARIES}
-    )
-ENDIF()
-
-# Linux-specific libraries.
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET(LIBS ${LIBS}
-        dl
-        X11
-        Xcursor
-        Xrandr
-        Xi
-        Xinerama
-        Xxf86vm
-    )
-ENDIF()
-
-# Procam without main (unit testing).
+# ProCam without main (unit testing).
 ADD_LIBRARY(procam_lib
     ${SOURCES}
     ${HEADERS}
 )
 TARGET_LINK_LIBRARIES(procam_lib
-    ${LIBS}
-)
-
-# Procam executable.
-ADD_EXECUTABLE(procam
-    main.cc
-)
-TARGET_LINK_LIBRARIES(procam
-    procam_lib
+    core
+    pthread
+    ${EXTRA_LIBS}
+    ${freenect2_LIBRARIES}
+    ${GL_LIBS}
+    ${OpenCV_LIBRARIES}
 )
