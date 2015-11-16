@@ -93,6 +93,11 @@ class Calibrator {
    */
   void colorToProjPoints(GrayCodeBitMaskMap &decodedGrayCodes);
 
+  /*
+   * Filters noise from decoded gray code.
+   */
+  void removeNoise(const cv::Mat &grayCode, ConnectionID id);
+
  private:
   /// IDs of the procam connections
   const std::vector<ConnectionID> ids_;

@@ -20,7 +20,6 @@ using namespace dv;
 
 using namespace std::chrono_literals;
 
-
 // Duration of a one element of gray code sequence in milliseconds.
 constexpr auto kGrayCodeDuration = 300ms;
 
@@ -36,6 +35,9 @@ constexpr auto kDepthVarianceTreshold = 10;
 
 // 1m = 1000mm
 constexpr float kMilimetersToMeters = 1000.0f;
+
+// Threshold for minimum area of decoded graycode
+constexpr auto kDecodedAreaThreshold = 200;
 
 Calibrator::Calibrator(
     const std::vector<ConnectionID>& ids,
@@ -73,7 +75,7 @@ void Calibrator::formProjectorGroups() {
 
     // Project alternative black and white strips
     auto maxLevel =
-      GrayCode::calculateDisplayedLevels(displayParams.frameHeight) - 1;
+        GrayCode::calculateDisplayedLevels(displayParams.frameHeight) - 1;
 
     // Capture base images
     connectionHandler_->displayGrayCode(
@@ -118,14 +120,14 @@ void Calibrator::displayGrayCodes() {
     auto displayParams = system_->proCams_[id]->getDisplayParams();
 
     const size_t horzLevels =
-      GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
+        GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
     for (size_t i = 0; i < horzLevels; i++) {
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, false);
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, true);
     }
 
     const size_t vertLevels =
-      GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
+        GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
     for (size_t i = 0; i < vertLevels; i++) {
       displayAndCapture(id, Orientation::type::VERTICAL, i, false);
       displayAndCapture(id, Orientation::type::VERTICAL, i, true);
@@ -174,11 +176,98 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
       // Construct binary code by left shift the current value and add mask.
       cv::scaleAdd(grayCode, 2, mask32, grayCode);
     }
+    removeNoise(grayCode, entry.first.first);
     decoded[entry.first] = grayCode;
   }
   return decoded;
 }
 
+void Calibrator::removeNoise(const cv::Mat &grayCode, ConnectionID id) {
+  cv::Mat grayCode8;
+  grayCode.convertTo(grayCode8, CV_8UC1);
+
+  std::vector<std::vector<cv::Point>> contours;
+  cv::findContours(grayCode8, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+
+  for (size_t i = 0; i < contours.size(); ++i) {
+    auto area = cv::contourArea(contours[i]);
+    if (area < kDecodedAreaThreshold) {
+      cv::drawContours(grayCode, contours, i, cv::Scalar(0, 0, 0), CV_FILLED);
+    } else {
+      // Remove reflection
+      auto rect = cv::boundingRect(contours[i]);
+      auto displayParams = system_->getProCam(id)->displayParams_;
+      size_t colLevels =
+          GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
+      size_t rowLevels =
+          GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
+      uint32_t colMask = (1 << colLevels) - 1;
+      uint32_t rowMask = (1 << rowLevels) - 1;
+
+      // Select a horizontal line and check if decoded column is decreasing
+      size_t ascending = 0;
+      size_t descending = 0;
+      for (int y = rect.y; y < rect.y + rect.height; ++y) {
+        int gradient = 0;
+        for (int x = rect.x; x < rect.x + rect.width - 1; ++x) {
+          auto curr = grayCode.at<uint32_t>(y, x);
+          auto next = grayCode.at<uint32_t>(y, x + 1);
+          // Skip pixels without gray code to account for holes and irregular
+          // perimeter of the contour enclosed by bounding rectangle
+          if (curr != 0 && next != 0) {
+            curr &= colMask;
+            next &= colMask;
+            auto currCol = GrayCode::grayCodeToBinary(curr, colLevels);
+            auto nextCol = GrayCode::grayCodeToBinary(next, colLevels);
+            gradient += nextCol - currCol;
+          }
+        }
+        if (gradient < 0) {
+          descending++;
+        } else if (gradient > 0) {
+          ascending++;
+        }
+      }
+      std::cout << "cluster: " << i << " has ascending col: " << ascending
+          << " and descending col: " << descending << std::endl;
+      if (descending * 2 > ascending) {
+        // Discard this cluster
+        cv::drawContours(grayCode, contours, i, cv::Scalar(0, 0, 0), CV_FILLED);
+      }
+
+      // Select a vertical line and check if decoded row is decreasing
+      ascending = 0;
+      descending = 0;
+      for (int x = rect.x; x < rect.x + rect.width; ++x) {
+        int gradient = 0;
+        for (int y = rect.y; y < rect.y + rect.height - 1; ++y) {
+          auto curr = grayCode.at<uint32_t>(y, x);
+          auto next = grayCode.at<uint32_t>(y + 1, x);
+          // Skip pixels without gray code to account for holes and irregular
+          // perimeter of the contour enclosed by bounding rectangle
+          if (curr != 0 && next != 0) {
+            curr = (curr >> colLevels) & rowMask;
+            next = (next >> colLevels) & rowMask;
+            auto currRow = GrayCode::grayCodeToBinary(curr, rowLevels);
+            auto nextRow = GrayCode::grayCodeToBinary(next, rowLevels);
+            gradient += nextRow - currRow;
+          }
+        }
+        if (gradient < 0) {
+          descending++;
+        } else if (gradient > 0) {
+          ascending++;
+        }
+      }
+      std::cout << "cluster: " << i << " has ascending row: " << ascending
+          << " and descending row: " << descending << std::endl;
+      if (descending * 2 > ascending) {
+        // Discard this cluster
+        cv::drawContours(grayCode, contours, i, cv::Scalar(0, 0, 0), CV_FILLED);
+      }
+    }
+  }
+}
 
 void Calibrator::decodeGrayCodes() {
   // Construct the bit mask.
@@ -353,8 +442,8 @@ void Calibrator::calibrate() {
 
     // TODO(ilijar): make procams use cv::Size for storing resolution
     // TODO(ilijar): same comment as above regarding the resolution/ levels
-    auto displayParams = projector->displayParams_;
-    cv::Size projectorSize(displayParams.frameWidth, displayParams.frameHeight);
+    // auto displayParams = projector->displayParams_;
+    cv::Size projectorSize(64, 64);
 
     // Calibrate the projector.
     // TODO(nand): rotate points so all Z's are 0.

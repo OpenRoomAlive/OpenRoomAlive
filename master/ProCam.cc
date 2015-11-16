@@ -23,7 +23,7 @@ ProCam::ProCam(
   projMat_.at<float>(0, 0) = 1000.0f;
   projMat_.at<float>(1, 1) = 1000.0f;
   // TODO(ilijar): T51
-  projMat_.at<float>(0, 2) = displayParams.frameWidth / 2;
+  projMat_.at<float>(0, 2) = 32;
   projMat_.at<float>(1, 2) = 0.0f;
 
   projDist_ = cv::Mat::zeros(4, 1, cv::DataType<float>::type);
