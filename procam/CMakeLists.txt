@@ -39,3 +39,13 @@ TARGET_LINK_LIBRARIES(procam_lib
     ${GL_LIBS}
     ${OpenCV_LIBRARIES}
 )
+
+# Procam executable.
+ADD_EXECUTABLE(procam
+    main.cc
+)
+
+TARGET_LINK_LIBRARIES(procam
+    procam_lib
+)
+
