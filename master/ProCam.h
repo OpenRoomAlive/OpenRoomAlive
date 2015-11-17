@@ -42,6 +42,8 @@ friend class Calibrator;
   const cv::Mat irDist_;
   /// Parameters of the display.
   const dv::DisplayParams displayParams_;
+  /// Effective parameters of the display.
+  const cv::Size effectiveProjRes_;
   /// Projector matrix.
   cv::Mat projMat_;
   /// Projector distortion coefficients.

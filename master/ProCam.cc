@@ -16,14 +16,14 @@ ProCam::ProCam(
   , irCamMat_(irCamMat)
   , irDist_(irDist)
   , displayParams_(displayParams)
+  , effectiveProjRes_(64, 64)
 {
   projMat_ = cv::Mat::eye(3, 3, cv::DataType<float>::type);
 
   // Initial guess -- for non planar surfaces.
   projMat_.at<float>(0, 0) = 1000.0f;
   projMat_.at<float>(1, 1) = 1000.0f;
-  // TODO(ilijar): T51
-  projMat_.at<float>(0, 2) = 64 / 2;
+  projMat_.at<float>(0, 2) = effectiveProjRes_.width / 2;
   projMat_.at<float>(1, 2) = 0.0f;
 
   projDist_ = cv::Mat::zeros(4, 1, cv::DataType<float>::type);

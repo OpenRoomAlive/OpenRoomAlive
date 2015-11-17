@@ -13,7 +13,7 @@ namespace dv {
 
 class GrayCode {
  public:
-  GrayCode(size_t width = 1024, size_t height = 1024);
+  GrayCode(size_t width, size_t height);
   ~GrayCode();
 
   enum class Orientation {
@@ -47,7 +47,7 @@ class GrayCode {
    * appear to be all white and we should not use them in calibration.
    */
   static inline size_t calculateDisplayedLevels(size_t pixels) {
-    return std::min(6ul, calculateMaxLevels(pixels));
+    return calculateMaxLevels(pixels);
   }
 
   /**

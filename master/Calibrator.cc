@@ -69,13 +69,11 @@ void Calibrator::formProjectorGroups() {
   connectionHandler_->clearDisplays();
 
   for (const auto &id :ids_) {
-
     auto proCam = system_->getProCam(id);
-    auto displayParams = proCam->getDisplayParams();
 
     // Project alternative black and white strips
-    auto maxLevel =
-        GrayCode::calculateDisplayedLevels(displayParams.frameHeight) - 1;
+    auto maxLevel = GrayCode::calculateDisplayedLevels(
+        proCam->effectiveProjRes_.height) - 1;
 
     // Capture base images
     connectionHandler_->displayGrayCode(
@@ -117,17 +115,18 @@ void Calibrator::displayGrayCodes() {
   connectionHandler_->clearDisplays();
 
   for (const auto &id : ids_) {
-    auto displayParams = system_->proCams_[id]->getDisplayParams();
+    auto effectiveProjRes = system_->proCams_[id]->effectiveProjRes_;
 
-    const size_t horzLevels =
-        GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
+    const size_t horzLevels = GrayCode::calculateDisplayedLevels(
+        effectiveProjRes.height);
+    const size_t vertLevels = GrayCode::calculateDisplayedLevels(
+        effectiveProjRes.width);
+
     for (size_t i = 0; i < horzLevels; i++) {
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, false);
       displayAndCapture(id, Orientation::type::HORIZONTAL, i, true);
     }
 
-    const size_t vertLevels =
-        GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
     for (size_t i = 0; i < vertLevels; i++) {
       displayAndCapture(id, Orientation::type::VERTICAL, i, false);
       displayAndCapture(id, Orientation::type::VERTICAL, i, true);
@@ -200,22 +199,26 @@ void Calibrator::removeNoise(const cv::Mat &grayCode, ConnectionID id) {
     } else {
       // Remove reflection
       auto rect = cv::boundingRect(contours[i]);
-      auto displayParams = system_->getProCam(id)->displayParams_;
-      size_t colLevels =
-          GrayCode::calculateDisplayedLevels(displayParams.frameWidth);
-      size_t rowLevels =
-          GrayCode::calculateDisplayedLevels(displayParams.frameHeight);
+      auto effectiveProjRes = system_->getProCam(id)->effectiveProjRes_;
+
+      size_t colLevels = GrayCode::calculateDisplayedLevels(
+          effectiveProjRes.width);
+      size_t rowLevels = GrayCode::calculateDisplayedLevels(
+          effectiveProjRes.height);
+
       uint32_t colMask = (1 << colLevels) - 1;
       uint32_t rowMask = (1 << rowLevels) - 1;
 
       // Select a horizontal line and check if decoded column is decreasing
       size_t ascending = 0;
       size_t descending = 0;
+
       for (int y = rect.y; y < rect.y + rect.height; ++y) {
         int gradient = 0;
         for (int x = rect.x; x < rect.x + rect.width - 1; ++x) {
           auto curr = grayCode.at<uint32_t>(y, x);
           auto next = grayCode.at<uint32_t>(y, x + 1);
+
           // Skip pixels without gray code to account for holes and irregular
           // perimeter of the contour enclosed by bounding rectangle
           if (curr != 0 && next != 0) {
@@ -294,14 +297,14 @@ void Calibrator::colorToProjPoints(
 
     auto projId = connectionPair.first;
     // Retrieve parameters of the projector.
-    auto displayParams = system_->getProCam(projId)->displayParams_;
+    auto effectiveProjRes = system_->getProCam(projId)->effectiveProjRes_;
 
     // Calculate number of bits needed to encode row and column pixel
     // coordinates.
     size_t rowLevels = GrayCode::calculateDisplayedLevels(
-        displayParams.frameHeight);
+        effectiveProjRes.height);
     size_t colLevels = GrayCode::calculateDisplayedLevels(
-        displayParams.frameWidth);
+        effectiveProjRes.width);
 
     // Mask for bits encoding row and column coordinates.
     uint32_t rowMask = (1 << rowLevels) - 1;
@@ -421,11 +424,11 @@ void Calibrator::calibrate() {
 
       // Construct the 3D - 2D (projector) point correspondences.
       for (const auto &bucket : buckets) {
-        // TODO(ilijar): Handle resolution/ gray levels -- T51.
         // Perform the conversion to the projector coordinate system.
         // Origin is in the bottom left corner with +x pointing to the left.
         auto projPoint = cv::Point2f(
-            64 - bucket.first.y - 1, 64 - bucket.first.x - 1);
+            projector->effectiveProjRes_.width - bucket.first.y - 1,
+            projector->effectiveProjRes_.height - bucket.first.x - 1);
 
         // Use centroid of the points from the bucket.
         auto worldPoint = findCenter(bucket.second);
@@ -463,16 +466,12 @@ void Calibrator::calibrate() {
 
     std::vector<cv::Mat> rvecs, tvecs;
 
-    // TODO(ilijar): make procams use cv::Size for storing resolution
-    // TODO(ilijar): same comment as above regarding the resolution/ levels
-    cv::Size projectorSize(64, 64);
-
     // Calibrate the projector.
     // TODO(nand): rotate points so all Z's are 0.
     /*auto rms1 = cv::calibrateCamera(
         worldPointsPlane,
         projectorPointsPlane,
-        projectorSize,
+        projector->effectiveProjRes_,
         projector->projMat_,
         projector->projDist_,
         {},
@@ -481,7 +480,7 @@ void Calibrator::calibrate() {
     auto rms2 = cv::calibrateCamera(
         worldPointsCalib,
         projectorPointsCalib,
-        projectorSize,
+        projector->effectiveProjRes_,
         projector->projMat_,
         projector->projDist_,
         rvecs,

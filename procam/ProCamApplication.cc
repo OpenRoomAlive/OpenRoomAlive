@@ -71,7 +71,7 @@ ProCamApplication::ProCamApplication(
   , camera_(enableKinect
         ? static_cast<BGRDCamera*>(new KinectCamera(logLevel, logFilename))
         : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
-  , grayCode_(display_->getWidth(), display_->getHeight())
+  , grayCode_(64, 64)
   , server_(new apache::thrift::server::TSimpleServer(
         boost::make_shared<ProCamProcessor>(
             boost::shared_ptr<ProCamApplication>(this, [](ProCamApplication*){})),
