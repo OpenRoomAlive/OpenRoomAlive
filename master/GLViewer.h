@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <opencv2/opencv.hpp>
+
 #include "core/GL.h"
 #include "core/Types.h"
 
@@ -29,6 +31,11 @@ class GLViewer {
    * Renders a plane.
    */
   void drawPlane(const Plane &plane);
+
+  /**
+   * Draws an array of points.
+   */
+  void drawPoints(const std::vector<cv::Point3f> &points);
 
  private:
   /**
@@ -58,6 +65,8 @@ class GLViewer {
   glm::mat4 proj_;
   /// Inverse projection matrix.
   glm::mat4 invProj_;
+  /// Model matrix.
+  glm::mat4 model_;
   /// True when rotating.
   bool isRotating_;
 

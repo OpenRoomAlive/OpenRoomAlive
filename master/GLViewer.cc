@@ -9,7 +9,7 @@ using namespace dv;
 using namespace dv::master;
 
 
-constexpr float kRotationSpeed = 0.5f;
+constexpr float kGridSize = 2.0f;
 
 
 void GLViewer::onKeyCallback(
@@ -74,7 +74,7 @@ try
   : window_(nullptr)
   , wndSize_({640, 480})
   , view_(glm::lookAt(
-        glm::vec3{7.0f},
+        glm::vec3{5.0f},
         glm::vec3{0.0f},
         glm::vec3{0.0f, 1.0f, 0.0f}))
   , invView_(glm::inverse(view_))
@@ -133,6 +133,14 @@ bool GLViewer::isRunning() {
 
 
 void GLViewer::frame() {
+  // Draw the ground plane.
+  glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+  glBegin(GL_QUADS);
+    glVertex3f(-kGridSize, 0.0f, -kGridSize);
+    glVertex3f(+kGridSize, 0.0f, -kGridSize);
+    glVertex3f(+kGridSize, 0.0f, +kGridSize);
+    glVertex3f(-kGridSize, 0.0f, +kGridSize);
+  glEnd();
 
   // Process window events.
   glfwSwapBuffers(window_);
@@ -155,35 +163,51 @@ void GLViewer::frame() {
   glLoadMatrixf(glm::value_ptr(proj_));
   glMatrixMode(GL_MODELVIEW);
   glLoadMatrixf(glm::value_ptr(view_));
+  glMultMatrixf(glm::value_ptr(model_));
+  glScalef(5.0f, 5.0f, 5.0f);
 
-  // Draw the coordinate system.
+  // Draw the grid along x, y and z.
+  glLineWidth(2.0f);
+  glBegin(GL_LINES);
+  glColor3f(0.6f, 0.6f, 0.6f);
+  for (float i = -kGridSize; i <= kGridSize; i += 0.1f) {
+    glVertex3f(-kGridSize,  0.0f,          i);
+    glVertex3f(+kGridSize,  0.0f,          i);
+    glVertex3f(         i,  0.0f, -kGridSize);
+    glVertex3f(         i,  0.0f, +kGridSize);
+  }
+  glEnd();
+
+  // Draw the principal axis.
   glLineWidth(3.0f);
   glBegin(GL_LINES);
     // Red for X.
     glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(-20.0f, 0.0f, 0.0f);
-    glVertex3f(20.0f, 0.0f, 0.0f);
+    glVertex3f(-kGridSize, 0.0f, 0.0f);
+    glVertex3f(+kGridSize, 0.0f, 0.0f);
     // Green for Y.
     glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(0.0f, -20.0f, 0.0f);
-    glVertex3f(0.0f, 20.0f, 0.0f);
+    glVertex3f(0.0f,       0.0f, 0.0f);
+    glVertex3f(0.0f, +kGridSize, 0.0f);
     // Blue for Z.
     glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(0.0f, 0.0f, -20.0f);
-    glVertex3f(0.0f, 0.0f, 20.0f);
+    glVertex3f(0.0f, 0.0f, -kGridSize);
+    glVertex3f(0.0f, 0.0f, +kGridSize);
   glEnd();
 }
 
 
 void GLViewer::drawPlane(const Plane &plane) {
   (void) plane;
+}
 
-  glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-  glBegin(GL_QUADS);
-    glVertex3f(-1.0f, -1.0f, 0.0f);
-    glVertex3f( 1.0f, -1.0f, 0.0f);
-    glVertex3f( 1.0f,  1.0f, 0.0f);
-    glVertex3f(-1.0f,  1.0f, 0.0f);
+void GLViewer::drawPoints(const std::vector<cv::Point3f> &points) {
+  glPointSize(3.0f);
+  glBegin(GL_POINTS);
+  glColor3f(1.0f, 0.0f, 0.0f);
+  for (const auto &point : points) {
+    glVertex3f(point.x, point.y, point.z);
+  }
   glEnd();
 }
 
@@ -213,7 +237,7 @@ void GLViewer::onLeftMouseUp() {
 
 
 void GLViewer::onMouseMove(double x, double y) {
-  if (!isRotating_) {
+  if (!isRotating_ || (x == lastMouse_.x && y == lastMouse_.y)) {
     lastMouse_ = {x, y};
     return;
   }
@@ -225,10 +249,9 @@ void GLViewer::onMouseMove(double x, double y) {
 
   // Compute the rotation quaternion between the two arcball vectors.
   const auto angle = std::acos(std::min(1.0f, glm::dot(arcA, arcB)));
-  const auto axis = glm::vec3(invView_ * glm::vec4(glm::cross(arcA, arcB), 0));
-  const auto rot = glm::angleAxis(glm::degrees(angle) * kRotationSpeed, axis);
+  const auto axis = glm::vec3(invView_ * glm::vec4(glm::cross(arcB, arcA), 0));
+  const auto rot = glm::angleAxis(glm::degrees(-angle * 0.5f), axis);
 
   // Concatenate rotations.
-  view_ = view_ * glm::toMat4(glm::normalize(rot));
-  invView_ = glm::inverse(view_);
+  model_ = glm::toMat4(glm::normalize(rot)) * model_;
 }
