@@ -6,7 +6,6 @@
 
 
 #ifdef __APPLE__
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 # include <OpenGL/gl.h>
 # include <OpenGL/glu.h>
 #else
@@ -15,3 +14,5 @@
 #endif
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>

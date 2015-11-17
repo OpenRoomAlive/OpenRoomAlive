@@ -9,6 +9,9 @@ using namespace dv;
 using namespace dv::master;
 
 
+constexpr float kRotationSpeed = 0.5f;
+
+
 void GLViewer::onKeyCallback(
     GLFWwindow *window,
     int key,
@@ -21,7 +24,6 @@ void GLViewer::onKeyCallback(
   (void) action;
   (void) mods;
 
-  // Check if the window has a pointer to our display class attached.
   auto viewer = static_cast<GLViewer*>(glfwGetWindowUserPointer(window));
   if (!viewer) {
     return;
@@ -35,17 +37,23 @@ void GLViewer::onMouseClickCallback(
     int action,
     int mods)
 {
-  (void) button;
-  (void) action;
   (void) mods;
 
-  // Check if the window has a pointer to our display class attached.
   auto viewer = static_cast<GLViewer*>(glfwGetWindowUserPointer(window));
   if (!viewer) {
     return;
   }
-}
 
+  switch (button) {
+    case GLFW_MOUSE_BUTTON_1: {
+      switch (action) {
+        case GLFW_PRESS: viewer->onLeftMouseDown(); break;
+        case GLFW_RELEASE: viewer->onLeftMouseUp(); break;
+      }
+      break;
+    }
+  }
+}
 
 
 void GLViewer::onMouseMoveCallback(
@@ -53,39 +61,53 @@ void GLViewer::onMouseMoveCallback(
     double x,
     double y)
 {
-  (void) x;
-  (void) y;
-
-  // Check if the window has a pointer to our display class attached.
   auto viewer = static_cast<GLViewer*>(glfwGetWindowUserPointer(window));
   if (!viewer) {
     return;
   }
+  viewer->onMouseMove(x, y);
 }
 
 
 GLViewer::GLViewer()
 try
   : window_(nullptr)
-  , width_(640)
-  , height_(480)
+  , wndSize_({640, 480})
+  , view_(glm::lookAt(
+        glm::vec3{7.0f},
+        glm::vec3{0.0f},
+        glm::vec3{0.0f, 1.0f, 0.0f}))
+  , invView_(glm::inverse(view_))
+  , isRotating_(false)
 {
   if (!glfwInit()) {
     throw EXCEPTION() << "Cannot initialize GLFW.";
   }
 
-  window_ = glfwCreateWindow(width_, height_, "Simple example", NULL, NULL);
+  window_ = glfwCreateWindow(
+      wndSize_.x,
+      wndSize_.y,
+      "Viewer",
+      nullptr,
+      nullptr);
   if (!window_) {
     throw EXCEPTION() << "Cannot create GLFW window.";
   }
 
   // Register event handlers.
+  glfwSetWindowUserPointer(window_, this);
   glfwSetKeyCallback(window_, onKeyCallback);
   glfwSetCursorPosCallback(window_, onMouseMoveCallback);
   glfwSetMouseButtonCallback(window_, onMouseClickCallback);
 
+  // GLFW setup.
   glfwMakeContextCurrent(window_);
   glfwSwapInterval(1);
+
+  // OpenGL setup.
+  glClear(GL_COLOR_BUFFER_BIT);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 } catch(...) {
   destroy();
   throw;
@@ -111,21 +133,102 @@ bool GLViewer::isRunning() {
 
 
 void GLViewer::frame() {
-  glfwGetFramebufferSize(window_, &width_, &height_);
+
+  // Process window events.
   glfwSwapBuffers(window_);
   glfwPollEvents();
+  glfwGetFramebufferSize(window_, &fbSize_.x, &fbSize_.y);
+  glfwGetWindowSize(window_, &wndSize_.x, &wndSize_.y);
 
+  // Update matrices.
+  {
+    const float aspect = static_cast<float>(fbSize_.x) / fbSize_.y;
+    proj_ = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
+    invProj_ = glm::inverse(proj_);
+  }
+
+  // Clear the framebuffer.
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Set the view & proj matrices in OpenGL.
   glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(45.0f, static_cast<float>(width_) / height_, 0.1f, 100.0f);
+  glLoadMatrixf(glm::value_ptr(proj_));
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  glLoadMatrixf(glm::value_ptr(view_));
+
+  // Draw the coordinate system.
+  glLineWidth(3.0f);
+  glBegin(GL_LINES);
+    // Red for X.
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glVertex3f(-20.0f, 0.0f, 0.0f);
+    glVertex3f(20.0f, 0.0f, 0.0f);
+    // Green for Y.
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glVertex3f(0.0f, -20.0f, 0.0f);
+    glVertex3f(0.0f, 20.0f, 0.0f);
+    // Blue for Z.
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glVertex3f(0.0f, 0.0f, -20.0f);
+    glVertex3f(0.0f, 0.0f, 20.0f);
+  glEnd();
 }
 
 
 void GLViewer::drawPlane(const Plane &plane) {
   (void) plane;
+
+  glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+  glBegin(GL_QUADS);
+    glVertex3f(-1.0f, -1.0f, 0.0f);
+    glVertex3f( 1.0f, -1.0f, 0.0f);
+    glVertex3f( 1.0f,  1.0f, 0.0f);
+    glVertex3f(-1.0f,  1.0f, 0.0f);
+  glEnd();
 }
 
 
+glm::vec3 GLViewer::getArcballVector(const glm::ivec2 &pos) {
+  const float px = 2.0f * static_cast<float>(pos.x) / wndSize_.x - 1.0f;
+  const float py = 2.0f * static_cast<float>(pos.y) / wndSize_.y - 1.0f;
+  const float l2 = px * px + py * py;
+
+  if (l2 < 1.0f) {
+    return { -px, py, std::sqrt(1.0f - l2) };
+  } else {
+    const float l = std::sqrt(l2);
+    return { -px / l, py / l, 0.0f };
+  }
+}
+
+
+void GLViewer::onLeftMouseDown() {
+  isRotating_ = true;
+}
+
+
+void GLViewer::onLeftMouseUp() {
+  isRotating_ = false;
+}
+
+
+void GLViewer::onMouseMove(double x, double y) {
+  if (!isRotating_) {
+    lastMouse_ = {x, y};
+    return;
+  }
+
+  // Find the two arcball vectors.
+  const auto arcA = getArcballVector({x, y});
+  const auto arcB = getArcballVector(lastMouse_);
+  lastMouse_ = {x, y};
+
+  // Compute the rotation quaternion between the two arcball vectors.
+  const auto angle = std::acos(std::min(1.0f, glm::dot(arcA, arcB)));
+  const auto axis = glm::vec3(invView_ * glm::vec4(glm::cross(arcA, arcB), 0));
+  const auto rot = glm::angleAxis(glm::degrees(angle) * kRotationSpeed, axis);
+
+  // Concatenate rotations.
+  view_ = view_ * glm::toMat4(glm::normalize(rot));
+  invView_ = glm::inverse(view_);
+}

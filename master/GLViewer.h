@@ -36,12 +36,35 @@ class GLViewer {
    */
   void destroy();
 
+  /**
+   * Returns a vector for arcball rotation.
+   */
+  glm::vec3 getArcballVector(const glm::ivec2 &pos);
+
   /// GLFW window handle.
   GLFWwindow *window_;
-  /// Width of the window.
-  int width_;
-  /// Height of the window.
-  int height_;
+  /// Size of the framebuffer.
+  glm::ivec2 fbSize_;
+  /// Size of the window.
+  glm::ivec2 wndSize_;
+
+  /// Last mouse position.
+  glm::ivec2 lastMouse_;
+  /// View matrix.
+  glm::mat4 view_;
+  /// Inverse view matrix.
+  glm::mat4 invView_;
+  /// Projection matrix.
+  glm::mat4 proj_;
+  /// Inverse projection matrix.
+  glm::mat4 invProj_;
+  /// True when rotating.
+  bool isRotating_;
+
+  /// Callbacks.
+  void onLeftMouseDown();
+  void onLeftMouseUp();
+  void onMouseMove(double, double);
 
   /// GLFW callbacks.
   static void onKeyCallback(GLFWwindow*, int, int, int, int);
