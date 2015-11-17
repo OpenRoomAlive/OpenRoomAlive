@@ -25,4 +25,3 @@ class MockCamera : public BGRDCamera {
 };
 
 }}
-

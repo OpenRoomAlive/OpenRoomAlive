@@ -38,6 +38,8 @@ TARGET_LINK_LIBRARIES(procam_lib
     ${freenect2_LIBRARIES}
     ${GL_LIBS}
     ${OpenCV_LIBRARIES}
+    boost_system
+    boost_filesystem
 )
 
 # Procam executable.

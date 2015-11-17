@@ -8,7 +8,7 @@ using namespace dv;
 using namespace dv::procam;
 
 MockCamera::MockCamera(uint16_t logLevel, const std::string &logFilename) {
-  std::cout 
+  std::cout
     << "Logging to \"" << logFilename << "\" at level " << logLevel << "."
     << std::endl;
 }
@@ -32,11 +32,10 @@ CameraParams MockCamera::getParameters() {
 }
 
 cv::Mat MockCamera::undistort(
-    const cv::Mat &HDImage, 
-    const cv::Mat &depthImage) 
+    const cv::Mat &HDImage,
+    const cv::Mat &depthImage)
 {
   (void) HDImage;
   (void) depthImage;
   return cv::Mat(kColorImageHeight, kColorImageWidth, kColorFormat);
 }
-

@@ -7,6 +7,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include <opencv2/opencv.hpp>
+
+#include "core/Master.h"
 #include "core/Types.h"
 
 namespace dv { namespace master {

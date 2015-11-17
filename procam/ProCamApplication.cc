@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 
+#include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 
 #include <libfreenect2/libfreenect2.hpp>
@@ -31,7 +32,6 @@
 using namespace dv;
 using namespace dv::procam;
 using namespace std::literals;
-
 
 /**
  * Max delay before giving up on a connection.
@@ -156,8 +156,10 @@ void ProCamApplication::getDepthBaseline(Frame &frame) {
 }
 
 void ProCamApplication::getDepthVariance(Frame &frame) {
-  baseline_->framesProcessed();
-  conv::cvMatToThriftFrame(baseline_->getDepthVariance(), frame);
+  camera_->freshFrame();
+  // TODO: T34
+  cv::Mat baseline = camera_->getDepthImage();
+  conv::cvMatToThriftFrame(baseline, frame);
 }
 
 void ProCamApplication::displayGrayCode(
@@ -240,4 +242,3 @@ void ProCamApplication::pingMaster() {
   std::cout << "Connected to master." << std::endl;
   transport->close();
 }
-

@@ -22,7 +22,10 @@ class MasterConnectionHandler;
  */
 class MasterApplication {
  public:
-  MasterApplication(uint16_t port, size_t procamTotal);
+  MasterApplication(
+      uint16_t port,
+      size_t procamTotal,
+      const std::string &recordDirectory);
   ~MasterApplication();
 
   int run();
@@ -40,6 +43,8 @@ class MasterApplication {
   const std::shared_ptr<apache::thrift::server::TServer> server_;
   /// ProCam system.
   const std::shared_ptr<ProCamSystem> system_;
+  /// Directory in which the captured frames will be recorded.
+  const std::string recordDirectory_;
 };
 
 }}

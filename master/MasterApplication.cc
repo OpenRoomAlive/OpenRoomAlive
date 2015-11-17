@@ -25,7 +25,10 @@
 using namespace dv::master;
 
 
-MasterApplication::MasterApplication(uint16_t port, size_t procamTotal)
+MasterApplication::MasterApplication(
+    uint16_t port,
+    size_t procamTotal,
+    const std::string &recordDirectory)
   : stream_(new EventStream())
   , port_(port)
   , procamTotal_(procamTotal)
@@ -36,6 +39,7 @@ MasterApplication::MasterApplication(uint16_t port, size_t procamTotal)
         boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
   , system_(new ProCamSystem())
+  , recordDirectory_(recordDirectory)
 {
   if (procamTotal_ <= 0) {
     throw EXCEPTION() << "At least one procam should be attached.";

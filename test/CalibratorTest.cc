@@ -14,6 +14,7 @@
 #include "core/ProCam.h"
 #include "core/Types.h"
 #include "master/Calibrator.h"
+#include "master/MockConnectionHandler.h"
 #include "master/ProCamSystem.h"
 
 using namespace dv;
@@ -49,6 +50,14 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
   uint32_t retrievedBinaryValue = GrayCode::grayCodeToBinary(
     grayCodeValue, dv::GrayCode::calculateMaxLevels(binaryValue));
   ASSERT_EQ(binaryValue, retrievedBinaryValue);
+}
+
+TEST(MockConnectionHandlerTest, Test1) {
+  /*MockConnectionHandler mock("./data/test1");
+  cv::Mat image = mock.getDepthImage(0);
+  cv::namedWindow("Depth image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO);
+  std::cout << image << std::endl;
+  cv::waitKey(0);*/
 }
 
 

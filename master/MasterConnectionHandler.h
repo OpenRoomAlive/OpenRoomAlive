@@ -13,8 +13,6 @@
 
 #include <boost/enable_shared_from_this.hpp>
 
-#include <opencv2/opencv.hpp>
-
 #include <thrift/transport/TTransportUtils.h>
 
 #include "core/Conv.h"
@@ -24,6 +22,7 @@
 #include "master/ConnectionHandler.h"
 #include "master/EventStream.h"
 #include "master/MasterServer.h"
+#include "master/ProCamRecorder.h"
 
 namespace dv { namespace master {
 

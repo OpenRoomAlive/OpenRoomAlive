@@ -9,20 +9,25 @@ SET(SOURCES
     GLViewer.cc
     MasterApplication.cc
     MasterConnectionHandler.cc
+    MockConnectionHandler.cc
     MasterServer.cc
     ProCam.cc
+    ProCamRecorder.cc
     ProCamSystem.cc
 )
 SET(HEADERS
     Calibrator.h
+    ConnectionHandler.h
     Event.h
     EventStream.h
     GLViewer.h
     MasterApplication.h
     MasterConnectionHandler.h
     MasterConnectionHandler-inl.h
+    MockConnectionHandler.h
     MasterServer.h
     ProCam.h
+    ProCamRecorder.h
     ProCamSystem.h
 )
 
@@ -37,6 +42,8 @@ TARGET_LINK_LIBRARIES(master_lib
     pthread
     ${OpenCV_LIBRARIES}
     ${GL_LIBS}
+    boost_system
+    boost_filesystem
 )
 
 # Master executable.

@@ -10,7 +10,7 @@ using namespace dv;
 KinectFileLogger::KinectFileLogger(
     Level logLevel,
     const std::string &logFilename)
-  : logFile_(logFilename) 
+  : logFile_(logFilename)
 {
   if (!logFile_.is_open()) {
     throw EXCEPTION() << "Opening Kinect log file failed.";
@@ -23,7 +23,7 @@ KinectFileLogger::~KinectFileLogger() {
 
 void KinectFileLogger::log(Level level, const std::string &message) {
   if (level <= level_) {
-    logFile_ 
+    logFile_
       << "[" << libfreenect2::Logger::level2str(level) << "] " << message
       << std::endl;
   }

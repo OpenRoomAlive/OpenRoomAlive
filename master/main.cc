@@ -31,6 +31,10 @@ int main(int argc, char **argv) {
         ( "procam-total"
         , po::value<size_t>()->default_value(1)
         , "Set the number of procams expected to connect."
+        )
+        ( "record"
+        , po::value<std::string>()->default_value("")
+        , "Set the path to the directory in which test data will be recorded."
         );
 
     // Parse options.
@@ -47,7 +51,8 @@ int main(int argc, char **argv) {
     // Create & run the app.
     return MasterApplication(
         options["port"].as<uint16_t>(),
-        options["procam-total"].as<size_t>()
+        options["procam-total"].as<size_t>(),
+        options["record"].as<std::string>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;

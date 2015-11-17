@@ -12,7 +12,6 @@
 using namespace dv;
 using namespace dv::procam;
 
-
 KinectCamera::KinectCamera(
     uint16_t logLevel,
     const std::string &logFilename)
