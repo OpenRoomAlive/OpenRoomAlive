@@ -18,6 +18,19 @@ namespace dv { namespace master {
    * Class wrapping the functionality responsible for ProCam calibration.
  */
 class Calibrator {
+ private:
+  /**
+   * Hash for cv::Point2i.
+   */
+  struct cvPoint2iHasher {
+    size_t operator() (const cv::Point2i &p) const {
+      size_t seed = 0;
+      boost::hash_combine(seed, p.x);
+      boost::hash_combine(seed, p.y);
+      return seed;
+    }
+  };
+
  public:
   /// Pair of procams that can see each other.
   using ProCamPair = std::pair<ConnectionID, ConnectionID>;
@@ -35,9 +48,9 @@ class Calibrator {
       boost::hash<ProCamPair>>;
 
   using ColorProjectorMap = std::unordered_map<
-    ProCamPair,
-    std::vector<std::vector<cv::Point2f>>,
-    boost::hash<ProCamPair>>;
+      ProCamPair,
+      std::unordered_map<cv::Point2i, cv::Point2i, cvPoint2iHasher>,
+      boost::hash<ProCamPair>>;
 
   Calibrator(
       const std::vector<ConnectionID>& ids,
