@@ -21,6 +21,7 @@ class MockCamera : public BGRDCamera {
   cv::Mat getUndistortedColorImage() override;
   CameraParams getParameters() override;
   void freshFrame() override {}
+  cv::Mat undistort(const cv::Mat &HDImage, const cv::Mat &depthImage) override;
 };
 
 }}

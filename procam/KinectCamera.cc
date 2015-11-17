@@ -202,3 +202,40 @@ void KinectCamera::freshFrame() {
   });
 }
 
+cv::Mat KinectCamera::undistort(
+    const cv::Mat &HDImage, 
+    const cv::Mat &depthImage) 
+{
+  // Prepare HD colour and depth frames.
+  libfreenect2::Frame HDFrame(kColorImageWidth, kColorImageHeight, 4);
+  libfreenect2::Frame depthFrame(kDepthImageWidth, kDepthImageHeight, 4);
+  HDFrame.data = HDImage.data;
+  depthFrame.data = depthImage.data;
+
+  libfreenect2::Frame depthUndistortedFrame(
+      kDepthImageWidth,
+      kDepthImageHeight,
+      4);
+  libfreenect2::Frame HDundistortedFrame(
+      kDepthImageWidth, 
+      kDepthImageHeight, 
+      4);
+
+  // Undistort images.
+  registration_->apply(
+      &HDFrame,
+      &depthFrame,
+      &depthUndistortedFrame,
+      &HDundistortedFrame);
+
+  // Construct the BGR graycode undistorted image.
+  cv::Mat undistorted;
+  cv::Mat(
+      HDundistortedFrame.height,
+      HDundistortedFrame.width,
+      CV_32S,
+      HDundistortedFrame.data).copyTo(undistorted);
+
+  return undistorted;
+}
+

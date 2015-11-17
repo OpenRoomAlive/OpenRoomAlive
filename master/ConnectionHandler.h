@@ -96,6 +96,11 @@ class ConnectionHandler {
    * Invokes getDepthVariance on all clients.
    */
   virtual FrameMap getDepthVariances() = 0;
+
+  /**
+   * Asks porcam to undistort the provided HD image.
+   */
+  virtual cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) = 0;
 };
 
 }}

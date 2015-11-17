@@ -150,7 +150,7 @@ void Calibrator::displayAndCapture(
   std::this_thread::sleep_for(kGrayCodeDuration);
 
   // send a command to ProCam to save the current frame
-  auto captured = connectionHandler_->getUndistortedColorImages();
+  auto captured = connectionHandler_->getColorImages();
   for (const auto &image : captured) {
     captured_[std::make_pair(id, image.first)].push_back(image.second);
   }
@@ -176,8 +176,12 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
       // Construct binary code by left shift the current value and add mask.
       cv::scaleAdd(grayCode, 2, mask32, grayCode);
     }
-    removeNoise(grayCode, entry.first.first);
-    decoded[entry.first] = grayCode;
+
+    cv::Mat grayCodeUndistorted = 
+        connectionHandler_->undistort(entry.first.second, grayCode);
+
+    removeNoise(grayCodeUndistorted, entry.first.first);
+    decoded[entry.first] = grayCodeUndistorted;
   }
   return decoded;
 }

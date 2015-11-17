@@ -31,3 +31,12 @@ CameraParams MockCamera::getParameters() {
   return CameraParams();
 }
 
+cv::Mat MockCamera::undistort(
+    const cv::Mat &HDImage, 
+    const cv::Mat &depthImage) 
+{
+  (void) HDImage;
+  (void) depthImage;
+  return cv::Mat(kColorImageHeight, kColorImageWidth, kColorFormat);
+}
+

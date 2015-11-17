@@ -51,6 +51,13 @@ class BGRDCamera {
    * Waits for a fresh frame from the camera.
    */
   virtual void freshFrame() = 0;
+
+  /**
+   * Undistorts provided HD image using Kinect's parameters and depth baseline.
+   */
+  virtual cv::Mat undistort(
+      const cv::Mat &HDImage,
+      const cv::Mat &depthImage) = 0;
 };
 
 }}

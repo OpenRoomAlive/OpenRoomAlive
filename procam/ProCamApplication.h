@@ -104,6 +104,13 @@ class ProCamApplication : public ProCamIf {
    */
   void close() override;
 
+  /**
+   * Undistorts provided HD image using Kinect's parameters and depth baseline.
+   */
+  void undistort(
+      Frame& undistortedImageThrift,
+      const Frame& HDImageThrift) override;
+
  private:
   /**
    * Pings the master server.

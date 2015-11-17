@@ -132,7 +132,12 @@ service ProCam {
   /**
    * Closes the procam app.
    */
-  oneway void close()
+  oneway void close();
+
+  /**
+   * Undistorts provided HD image using Kinect's parameters and depth baseline.
+   */
+  Frame undistort(1: Frame inputHDImageThrift);
 }
 
 /**

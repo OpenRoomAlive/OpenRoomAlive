@@ -176,6 +176,23 @@ class MasterConnectionHandler
         InvokeAll(&ProCamClient::getDepthVariance));
   }
 
+  /**
+   * Asks porcam to undistort the provided HD image.
+   */
+  cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override {
+    Frame imageHDThrift;
+    conv::cvMatToThriftFrame(imageHD, imageHDThrift);
+
+    cv::Mat image;
+    conv::thriftFrameToCvMat(
+        InvokeOne<Frame, const Frame&>(
+            id, 
+            &ProCamClient::undistort,
+            imageHDThrift),
+        image);
+    return image;
+  }
+
  private:
   /**
    * Information about a connection.

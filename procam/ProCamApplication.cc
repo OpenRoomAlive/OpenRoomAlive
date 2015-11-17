@@ -194,6 +194,19 @@ void ProCamApplication::close() {
   display_->stop();
 }
 
+void ProCamApplication::undistort(
+    Frame& undistortedImageThrift,
+    const Frame& HDImageThrift) 
+{
+  // Get HD as cv::Mat
+  cv::Mat HDimage;
+  conv::thriftFrameToCvMat(HDImageThrift, HDimage);
+  // Ask for undistortion and send back to master
+  conv::cvMatToThriftFrame(
+      camera_->undistort(HDimage, baseline_->getDepthImage()),
+      undistortedImageThrift);
+}
+
 void ProCamApplication::pingMaster() {
   // Send Procam's IP to master
   namespace at  = apache::thrift;
