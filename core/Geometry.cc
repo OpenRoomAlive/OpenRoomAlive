@@ -18,12 +18,6 @@ constexpr size_t kSplitR = 30;
 constexpr float kEps = 1e-5;
 
 
-static cv::Point3f findCenter(const std::vector<cv::Point3f> &pts) {
-  const auto sum = std::accumulate(pts.begin(), pts.end(), cv::Point3f(0.0f));
-  return sum * (1.0f / pts.size());
-}
-
-
 static cv::Point3f normalize(const cv::Point3f p) {
   const auto length = std::sqrt(p.dot(p));
   return cv::Point3f(p.x / length, p.y / length, p.z / length);
@@ -190,4 +184,13 @@ std::vector<cv::Point3f> transformPlane(
   return newPoints;
 }
 
+cv::Point3f findCenter(const std::vector<cv::Point3f> &points) {
+  const auto sum = std::accumulate(
+      points.begin(),
+      points.end(),
+      cv::Point3f(0.0f));
+  return sum * (1.0f / points.size());
 }
+
+}
+

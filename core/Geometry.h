@@ -31,7 +31,6 @@ Plane planeFit(
     unsigned minPoints,
     float eps);
 
-
 /**
  * Maps all points on a plane to another plane defined by an equation.
  *
@@ -39,13 +38,22 @@ Plane planeFit(
  * are on a plane parallel to zy, with a variance in z of 1e-5'.
  *
  * @param points   Set of coplanar points.
- * @param nx       New plane normal x.
- * @param ny       New plane normal y.
- * @param nz       New plane normal z.
+ * @param n        Plane normal.
  *
  * @return Adjusted points.
  */
 std::vector<cv::Point3f> transformPlane(
     const std::vector<cv::Point3f> &points,
     const cv::Point3f &n);
+
+/**
+ * Computes the centroid of the set of points.
+ *
+ * @param points Points whose centroid is to be computed.
+ *
+ * @return Cetnroid.
+ */
+cv::Point3f findCenter(const std::vector<cv::Point3f> &points);
+
 }
+

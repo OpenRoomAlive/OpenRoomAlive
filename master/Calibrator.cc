@@ -384,7 +384,15 @@ void Calibrator::calibrate() {
       auto &worldPoints = worldPointsCalib[i];
       auto &projectorPoints = projectorPointsCalib[i];
 
-      // Construct the 3D - 2D (projector) point correspondences.
+      // Depending on the projector pixel size, for each 2D point in the
+      // projector screen space there may be multiple 3D points mapping to it.
+      std::unordered_map<
+          cv::Point2i,
+          std::vector<cv::Point3f>,
+          cvPoint2iHasher>
+      buckets;
+
+      // Populate the buckets.
       for (const auto &pointPair : kinect3D2D[kinectId]) {
         auto kinectColorPoint = pointPair.second;
         auto kinect3DPoint = pointPair.first;
@@ -397,14 +405,29 @@ void Calibrator::calibrate() {
           continue;
         }
 
+        auto bucket = buckets.find(decodedPoint->second);
+
+        // Create a new bucket if needed.
+        if (bucket == buckets.end()) {
+          buckets.emplace(decodedPoint->second, std::vector<cv::Point3f>());
+        }
+
+        buckets[decodedPoint->second].emplace_back(kinect3DPoint);
+      }
+
+      // Construct the 3D - 2D (projector) point correspondences.
+      for (const auto &bucket : buckets) {
         // TODO(ilijar): Handle resolution/ gray levels -- T51.
         // Perform the conversion to the projector coordinate system.
         // Origin is in the bottom left corner with +x pointing to the left.
         auto projPoint = cv::Point2f(
-            64 - decodedPoint->second.y - 1, 64 - decodedPoint->second.x - 1);
+            64 - bucket.first.y - 1, 64 - bucket.first.x - 1);
+
+        // Use centroid of the points from the bucket.
+        auto worldPoint = findCenter(bucket.second);
 
         // Construct 3D -> 2D correspondance.
-        worldPoints.push_back(kinect3DPoint);
+        worldPoints.push_back(worldPoint);
         projectorPoints.push_back(projPoint);
       }
     }
