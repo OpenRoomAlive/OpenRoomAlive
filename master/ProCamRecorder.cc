@@ -4,14 +4,14 @@
 
 #include <boost/filesystem.hpp>
 
-#include "procam/BaselineCapture.h"
 #include "master/ProCamRecorder.h"
+#include "procam/BaselineCapture.h"
 
+constexpr auto kBaseColorDir = "baseline_color_frames";
+constexpr auto kBaseDepthDir = "baseline_depth_frames";
 constexpr auto kColorDir     = "color_frames";
 constexpr auto kDepthDir     = "depth_frames";
 constexpr auto kUndisDir     = "undistorted_frames";
-constexpr auto kBaseColorDir = "baseline_color_frames";
-constexpr auto kBaseDepthDir = "baseline_depth_frames";
 
 ProCamRecorder::ProCamRecorder(const std::string &recordDirectory)
     : recordDirectory_(recordDirectory)

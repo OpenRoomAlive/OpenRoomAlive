@@ -56,7 +56,7 @@ class ProCamRecorder {
   std::string frameFileName(size_t number, const std::string &extension);
 
  private:
-  /// Directory in which all
+  /// Directory in which captured frames for all procams are recorded.
   const std::string recordDirectory_;
   /// Number of color frames recorded.
   size_t colorRecorded_;

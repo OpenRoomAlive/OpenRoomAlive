@@ -156,10 +156,8 @@ void ProCamApplication::getDepthBaseline(Frame &frame) {
 }
 
 void ProCamApplication::getDepthVariance(Frame &frame) {
-  camera_->freshFrame();
-  // TODO: T34
-  cv::Mat baseline = camera_->getDepthImage();
-  conv::cvMatToThriftFrame(baseline, frame);
+  baseline_->framesProcessed();
+  conv::cvMatToThriftFrame(baseline_->getDepthVariance(), frame);
 }
 
 void ProCamApplication::displayGrayCode(
@@ -198,7 +196,7 @@ void ProCamApplication::close() {
 
 void ProCamApplication::undistort(
     Frame& undistortedImageThrift,
-    const Frame& HDImageThrift) 
+    const Frame& HDImageThrift)
 {
   // Get HD as cv::Mat
   cv::Mat HDimage;

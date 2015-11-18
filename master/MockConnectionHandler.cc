@@ -6,9 +6,8 @@
 
 #include <boost/filesystem.hpp>
 
-#include "master/MockConnectionHandler.h"
-
 #include "core/Exception.h"
+#include "master/MockConnectionHandler.h"
 
 using namespace dv::master;
 using namespace dv;
