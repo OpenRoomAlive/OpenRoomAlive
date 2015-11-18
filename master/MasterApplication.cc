@@ -77,16 +77,16 @@ int MasterApplication::run() {
 
     system_->addProCam(
         id,
+        // TODO(ilijar): Perform these conversion in the ConnectionHandler.
         conv::thriftCamMatToCvMat(cameraParams.colorCamMat),
         conv::thriftCamMatToCvMat(cameraParams.irCamMat),
         conv::thriftDistToCvMat(cameraParams.irDist),
-        displaysParams[id]);
+        conv::thriftDisplayParamsToCvSize(displaysParams[id]));
   }
 
-  // TODO(ilijar): T48, T49 & T50
+  // Calibrate.
   Calibrator calibrator(connectionIds, connectionHandler_, system_);
 
-  // Capture baselines.
   calibrator.captureBaselines();
   //calibrator.formProjectorGroups();
   calibrator.displayGrayCodes();

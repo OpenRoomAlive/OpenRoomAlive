@@ -6,8 +6,6 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "core/Types.h"
-
 
 namespace dv { namespace procam {
 
@@ -37,7 +35,7 @@ class Display {
   /**
    * Retrieves the parameters of the display.
    */
-  virtual Resolution getParameters() = 0;
+  virtual cv::Size getParameters() = 0;
 
   /**
    * Retrieves the width.

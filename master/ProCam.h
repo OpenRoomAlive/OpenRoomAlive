@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "core/ProCam.h"
 #include "core/Types.h"
 
 namespace dv { namespace master {
@@ -25,13 +24,13 @@ friend class Calibrator;
       const cv::Mat &colorCamMat,
       const cv::Mat &irCamMat,
       const cv::Mat &irDist,
-      const dv::DisplayParams &displayParams);
+      const cv::Size &displayParams);
   ~ProCam();
 
   /**
    * Returns the parameters of the display.
    */
-  dv::DisplayParams getDisplayParams() const { return displayParams_; }
+  cv::Size getDisplayParams() const { return displayParams_; }
 
  private:
   /// Color camera matrix.
@@ -41,7 +40,7 @@ friend class Calibrator;
   /// Ir camera distortion coefficients.
   const cv::Mat irDist_;
   /// Parameters of the display.
-  const dv::DisplayParams displayParams_;
+  const cv::Size displayParams_;
   /// Effective parameters of the display.
   const cv::Size effectiveProjRes_;
   /// Projector matrix.

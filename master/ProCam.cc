@@ -11,7 +11,7 @@ ProCam::ProCam(
     const cv::Mat &colorCamMat,
     const cv::Mat &irCamMat,
     const cv::Mat &irDist,
-    const dv::DisplayParams &displayParams)
+    const cv::Size &displayParams)
   : colorCamMat_(colorCamMat)
   , irCamMat_(irCamMat)
   , irDist_(irDist)

@@ -16,14 +16,6 @@ namespace dv {
 using ConnectionID = uint64_t;
 
 /**
- * Screen resolution.
- */
-struct Resolution {
-  size_t width;
-  size_t height;
-};
-
-/**
  * Structure representing the equation of a plane.
  */
 struct Plane {

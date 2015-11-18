@@ -18,7 +18,7 @@ void ProCamSystem::addProCam(
     const cv::Mat &colorCamMat,
     const cv::Mat &irCamMat,
     const cv::Mat &irDist,
-    const dv::DisplayParams &displayParams)
+    const cv::Size &displayParams)
 {
   std::unique_lock<std::mutex> locker(lock_);
 

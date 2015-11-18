@@ -122,7 +122,7 @@ void ProCamApplication::getCameraParams(CameraParams& cameraParams) {
 }
 
 void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
-  conv::widthHeightToDisplayParams(display_->getParameters(), displayParams);
+  conv::cvSizeToThriftDisplayParams(display_->getParameters(), displayParams);
 }
 
 void ProCamApplication::getColorImage(Frame& frame) {
