@@ -5,7 +5,7 @@
 #pragma once
 
 #include <cmath>
-
+#include <iostream>
 
 namespace dv {
 
@@ -23,11 +23,23 @@ struct Plane {
   float d;
 };
 
+/**
+ * Structure representing a size.
+ */
+struct Size {
+  unsigned width;
+  unsigned height;
+};
+
 
 static inline bool equals(float x, float y) {
   const float epsilon = 0.000001f;
   return std::abs(x - y) <= epsilon * std::abs(x);
 }
+
+// To and from string conversion for the resolution type.
+std::ostream& operator << (std::ostream& os, const Size&);
+std::istream& operator >> (std::istream& is, Size&);
 
 }
 

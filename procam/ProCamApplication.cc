@@ -65,8 +65,7 @@ ProCamApplication::ProCamApplication(
     bool enableMaster,
     uint16_t logLevel,
     const std::string &logFilename,
-    size_t effectiveWidth,
-    size_t effectiveHeight)
+    const Size &effectiveSize)
   : masterIP_(masterIP)
   , port_(port)
   , display_(enableDisplay
@@ -75,7 +74,7 @@ ProCamApplication::ProCamApplication(
   , camera_(enableKinect
         ? static_cast<BGRDCamera*>(new KinectCamera(logLevel, logFilename))
         : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
-  , grayCode_(effectiveWidth, effectiveHeight)
+  , grayCode_(effectiveSize.width, effectiveSize.height)
   , server_(new server::TSimpleServer(
         boost::make_shared<ProCamProcessor>(
             boost::shared_ptr<ProCamApplication>(this, [](auto*){})),

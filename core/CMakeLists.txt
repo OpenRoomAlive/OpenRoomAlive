@@ -39,6 +39,7 @@ SET(SOURCES
     Geometry.cc
     GrayCode.cc
     Projection.cc
+    Types.cc
 )
 
 # List of all files in core.

@@ -35,8 +35,7 @@ class ProCamApplication : public ProCamIf {
       bool enableMaster,
       uint16_t logLevel,
       const std::string &logFile,
-      size_t effectiveWidth,
-      size_t effectiveHeight);
+      const Size &effectiveSize);
   ~ProCamApplication();
 
   /**

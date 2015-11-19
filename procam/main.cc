@@ -10,6 +10,7 @@
 
 #include "core/Master.h"
 #include "core/ProCam.h"
+#include "core/Types.h"
 #include "procam/ProCamApplication.h"
 
 using namespace dv::procam;
@@ -66,13 +67,9 @@ int main(int argc, char **argv) {
         , po::value<std::string>()->default_value("./KinectLog.txt")
         , "Set the path to the Kinect log file."
         )
-        ( "effective-width"
-        , po::value<size_t>()->default_value(64)
-        , "Set the effective display width."
-        )
-        ( "effective-height"
-        , po::value<size_t>()->default_value(64)
-        , "Set the effective display height."
+        ( "effective-size"
+        , po::value<dv::Size>()->default_value(dv::Size{64, 64})
+        , "Set the effective display size."
         );
 
     // Parse options.
@@ -95,8 +92,7 @@ int main(int argc, char **argv) {
         options["enable-master"].as<bool>(),
         options["log-level"].as<uint16_t>(),
         options["log-filename"].as<std::string>(),
-        options["effective-width"].as<size_t>(),
-        options["effective-height"].as<size_t>()
+        options["effective-size"].as<dv::Size>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;
