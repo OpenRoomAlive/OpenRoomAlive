@@ -431,7 +431,7 @@ void Calibrator::calibrate() {
             projector->effectiveProjRes_.height - bucket.first.x - 1);
 
         // Use centroid of the points from the bucket.
-        auto worldPoint = findCenter(bucket.second);
+        auto worldPoint = findMedianCenter(bucket.second);
 
         // Construct 3D -> 2D correspondance.
         worldPoints.push_back(worldPoint);

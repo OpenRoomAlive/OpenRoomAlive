@@ -55,5 +55,14 @@ std::vector<cv::Point3f> transformPlane(
  */
 cv::Point3f findCenter(const std::vector<cv::Point3f> &points);
 
+/**
+ * Computes the centroid of the set of points using median instead of mean.
+ *
+ * @param points Points whose centroid is to be computed.
+ *
+ * @return Centroid.
+ */
+cv::Point3f findMedianCenter(const std::vector<cv::Point3f> &points);
+
 }
 

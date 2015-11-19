@@ -23,6 +23,13 @@ static cv::Point3f normalize(const cv::Point3f p) {
   return cv::Point3f(p.x / length, p.y / length, p.z / length);
 }
 
+static float findMedian(std::vector<float> &numbers) {
+  std::nth_element(
+      numbers.begin(),
+      numbers.begin() + numbers.size() / 2,
+      numbers.end());
+  return numbers[numbers.size() / 2];
+}
 
 namespace dv {
 
@@ -190,6 +197,25 @@ cv::Point3f findCenter(const std::vector<cv::Point3f> &points) {
       points.end(),
       cv::Point3f(0.0f));
   return sum * (1.0f / points.size());
+}
+
+cv::Point3f findMedianCenter(const std::vector<cv::Point3f> &points) {
+  std::vector<float> xList;
+  std::vector<float> yList;
+  std::vector<float> zList;
+
+  for (const auto &point : points) {
+    xList.push_back(point.x);
+    yList.push_back(point.y);
+    zList.push_back(point.z);
+  }
+
+  cv::Point3f centroid;
+  centroid.x = findMedian(xList);
+  centroid.y = findMedian(yList);
+  centroid.z = findMedian(zList);
+
+  return centroid;
 }
 
 }
