@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <glm/glm.hpp>
 #include <opencv2/opencv.hpp>
 
 
@@ -44,6 +45,14 @@ cv::Point2f project(
  * @return 3D coordinate
  */
 cv::Point3f map3D(const cv::Mat& camera, float depth, size_t r, size_t c);
+
+/**
+ * Converts K, R, T to a view and a projection matrix.
+ */
+std::pair<glm::mat4, glm::mat4> toProjView(
+    const cv::Mat &k,
+    const cv::Mat &r,
+    const cv::Mat &t);
 
 }}
 
