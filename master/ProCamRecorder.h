@@ -5,50 +5,90 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include <opencv2/opencv.hpp>
 
-class ProCamRecorder {
+#include "core/Protocol_types.h"
+#include "core/Types.h"
+
+namespace dv { namespace master {
+
+class ProCamRecorder
+{
+ public:
+  enum class RecordedData;
+
  public:
   explicit ProCamRecorder(const std::string &recordDirectory);
   ~ProCamRecorder();
 
-  /// If --record flag was set, color image will be recorded.
-  void trySaveColorFrame(const cv::Mat &frame);
-
-  /// If --record flag was set, depth image will be recorded.
-  void trySaveDepthFrame(const cv::Mat &frame);
-
-  /// If --record flag was set, undistorted image will be recorded.
-  void trySaveUndistortedFrame(const cv::Mat &frame);
-
-  /// If --record flag was set, color baseline image will be recorded.
-  void trySaveColorBaselineFrame(const cv::Mat &frame);
-
-  /// If --record flag was set, depth baseline image will be recorded.
-  void trySaveDepthBaselineFrame(const cv::Mat &frame);
-
- private:
   /**
-   * Saves, given that the --record option was specified, the given frame in the
-   * relevant frameDirectorty, a subdirectory of the recordDirectory_ and names
-   * it as frame{frameNumber}.bmp. If --record option was not specified, nothing
-   * happens.
+   * Saves the given frame in the relevant frameDirectory, a subdirectory of
+   * the procam{id}, and names it as frame{frameNumber}.bmp.
    */
-  void trySaveFrame(
-      const std::string &frameDir,
-      size_t frameNumber,
-      const cv::Mat &frame);
+  void saveFrame(const cv::Mat &frame, ConnectionID id, RecordedData frameType);
+
+  /**
+   * Records camera parameters in the directory corresponding to a given proCam.
+   */
+  void saveCameraParams(const cv::Mat &frame, ConnectionID id);
+
+  /**
+   * Records display parameters in the directory corresponding to a given
+   * proCam.
+   */
+  void saveDisplayParams(const DisplayParams &params, ConnectionID id);
 
   /**
    * If the recordDirectory_ field is not empty, the function checks if the
    * specified directory exists, if not, one is created. In that directory,
+   * a subdirectory for each connectde proCam is created. Within each of those
    * subdirectories for color images, depth images, undistorted images,
    * baseline depth images and baseline color images are created, and all
    * frames captured during proCam operation are persisted.
    */
-  void createRecordDirectory();
+  void createRecordDirectories(size_t count);
 
+ public:
+  /**
+   * Enum class representing the types of data recorded by the recorder.
+   */
+  enum class RecordedData {
+    COLOR,
+    COLOR_BASELINE,
+    DEPTH,
+    DEPTH_BASELINE,
+    DEPTH_VARIANCE,
+    UNDISTORTED,
+    UNDISTORTED_HD,
+    CAMERA_PARAMS,
+    DISPLAY_PARAMS
+  };
+
+  struct DataHasher {
+    std::size_t operator() (const RecordedData data) const {
+      return static_cast<std::size_t>(data);
+    }
+  };
+
+  /**
+   * Names of the directories in which the recorded data is stored. Order of data
+   * type names should be the same like in the RecordedData enum.
+   */
+  const std::unordered_map<RecordedData, std::string, DataHasher> kDataDirNames
+      { { RecordedData::COLOR,          "color_frames" }
+      , { RecordedData::COLOR_BASELINE, "baseline_color_frames" }
+      , { RecordedData::DEPTH,          "depth_frames" }
+      , { RecordedData::DEPTH_BASELINE, "baseline_depth_frames" }
+      , { RecordedData::DEPTH_VARIANCE, "depth_variance" }
+      , { RecordedData::UNDISTORTED,    "undistorted_frames" }
+      , { RecordedData::UNDISTORTED_HD, "undistorted_HD_frames" }
+      , { RecordedData::CAMERA_PARAMS,  "camera_params" }
+      , { RecordedData::DISPLAY_PARAMS, "display_params" }
+      };
+
+ private:
   /**
    * Given the frame number and extension, the function returns the name of the
    * frame file.
@@ -58,14 +98,8 @@ class ProCamRecorder {
  private:
   /// Directory in which captured frames for all procams are recorded.
   const std::string recordDirectory_;
-  /// Number of color frames recorded.
-  size_t colorRecorded_;
-  /// Number of depth frames recorded.
-  size_t depthRecorded_;
-  /// Number of undistorted frames recorded.
-  size_t undistortedRecorded_;
-  /// Number of baseline color frames recorded.
-  size_t baselineColorRecorded_;
-  /// Number of baseline depth frames recorded.
-  size_t baselineDepthRecorded_;
+  /// Index of the next of a certain frame to be saved.
+  std::vector<std::unordered_map<RecordedData, size_t, DataHasher>> frameNum_;
 };
+
+}}

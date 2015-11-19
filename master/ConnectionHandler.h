@@ -19,6 +19,8 @@ class ConnectionHandler {
   /// Map from ID of a connection to captured image.
   using FrameMap = std::unordered_map<ConnectionID, cv::Mat>;
 
+  virtual ~ConnectionHandler();
+
   /**
    * Blocks until a specific number of clients connect.
    * Returns the IDs of the clients that connected.

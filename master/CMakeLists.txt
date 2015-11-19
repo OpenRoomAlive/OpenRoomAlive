@@ -4,6 +4,7 @@
 
 SET(SOURCES
     Calibrator.cc
+    ConnectionHandler.cc
     Event.cc
     EventStream.cc
     GLViewer.cc
