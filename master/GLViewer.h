@@ -46,7 +46,7 @@ class GLViewer {
   /**
    * Returns a vector for arcball rotation.
    */
-  glm::vec3 getArcballVector(const glm::ivec2 &pos);
+  glm::vec3 getArcballVector(const glm::ivec2 &pos) const;
 
   /// GLFW window handle.
   GLFWwindow *window_;

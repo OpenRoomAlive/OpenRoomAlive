@@ -41,7 +41,7 @@ MasterApplication::MasterApplication(
   , system_(new ProCamSystem())
   , recordDirectory_(recordDirectory)
 {
-  if (procamTotal_ <= 0) {
+  if (procamTotal_ == 0) {
     throw EXCEPTION() << "At least one procam should be attached.";
   }
 }

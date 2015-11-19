@@ -95,11 +95,11 @@ void BaselineCapture::process(const cv::Mat &frame) {
   }
 }
 
-cv::Mat BaselineCapture::getDepthImage() {
+cv::Mat BaselineCapture::getDepthImage() const {
   return baseline_;
 }
 
-cv::Mat BaselineCapture::getDepthVariance() {
+cv::Mat BaselineCapture::getDepthVariance() const {
   return variance_;
 }
 

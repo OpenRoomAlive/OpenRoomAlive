@@ -34,12 +34,9 @@ ADD_LIBRARY(procam_lib
 TARGET_LINK_LIBRARIES(procam_lib
     core
     pthread
-    ${EXTRA_LIBS}
+    ${Boost_LIBRARIES}
     ${freenect2_LIBRARIES}
-    ${GL_LIBS}
-    ${OpenCV_LIBRARIES}
-    boost_system
-    boost_filesystem
+    ${GL_LIBRARIES}
 )
 
 # Procam executable.

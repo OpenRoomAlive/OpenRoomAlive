@@ -17,7 +17,7 @@ class MockConnectionHandler : public ConnectionHandler {
    * Creates a mock connection handler which uses the recorded images on
    * different procams to serve frames on request.
    */
-  MockConnectionHandler(const std::string &path);
+  explicit MockConnectionHandler(const std::string &path);
 
   /**
    * Returns the IDs of connected procams.

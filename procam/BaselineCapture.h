@@ -32,12 +32,12 @@ class BaselineCapture {
   /**
    * Returns the baseline depth image.
    */
-  cv::Mat getDepthImage();
+  cv::Mat getDepthImage() const;
 
   /**
    * Returns the depth variance.
    */
-  cv::Mat getDepthVariance();
+  cv::Mat getDepthVariance() const;
 
   /**
    * Blocks until the baseline and variance are computed.

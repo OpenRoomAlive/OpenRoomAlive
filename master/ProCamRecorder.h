@@ -10,7 +10,7 @@
 
 class ProCamRecorder {
  public:
-  ProCamRecorder(const std::string &recordDirectory);
+  explicit ProCamRecorder(const std::string &recordDirectory);
   ~ProCamRecorder();
 
   /// If --record flag was set, color image will be recorded.

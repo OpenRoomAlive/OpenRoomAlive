@@ -37,13 +37,10 @@ ADD_LIBRARY(master_lib
     ${HEADERS}
 )
 TARGET_LINK_LIBRARIES(master_lib
-    boost_program_options
     core
     pthread
-    ${OpenCV_LIBRARIES}
-    ${GL_LIBS}
-    boost_system
-    boost_filesystem
+    ${GL_LIBRARIES}
+    ${Boost_LIBRARIES}
 )
 
 # Master executable.

@@ -212,7 +212,7 @@ void GLViewer::drawPoints(const std::vector<cv::Point3f> &points) {
 }
 
 
-glm::vec3 GLViewer::getArcballVector(const glm::ivec2 &pos) {
+glm::vec3 GLViewer::getArcballVector(const glm::ivec2 &pos) const {
   const float px = 2.0f * static_cast<float>(pos.x) / wndSize_.x - 1.0f;
   const float py = 2.0f * static_cast<float>(pos.y) / wndSize_.y - 1.0f;
   const float l2 = px * px + py * py;

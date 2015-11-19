@@ -60,7 +60,6 @@ ADD_LIBRARY(core
     ${THRIFT}
 )
 TARGET_LINK_LIBRARIES(core
-    boost_program_options
     thrift
-    opencv_core
+    ${OpenCV_LIBRARIES}
 )
