@@ -11,12 +11,13 @@ ProCam::ProCam(
     const cv::Mat &colorCamMat,
     const cv::Mat &irCamMat,
     const cv::Mat &irDist,
-    const cv::Size &displayParams)
+    const cv::Size &actualProjRes,
+    const cv::Size &effectiveProjRes)
   : colorCamMat_(colorCamMat)
   , irCamMat_(irCamMat)
   , irDist_(irDist)
-  , displayParams_(displayParams)
-  , effectiveProjRes_(64, 64)
+  , actualProjRes_(actualProjRes)
+  , effectiveProjRes_(effectiveProjRes)
 {
   projMat_ = cv::Mat::eye(3, 3, cv::DataType<float>::type);
 

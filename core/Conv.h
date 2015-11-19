@@ -58,16 +58,14 @@ cv::Mat thriftCamMatToCvMat(const CameraMatrix &cameraMat);
 cv::Mat thriftDistToCvMat(const DistCoef &distCoef);
 
 /**
- * Converts cv::Size to thrift DisplayParams.
+ * Converts cv::Size to thrift Resolution.
  */
-void cvSizeToThriftDisplayParams(
-    const cv::Size &resolution,
-    DisplayParams &displayParams);
+void cvSizeToThriftResolution(const cv::Size &cvRes, Resolution &thriftRes);
 
 /**
- * Converts thrift DisplayParams to cv::Size.
+ * Converts thrift Resolution to cv::Size.
  */
-cv::Size thriftDisplayParamsToCvSize(const DisplayParams &displayParams);
+cv::Size thriftResolutionToCvSize(const Resolution &res);
 
 }}
 

@@ -18,7 +18,8 @@ void ProCamSystem::addProCam(
     const cv::Mat &colorCamMat,
     const cv::Mat &irCamMat,
     const cv::Mat &irDist,
-    const cv::Size &displayParams)
+    const cv::Size &actualProjRes,
+    const cv::Size &effectiveProjRes)
 {
   std::unique_lock<std::mutex> locker(lock_);
 
@@ -28,7 +29,8 @@ void ProCamSystem::addProCam(
           colorCamMat,
           irCamMat,
           irDist,
-          displayParams));
+          actualProjRes,
+          effectiveProjRes));
 
   if (!result.second || result.first == proCams_.end()) {
     throw std::runtime_error("Cannot create procam unit.");

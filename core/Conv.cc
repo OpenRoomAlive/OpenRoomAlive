@@ -55,16 +55,14 @@ cv::Mat thriftDistToCvMat(const DistCoef &distCoef) {
   return dc;
 }
 
-void cvSizeToThriftDisplayParams(
-    const cv::Size &resolution,
-    DisplayParams &displayParams)
+void cvSizeToThriftResolution(const cv::Size &cvRes, Resolution &thriftRes)
 {
-  displayParams.frameWidth = resolution.width;
-  displayParams.frameHeight = resolution.height;
+  thriftRes.width = cvRes.width;
+  thriftRes.height = cvRes.height;
 }
 
-cv::Size thriftDisplayParamsToCvSize(const DisplayParams &displayParams) {
-  return cv::Size(displayParams.frameWidth, displayParams.frameHeight);
+cv::Size thriftResolutionToCvSize(const Resolution &res) {
+  return cv::Size(res.width, res.height);
 }
 
 }}

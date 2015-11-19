@@ -37,7 +37,8 @@ friend class Calibrator;
       const cv::Mat &colorCamMat,
       const cv::Mat &irCamMat,
       const cv::Mat &irDist,
-      const cv::Size &displayParams);
+      const cv::Size &actualProjRes,
+      const cv::Size &effectiveProjRes);
 
   /**
    * Returns pointer to ProCam if there exists one with given id.

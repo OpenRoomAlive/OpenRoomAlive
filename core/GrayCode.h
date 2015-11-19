@@ -56,6 +56,11 @@ class GrayCode {
    */
   static uint32_t grayCodeToBinary(uint32_t encodedBits, size_t signifBits);
 
+  /**
+   * Retrieves the resolution.
+   */
+  cv::Size getRes() const { return cv::Size(width_, height_); }
+
  private:
   size_t width_;
   size_t height_;

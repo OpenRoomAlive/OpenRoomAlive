@@ -65,6 +65,14 @@ int main(int argc, char **argv) {
         ( "log-filename"
         , po::value<std::string>()->default_value("./KinectLog.txt")
         , "Set the path to the Kinect log file."
+        )
+        ( "effective-width"
+        , po::value<size_t>()->default_value(64)
+        , "Set the effective display width."
+        )
+        ( "effective-height"
+        , po::value<size_t>()->default_value(64)
+        , "Set the effective display height."
         );
 
     // Parse options.
@@ -86,7 +94,9 @@ int main(int argc, char **argv) {
         options["enable-kinect"].as<bool>(),
         options["enable-master"].as<bool>(),
         options["log-level"].as<uint16_t>(),
-        options["log-filename"].as<std::string>()
+        options["log-filename"].as<std::string>(),
+        options["effective-width"].as<size_t>(),
+        options["effective-height"].as<size_t>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;

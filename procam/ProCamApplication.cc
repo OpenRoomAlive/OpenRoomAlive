@@ -64,7 +64,9 @@ ProCamApplication::ProCamApplication(
     bool enableKinect,
     bool enableMaster,
     uint16_t logLevel,
-    const std::string &logFilename)
+    const std::string &logFilename,
+    size_t effectiveWidth,
+    size_t effectiveHeight)
   : masterIP_(masterIP)
   , port_(port)
   , display_(enableDisplay
@@ -73,7 +75,7 @@ ProCamApplication::ProCamApplication(
   , camera_(enableKinect
         ? static_cast<BGRDCamera*>(new KinectCamera(logLevel, logFilename))
         : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
-  , grayCode_(64, 64)
+  , grayCode_(effectiveWidth, effectiveHeight)
   , server_(new server::TSimpleServer(
         boost::make_shared<ProCamProcessor>(
             boost::shared_ptr<ProCamApplication>(this, [](auto*){})),
@@ -129,7 +131,12 @@ void ProCamApplication::getCameraParams(CameraParams& cameraParams) {
 }
 
 void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
-  conv::cvSizeToThriftDisplayParams(display_->getParameters(), displayParams);
+  conv::cvSizeToThriftResolution(
+      display_->getParameters(),
+      displayParams.actualRes);
+  conv::cvSizeToThriftResolution(
+      grayCode_.getRes(),
+      displayParams.effectiveRes);
 }
 
 void ProCamApplication::getColorImage(Frame& frame) {

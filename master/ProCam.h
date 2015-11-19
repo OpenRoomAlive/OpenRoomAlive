@@ -24,13 +24,14 @@ friend class Calibrator;
       const cv::Mat &colorCamMat,
       const cv::Mat &irCamMat,
       const cv::Mat &irDist,
-      const cv::Size &displayParams);
+      const cv::Size &actualProjRes,
+      const cv::Size &effectiveProjRes);
   ~ProCam();
 
   /**
    * Returns the parameters of the display.
    */
-  cv::Size getDisplayParams() const { return displayParams_; }
+  cv::Size getDisplayParams() const { return actualProjRes_; }
 
  private:
   /// Color camera matrix.
@@ -40,7 +41,7 @@ friend class Calibrator;
   /// Ir camera distortion coefficients.
   const cv::Mat irDist_;
   /// Parameters of the display.
-  const cv::Size displayParams_;
+  const cv::Size actualProjRes_;
   /// Effective parameters of the display.
   const cv::Size effectiveProjRes_;
   /// Projector matrix.

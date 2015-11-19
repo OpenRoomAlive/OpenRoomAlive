@@ -41,9 +41,14 @@ struct CameraParams {
   3: DistCoef irDist;
 }
 
+struct Resolution {
+  1: i16 width;
+  2: i16 height;
+}
+
 struct DisplayParams {
-  1: i16 frameWidth;
-  2: i16 frameHeight;
+  1: Resolution actualRes;
+  2: Resolution effectiveRes;
 }
 
 struct Frame {

@@ -81,7 +81,8 @@ int MasterApplication::run() {
         conv::thriftCamMatToCvMat(cameraParams.colorCamMat),
         conv::thriftCamMatToCvMat(cameraParams.irCamMat),
         conv::thriftDistToCvMat(cameraParams.irDist),
-        conv::thriftDisplayParamsToCvSize(displaysParams[id]));
+        conv::thriftResolutionToCvSize(displaysParams[id].actualRes),
+        conv::thriftResolutionToCvSize(displaysParams[id].effectiveRes));
   }
 
   // Calibrate.
