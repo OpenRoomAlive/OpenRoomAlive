@@ -176,7 +176,7 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
       cv::scaleAdd(grayCode, 2, mask32, grayCode);
     }
 
-    cv::Mat grayCodeUndistorted = 
+    cv::Mat grayCodeUndistorted =
         connectionHandler_->undistort(entry.first.second, grayCode);
 
     removeNoise(grayCodeUndistorted, entry.first.first);

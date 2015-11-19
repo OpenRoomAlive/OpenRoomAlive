@@ -105,7 +105,7 @@ int MasterApplication::run() {
   });
 
   // Process events from Procams.
-  while(run) {
+  while (run) {
     auto event = stream_->poll();
     (void) event;
     // TODO: Process event using the 3D reconstruction.

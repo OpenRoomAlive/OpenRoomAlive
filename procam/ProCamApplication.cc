@@ -14,7 +14,6 @@
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/server/TSimpleServer.h>
 #include <thrift/transport/TSocket.h>
-#include <thrift/transport/TTransportUtils.h>
 
 #include "core/Async.h"
 #include "core/Conv.h"
@@ -31,12 +30,15 @@
 
 using namespace dv;
 using namespace dv::procam;
+
 using namespace std::literals;
+using namespace apache::thrift;
+
 
 /**
  * Max delay before giving up on a connection.
  */
-constexpr auto MAX_CONNECT_WAIT = 512s;
+constexpr auto kMaxConnectWait = 120s;
 
 static inline GrayCode::Orientation orientationCast(
     Orientation::type orientation)
@@ -72,12 +74,15 @@ ProCamApplication::ProCamApplication(
         ? static_cast<BGRDCamera*>(new KinectCamera(logLevel, logFilename))
         : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
   , grayCode_(64, 64)
-  , server_(new apache::thrift::server::TSimpleServer(
+  , server_(new server::TSimpleServer(
         boost::make_shared<ProCamProcessor>(
-            boost::shared_ptr<ProCamApplication>(this, [](ProCamApplication*){})),
-        boost::make_shared<apache::thrift::transport::TServerSocket>(port_ + 1),
-        boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
-        boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
+            boost::shared_ptr<ProCamApplication>(this, [](auto*){})),
+        boost::make_shared<transport::TServerSocket>(port_ + 1),
+        boost::make_shared<transport::TBufferedTransportFactory>(),
+        boost::make_shared<protocol::TBinaryProtocolFactory>()))
+  , transport_(new transport::TBufferedTransport(
+        boost::make_shared<transport::TSocket>(masterIP_, port_)))
+  , master_(boost::make_shared<protocol::TBinaryProtocol>(transport_))
   , baseline_(new BaselineCapture())
   , enableMaster_(enableMaster)
 {
@@ -102,6 +107,8 @@ int ProCamApplication::run() {
     }
 
     // Stop everything.
+    transport_->close();
+    server_->stop();
     std::cerr << "Disconnected from master." << std::endl;
     future.get();
   } else {
@@ -190,7 +197,6 @@ void ProCamApplication::clearDisplay() {
 }
 
 void ProCamApplication::close() {
-  server_->stop();
   display_->stop();
 }
 
@@ -208,35 +214,27 @@ void ProCamApplication::undistort(
 }
 
 void ProCamApplication::pingMaster() {
-  // Send Procam's IP to master
-  namespace at  = apache::thrift;
-  namespace atp = apache::thrift::protocol;
-  namespace att = apache::thrift::transport;
-
-  auto socket    = boost::make_shared<att::TSocket>(masterIP_, port_);
-  auto transport = boost::make_shared<att::TBufferedTransport>(socket);
-  auto protocol  = boost::make_shared<atp::TBinaryProtocol>(transport);
-  MasterClient masterClient(protocol);
-
   // Open a connection. If it fails, wait using binary exponential backoff.
-  for (auto wait = 1s; wait < MAX_CONNECT_WAIT; wait += wait) {
+  for (auto wait = 1s, total = 0s; total < kMaxConnectWait; total += wait) {
     try {
-      transport->open();
+      transport_->open();
       break;
     } catch (apache::thrift::TException& tx) {
       std::cerr <<
           "Connection failed. Retrying in " << wait.count() << "s" << std::endl;
       std::this_thread::sleep_for(wait);
+      if (wait < 5s) {
+        wait += 1s;
+      }
     }
   }
-  if (!transport->isOpen()) {
+  if (!transport_->isOpen()) {
     throw EXCEPTION() << "Cannot connect to master.";
   }
 
   // Ping the master.
-  if (!masterClient.ping()) {
+  if (!master_.ping()) {
     throw EXCEPTION() << "Error on master.";
   }
   std::cout << "Connected to master." << std::endl;
-  transport->close();
 }

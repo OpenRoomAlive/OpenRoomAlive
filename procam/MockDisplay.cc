@@ -46,7 +46,9 @@ void MockDisplay::update() {
   fd_set set;
   FD_ZERO(&set);
   FD_SET(fd, &set);
-  isRunning_ = select(fd + 1, &set, NULL, NULL, &tv) <= 0;
+  if (select(fd + 1, &set, NULL, NULL, &tv) > 0) {
+    isRunning_ = false;
+  }
 
   // Reset attributes.
   tcsetattr(fd, TCSANOW, &oldSettings);

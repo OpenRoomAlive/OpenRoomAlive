@@ -185,7 +185,7 @@ class MasterConnectionHandler
     cv::Mat image;
     conv::thriftFrameToCvMat(
         InvokeOne<Frame, const Frame&>(
-            id, 
+            id,
             &ProCamClient::undistort,
             imageHDThrift),
         image);
@@ -366,6 +366,8 @@ class MasterConnectionHandler
   const uint16_t proCamPort_;
   /// Stream of events sent by ProCams for processing.
   const std::shared_ptr<EventStream> stream_;
+  /// True if the application finished running.
+  std::atomic<bool> isRunning_;
 };
 
 }}

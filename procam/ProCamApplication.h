@@ -8,6 +8,7 @@
 #include <memory>
 
 #include <thrift/server/TServer.h>
+#include <thrift/transport/TTransportUtils.h>
 
 #include "core/GrayCode.h"
 #include "core/ProCam.h"
@@ -130,6 +131,10 @@ class ProCamApplication : public ProCamIf {
   const GrayCode grayCode_;
   /// Server instance.
   const std::shared_ptr<apache::thrift::server::TServer> server_;
+  /// Transport layer of connection to master.
+  const boost::shared_ptr<apache::thrift::transport::TBufferedTransport> transport_;
+  /// Master client handler.
+  MasterClient master_;
   /// Baseline capture.
   const std::shared_ptr<BaselineCapture> baseline_;
   /// True if the master is pinged.

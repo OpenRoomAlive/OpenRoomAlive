@@ -24,6 +24,7 @@ MasterConnectionHandler::MasterConnectionHandler(
   : nextID_(0)
   , proCamPort_(proCamPort)
   , stream_(stream)
+  , isRunning_(true)
 {
 }
 
@@ -31,9 +32,9 @@ MasterConnectionHandler::~MasterConnectionHandler() {
   // Close the ProCam connections.
   for (const auto& connection : connections_) {
     try {
-     connection.second.transport->close();
-    } catch (apache::thrift::TException& tx) {
-      std::cout << "CLOSING PROCAM CONNECTION: " << tx.what() << std::endl;
+      connection.second.client->close();
+      connection.second.transport->close();
+    } catch (...) {
     }
   }
 }
@@ -80,6 +81,9 @@ void MasterConnectionHandler::releaseHandler(MasterIf* handler) {
   if (handler != nullptr) {
     delete handler;
   }
+  if (isRunning_) {
+    throw EXCEPTION() << "Connection closed prematurely.";
+  }
 }
 
 std::vector<ConnectionID>
@@ -99,10 +103,17 @@ MasterConnectionHandler::waitForConnections(size_t count) {
 }
 
 void MasterConnectionHandler::stop() {
+  isRunning_ = false;
   std::lock_guard<std::mutex> locker(lock_);
   for (const auto &connection : connections_) {
-    connection.second.client->close();
+    try {
+      connection.second.client->close();
+      connection.second.transport->close();
+    } catch (const std::exception &ex) {
+      std::cerr << "[Exception] " << ex.what() << std::endl;
+    }
   }
+  connections_.clear();
 }
 
 std::vector<ConnectionID> MasterConnectionHandler::getAllIDs() {
