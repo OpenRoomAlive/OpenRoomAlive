@@ -138,7 +138,6 @@ void GLDisplay::update() {
     std::lock_guard<std::mutex> locker(lock_);
     displayedImage_ = image_;
   }
-
   glfwShowWindow(window_);
 
   glBindTexture(GL_TEXTURE_2D, texture_);
@@ -232,5 +231,15 @@ void GLDisplay::onKeyPressed(int key) {
     default: {
       return;
     }
+  }
+}
+
+void GLDisplay::updateWithLaser(
+    const std::vector<std::pair<cv::Point2i, cv::Point2i>> &segments,
+    const cv::Scalar &color)
+{
+  std::lock_guard<std::mutex> locker(lock_);
+  for (const auto &seg : segments) {
+    cv::line(image_, seg.first, seg.second, color, 1);
   }
 }

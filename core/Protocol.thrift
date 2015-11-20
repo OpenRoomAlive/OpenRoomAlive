@@ -99,12 +99,31 @@ enum Orientation {
 }
 
 /**
- * Laser position coordinates
+ * 3D point for laser position.
  */
 struct Point {
   1: double x;
   2: double y;
   3: double z;
+}
+
+/**
+ * Segment of laser path in projected image.
+ */
+struct Segment {
+  1: i16 x1;
+  2: i16 y1;
+  3: i16 x2;
+  4: i16 y2;
+}
+
+/**
+ * Color in RGB.
+ */
+struct Color {
+  1: i16 r;
+  2: i16 g;
+  3: i16 b;
 }
 
 /**
@@ -172,7 +191,12 @@ service ProCam {
   /**
    * Undistorts provided HD image using Kinect's parameters and depth baseline.
    */
-  Frame undistort(1: Frame inputHDImageThrift);
+  Frame undistort(1: Frame inputHDImageThrift),
+
+  /**
+   * Update in image the laser path of color 'color' with provided 'segments'.
+   */
+  void updateLaser(1: list<Segment> segments, 2: Color color);
 }
 
 /**
@@ -187,5 +211,5 @@ service Master {
   /**
    * Sends a new laser position to master.
    */
-  void detectedLaser(1: Point point 2: i64 color);
+  void detectedLaser(1: Point point, 2: Color color);
 }

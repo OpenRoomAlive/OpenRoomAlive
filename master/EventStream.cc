@@ -6,7 +6,9 @@
 
 using namespace dv::master;
 
-EventStream::EventStream() {
+EventStream::EventStream()
+  : closedStream_(false)
+{
 }
 
 EventStream::~EventStream() {
@@ -14,17 +16,31 @@ EventStream::~EventStream() {
 
 void EventStream::push(Event event) {
   std::unique_lock<std::mutex> locker(streamLock_);
+
   stream_.push(event);
   streamLock_.unlock();
   sizeCond_.notify_all();
 }
 
-Event EventStream::poll() {
+std::pair<bool, Event> EventStream::poll() {
   std::unique_lock<std::mutex> locker(streamLock_);
+  // Wait until stream is closed or stream is non-empty.
   sizeCond_.wait(locker, [this]() {
-    return !stream_.empty();
+    return closedStream_ || !stream_.empty();
   });
-  auto event = stream_.front();
+
+  // If stream closed, it may be empty.
+  if (closedStream_) {
+    return std::make_pair(false,
+        Event(0, cv::Point3f(), cv::Scalar()));
+  }
+
+  auto eventPair = std::make_pair(true, stream_.front());
   stream_.pop();
-  return event;
+  return eventPair;
+}
+
+void EventStream::close() {
+  closedStream_ = true;
+  sizeCond_.notify_all();
 }

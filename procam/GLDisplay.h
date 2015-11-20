@@ -26,6 +26,9 @@ class GLDisplay : public Display {
   void update() override;
   void stop() override;
   void displayImage(const cv::Mat &image) override;
+  void updateWithLaser(
+      const std::vector<std::pair<cv::Point2i, cv::Point2i>> &segments,
+      const cv::Scalar &color) override;
   cv::Size getResolution() override;
   virtual size_t getWidth() override;
   virtual size_t getHeight() override;

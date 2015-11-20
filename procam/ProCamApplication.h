@@ -108,11 +108,23 @@ class ProCamApplication : public ProCamIf {
       Frame& undistortedImageThrift,
       const Frame& HDImageThrift) override;
 
+  /**
+   * Update in image the laser path of color 'color' with provided 'segments'.
+   */
+  void updateLaser(
+      const std::vector<Segment> &segments,
+      const Color &color) override;
+
  private:
   /**
    * Pings the master server.
    */
   void pingMaster();
+
+  /**
+   * Continuously detects laser positions and sends updates to the master node.
+   */
+  void detectLaser();
 
  private:
   /// IP of the master node.
@@ -137,6 +149,8 @@ class ProCamApplication : public ProCamIf {
   const bool enableMaster_;
   /// Projector-Camera latency.
   const uint32_t latency_;
+  /// True if thread detecting laser is still trying to send updates to master.
+  std::atomic<bool> updatesStreamOn_;
 };
 
 }}

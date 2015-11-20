@@ -101,6 +101,14 @@ class MockConnectionHandler : public ConnectionHandler {
    */
   cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override;
 
+  /**
+   * Asks ProCam to draw the path of a laser with given color.
+   */
+  void updateLaser(
+      ConnectionID id,
+      const std::vector<std::pair<cv::Point2i, cv::Point2i>> &path,
+      const cv::Scalar &color) override;
+
  private:
   /**
    * Returns the number of files and subdirectories of the path directory.

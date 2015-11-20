@@ -25,7 +25,7 @@ class MasterServer : virtual public MasterIf {
   /**
    * Sends a new laser position to master.
    */
-  void detectedLaser(const Point& point, const int64_t color) override;
+  void detectedLaser(const Point& point, const Color &color) override;
 
  private:
   /// Stream of events sent by ProCams for processing.

@@ -61,5 +61,32 @@ CameraModel thriftCamMatToCvMat(
     const IrCameraParams &depthParams);
 
 
+/**
+ * Converts thrift Color to cv::Scalar.
+ */
+cv::Scalar thriftColorToCvScalar(const Color &color);
+
+/**
+ * Converts cv::Scalar to thrift Color.
+ */
+void cvScalarToThriftColor(const cv::Scalar &color, Color &thriftColor);
+
+/**
+ * Converts thrift Point to cv::Point3f.
+ */
+cv::Point3f thriftPointToCvPoint(const Point &point);
+
+/**
+ * Converts vector of thrift Segment to vector of std::pair<cv::Point2i>.
+ */
+std::vector<std::pair<cv::Point2i, cv::Point2i>> thriftSegmentsToCvPoints(
+    const std::vector<Segment> &segments);
+
+/**
+ * Converts vector of std::pair<cv::Point2i> to vector of thrift Segment.
+ */
+std::vector<Segment> cvPointsToThriftSegments(
+    const std::vector<std::pair<cv::Point2i, cv::Point2i>> &path);
+
 }}
 

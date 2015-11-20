@@ -35,10 +35,11 @@ using namespace std::literals;
 using namespace apache::thrift;
 
 
-/**
- * Max delay before giving up on a connection.
- */
+// Max delay before giving up on a connection.
 constexpr auto kMaxConnectWait = 120s;
+
+// Sleep time between checks if it is safe to break connections.
+constexpr auto kWaitForStreamShutdown = 100ms;
 
 static inline GrayCode::Orientation orientationCast(
     Orientation::type orientation)
@@ -88,6 +89,7 @@ ProCamApplication::ProCamApplication(
   , baseline_(new BaselineCapture())
   , enableMaster_(enableMaster)
   , latency_(latency)
+  , updatesStreamOn_(true)
 {
 }
 
@@ -99,21 +101,35 @@ int ProCamApplication::run() {
 
   if (enableMaster_) {
     // Responding to master node requests.
-    auto future = asyncExecute([this]() {
+    auto futureServer = asyncExecute([this]() {
       server_->serve();
     });
 
+    // Open the connection with master and ping it.
     pingMaster();
+
+    // Using the open connection, start sending updates of laser positions.
+    auto futureLaser = asyncExecute([this]() {
+      detectLaser();
+    });
+
+    // Continuously update display and depth baseline.
     while (display_->isRunning()) {
       baseline_->process(camera_->getDepthImage());
       display_->update();
+    }
+
+    // Wait with breaking connections until it is safe.
+    while (updatesStreamOn_) {
+      std::this_thread::sleep_for(kWaitForStreamShutdown);
     }
 
     // Stop everything.
     transport_->close();
     server_->stop();
     std::cerr << "Disconnected from master." << std::endl;
-    future.get();
+    futureServer.get();
+    futureLaser.get();
   } else {
     // Debug stuff here.
     cv::namedWindow("test");
@@ -202,7 +218,7 @@ void ProCamApplication::displayWhite() {
 }
 
 void ProCamApplication::clearDisplay() {
-  display_->displayImage(cv::Mat::zeros(1, 1, CV_8UC3));
+  display_->displayImage(cv::Mat::zeros(display_->getResolution(), CV_8UC3));
 }
 
 void ProCamApplication::close() {
@@ -220,6 +236,15 @@ void ProCamApplication::undistort(
   conv::cvMatToThriftFrame(
       camera_->undistort(HDimage, baseline_->getDepthImage()),
       undistortedImageThrift);
+}
+
+void ProCamApplication::updateLaser(
+    const std::vector<Segment> &segments,
+    const Color &color)
+{
+  display_->updateWithLaser(
+      conv::thriftSegmentsToCvPoints(segments),
+      conv::thriftColorToCvScalar(color));
 }
 
 void ProCamApplication::pingMaster() {
@@ -246,4 +271,20 @@ void ProCamApplication::pingMaster() {
     throw EXCEPTION() << "Error on master.";
   }
   std::cout << "Connected to master." << std::endl;
+}
+
+void ProCamApplication::detectLaser() {
+  while (display_->isRunning()) {
+    // TODO: Fetch frames & analyse (& send msg to master)
+    cv::Scalar color(0, 0, 0);
+    dv::Color thriftColor;
+    conv::cvScalarToThriftColor(color, thriftColor);
+    dv::Point laser;
+    laser.x = 0;
+    laser.y = 0;
+    laser.z = 0;
+    master_.detectedLaser(laser, thriftColor);
+    std::this_thread::sleep_for(1s);
+  }
+  updatesStreamOn_ = false;
 }

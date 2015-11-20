@@ -4,15 +4,17 @@
 
 #include <iostream>
 
+#include "core/Conv.h"
 #include "master/Event.h"
 #include "master/MasterServer.h"
 
+using namespace dv;
 using namespace dv::master;
 
 MasterServer::MasterServer(
     const std::shared_ptr<EventStream>& stream,
     const ConnectionID id)
-  : stream_(stream) 
+  : stream_(stream)
   , id_(id)
 {
 }
@@ -24,6 +26,9 @@ bool MasterServer::ping() {
   return true;
 }
 
-void MasterServer::detectedLaser(const Point& point, const int64_t color) {
-  stream_->push(Event(id_, point, color));
+void MasterServer::detectedLaser(const Point& point, const Color &color) {
+  stream_->push(Event(
+      id_,
+      conv::thriftPointToCvPoint(point),
+      conv::thriftColorToCvScalar(color)));
 }

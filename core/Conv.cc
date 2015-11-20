@@ -74,5 +74,44 @@ CameraModel thriftCamMatToCvMat(const IrCameraParams &irParams)
   return { cm, dc };
 }
 
+cv::Scalar thriftColorToCvScalar(const Color &color) {
+  return cv::Scalar(color.r, color.g, color.b);
+}
+
+void cvScalarToThriftColor(const cv::Scalar &color, Color &thriftColor) {
+  thriftColor.r = color[0];
+  thriftColor.g = color[1];
+  thriftColor.b = color[2];
+}
+
+cv::Point3f thriftPointToCvPoint(const Point &point) {
+  return cv::Point3f(point.x, point.y, point.z);
+}
+
+std::vector<std::pair<cv::Point2i, cv::Point2i>> thriftSegmentsToCvPoints(
+    const std::vector<Segment> &segments)
+{
+  std::vector<std::pair<cv::Point2i, cv::Point2i>> path;
+  for (const auto &seg : segments) {
+    path.emplace_back(cv::Point2i(seg.x1, seg.y1), cv::Point2i(seg.x2, seg.y2));
+  }
+  return path;
+}
+
+std::vector<Segment> cvPointsToThriftSegments(
+    const std::vector<std::pair<cv::Point2i, cv::Point2i>> &path)
+{
+  std::vector<Segment> segments;
+  for (const auto &segment : path) {
+    Segment seg;
+    seg.x1 = segment.first.x;
+    seg.y1 = segment.first.y;
+    seg.x2 = segment.second.x;
+    seg.y2 = segment.second.y;
+    segments.push_back(seg);
+  }
+  return segments;
+}
+
 }}
 

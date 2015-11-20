@@ -27,9 +27,16 @@ class EventStream {
   void push(Event event);
 
   /**
-   * Returns the oldest event from the stream.
+   * Fetches the oldest event from the stream if stream is not closed/gets
+   * closed while waiting for an Event - returns <false, Event> if no Event
+   * was fetched and processing should be stopped.
    */
-  Event poll();
+  std::pair<bool, Event> poll();
+
+  /**
+   * Closes the stream.
+   */
+  void close();
 
  private:
   /// Stream of events.
@@ -38,7 +45,8 @@ class EventStream {
   std::condition_variable sizeCond_;
   /// Mutex protecting the stream.
   std::mutex streamLock_;
-
+  /// Bool representing the state of the stream.
+  std::atomic<bool> closedStream_;
 };
 
 } }

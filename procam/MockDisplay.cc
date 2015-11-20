@@ -76,3 +76,10 @@ void MockDisplay::stop() {
 void MockDisplay::displayImage(const cv::Mat &image) {
   (void) image;
 }
+
+void MockDisplay::updateWithLaser(
+    const std::vector<std::pair<cv::Point2i, cv::Point2i>> &segments,
+    const cv::Scalar &color) {
+  (void) segments;
+  (void) color;
+}

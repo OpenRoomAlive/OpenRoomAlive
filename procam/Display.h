@@ -6,6 +6,8 @@
 
 #include <opencv2/opencv.hpp>
 
+#include <core/Procam.h>
+
 
 namespace dv { namespace procam {
 
@@ -51,6 +53,13 @@ class Display {
    * Sets the image displayed on the screen.
    */
   virtual void displayImage(const cv::Mat &image) = 0;
+
+  /**
+   * Update in image the laser path of color 'color' with provided 'segments'.
+   */
+  virtual void updateWithLaser(
+      const std::vector<std::pair<cv::Point2i, cv::Point2i>> &segments,
+      const cv::Scalar &color) = 0;
 
 };
 

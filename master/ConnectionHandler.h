@@ -102,6 +102,14 @@ class ConnectionHandler {
    * Asks porcam to undistort the provided HD image.
    */
   virtual cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) = 0;
+
+  /**
+   * Asks ProCam to draw the path of a laser with given color.
+   */
+  virtual void updateLaser(
+      ConnectionID id,
+      const std::vector<std::pair<cv::Point2i, cv::Point2i>> &path,
+      const cv::Scalar &color) = 0;
 };
 
 }}

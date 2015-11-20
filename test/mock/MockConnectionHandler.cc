@@ -131,6 +131,17 @@ size_t MockConnectionHandler::countDirs(const boost::filesystem::path path) {
   return count;
 }
 
+
+void MockConnectionHandler::updateLaser(
+      ConnectionID id,
+      const std::vector<std::pair<cv::Point2i, cv::Point2i>> &path,
+      const cv::Scalar &color)
+{
+  (void) id;
+  (void) path;
+  (void) color;
+}
+
 cv::Mat MockConnectionHandler::loadFrame(
     ConnectionID id,
     ProCamRecorder::RecordedData dataType)

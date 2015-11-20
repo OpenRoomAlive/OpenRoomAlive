@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "core/Master.h"
+#include <opencv2/opencv.hpp>
+
 #include "core/Types.h"
 
 namespace dv { namespace master {
@@ -15,25 +16,21 @@ namespace dv { namespace master {
 class Event {
  public:
 
-  /**
-   * Default event with id_ set to unused value - used when stopping execution.
-   */
-  Event();
-
-  /**
-   * Normal, properly specified event.
-   */
-  Event(const ConnectionID id, const Point point, const int64_t color);
+  Event(const ConnectionID id, const cv::Point3f point, const cv::Scalar color);
 
   ~Event();
+
+  cv::Point3f getPosition() const { return point_; };
+
+  ConnectionID getProCamID() const { return id_; };
 
  private:
   /// ID of the ProCam that sent the event.
   const ConnectionID id_;
   /// Point representing new detected position of the laser.
-  const Point point_;
+  const cv::Point3f point_;
   /// Color of the detected laser.
-  const int64_t color_;
+  const cv::Scalar color_;
 };
 
 } }

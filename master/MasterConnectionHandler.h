@@ -184,6 +184,23 @@ class MasterConnectionHandler
     return image;
   }
 
+  /**
+   * Asks ProCam to draw the path of a laser with given color.
+   */
+  void updateLaser(
+      ConnectionID id,
+      const std::vector<std::pair<cv::Point2i, cv::Point2i>> &path,
+      const cv::Scalar &color) override {
+    Color thriftColor;
+    conv::cvScalarToThriftColor(color, thriftColor);
+
+    InvokeOne<const std::vector<Segment>&, const Color&>(
+        id,
+        &ProCamClient::updateLaser,
+        conv::cvPointsToThriftSegments(path),
+        thriftColor);
+  }
+
  private:
   /**
    * Information about a connection.
