@@ -57,7 +57,7 @@ class RecordingConnectionHandler : public MasterConnectionHandler {
   FrameMap getDepthBaselines() override;
 
   /**
-   * Invokes getDepthVariance on all clients  and records the retrieved frames.
+   * Invokes getDepthVariance on all clients and records the retrieved frames.
    */
   FrameMap getDepthVariances() override;
 
@@ -66,8 +66,25 @@ class RecordingConnectionHandler : public MasterConnectionHandler {
    */
   cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override;
 
+  /**
+   * Invokes getCameraParams on all clients and records the retrieved camera
+   * data.
+   */
+  std::unordered_map<ConnectionID, CameraParams> getCamerasParams() override;
+
+  /**
+   * Invokes getDisplayParams on all clients and records the retrieved display
+   * data.
+   */
+  std::unordered_map<ConnectionID, DisplayParams> getDisplaysParams() override;
+
  private:
-  // Persists the captured frames on the disk.
+  void recordAll(
+      const FrameMap &capturedFrames,
+      ProCamRecorder::RecordedData dataType);
+
+ private:
+  /// Persists the captured frames on the disk.
   ProCamRecorder recorder_;
 };
 

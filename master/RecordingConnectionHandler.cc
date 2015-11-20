@@ -4,6 +4,9 @@
 
 #include "master/RecordingConnectionHandler.h"
 
+using namespace dv;
+using namespace dv::master;
+
 RecordingConnectionHandler::RecordingConnectionHandler(
       uint16_t proCamPort,
       const std::shared_ptr<EventStream>& streamconst,
@@ -13,6 +16,9 @@ RecordingConnectionHandler::RecordingConnectionHandler(
 {
 }
 
+RecordingConnectionHandler::~RecordingConnectionHandler() {
+}
+
 std::vector<ConnectionID> RecordingConnectionHandler::waitForConnections(
     size_t count)
 {
@@ -20,47 +26,48 @@ std::vector<ConnectionID> RecordingConnectionHandler::waitForConnections(
   return MasterConnectionHandler::waitForConnections(count);
 }
 
-FrameMap RecordingConnectionHandler::getColorImages() {
+ConnectionHandler::FrameMap RecordingConnectionHandler::getColorImages() {
   FrameMap colorImages = MasterConnectionHandler::getColorImages();
-  // TODO: save the color images
+  recordAll(colorImages, ProCamRecorder::RecordedData::COLOR);
   return colorImages;
 }
 
 cv::Mat RecordingConnectionHandler::getDepthImage(ConnectionID id) {
   cv::Mat depthImage = MasterConnectionHandler::getDepthImage(id);
-  // TODO: save the depth image
+  recorder_.saveFrame(depthImage, id, ProCamRecorder::RecordedData::DEPTH);
   return depthImage;
 }
 
-FrameMap RecordingConnectionHandler::getDepthImages() {
+ConnectionHandler::FrameMap RecordingConnectionHandler::getDepthImages() {
   FrameMap depthImages = MasterConnectionHandler::getDepthImages();
-  // TODO: save the depth images
+  recordAll(depthImages, ProCamRecorder::RecordedData::DEPTH);
   return depthImages;
 }
 
-FrameMap RecordingConnectionHandler::getUndistortedColorImages()
+ConnectionHandler::FrameMap
+    RecordingConnectionHandler::getUndistortedColorImages()
 {
   FrameMap undistortedImages =
       MasterConnectionHandler::getUndistortedColorImages();
-  // TODO: save the undistorted images
+  recordAll(undistortedImages, ProCamRecorder::RecordedData::UNDISTORTED);
   return undistortedImages;
 }
 
-FrameMap RecordingConnectionHandler::getColorBaselines() {
+ConnectionHandler::FrameMap RecordingConnectionHandler::getColorBaselines() {
   FrameMap colorBaselines = MasterConnectionHandler::getColorBaselines();
-  // TODO: save the color baselines.
+  recordAll(colorBaselines, ProCamRecorder::RecordedData::COLOR_BASELINE);
   return colorBaselines;
 }
 
-FrameMap RecordingConnectionHandler::getDepthBaselines() {
+ConnectionHandler::FrameMap RecordingConnectionHandler::getDepthBaselines() {
   FrameMap depthBaselines = MasterConnectionHandler::getDepthBaselines();
-  // TODO: save the depth baselines.
+  recordAll(depthBaselines, ProCamRecorder::RecordedData::DEPTH_BASELINE);
   return depthBaselines;
 }
 
-FrameMap RecordingConnectionHandler::getDepthVariances() {
+ConnectionHandler::FrameMap RecordingConnectionHandler::getDepthVariances() {
   FrameMap depthVariances = MasterConnectionHandler::getDepthVariances();
-  // TODO: save the depth variances
+  recordAll(depthVariances, ProCamRecorder::RecordedData::DEPTH_VARIANCE);
   return depthVariances;
 }
 
@@ -68,6 +75,38 @@ cv::Mat RecordingConnectionHandler::undistort(
     ConnectionID id, const cv::Mat &imageHD)
 {
   cv::Mat undistortedHD = MasterConnectionHandler::undistort(id, imageHD);
-  // TODO: save the undistorted HD image
+  recorder_.saveFrame(
+    imageHD, id, ProCamRecorder::RecordedData::UNDISTORTED_HD);
   return undistortedHD;
+}
+
+std::unordered_map<ConnectionID, CameraParams>
+    RecordingConnectionHandler::getCamerasParams()
+{
+  auto cameraParams = MasterConnectionHandler::getCamerasParams();
+
+  for (auto idParams : cameraParams) {
+    recorder_.saveCameraParams(idParams.second, idParams.first);
+  }
+  return cameraParams;
+}
+
+std::unordered_map<ConnectionID, DisplayParams>
+    RecordingConnectionHandler::getDisplaysParams()
+{
+  auto displayParams = MasterConnectionHandler::getDisplaysParams();
+
+  for (auto idParams : displayParams) {
+    recorder_.saveDisplayParams(idParams.second, idParams.first);
+  }
+  return displayParams;
+}
+
+void RecordingConnectionHandler::recordAll(
+    const FrameMap &capturedFrames,
+    ProCamRecorder::RecordedData dataType)
+{
+  for (auto idFrame : capturedFrames) {
+    recorder_.saveFrame(idFrame.second, idFrame.first, dataType);
+  }
 }

@@ -21,6 +21,7 @@
 #include "master/GLViewer.h"
 #include "master/MasterApplication.h"
 #include "master/MasterConnectionHandler.h"
+#include "master/RecordingConnectionHandler.h"
 
 using namespace dv::master;
 
@@ -32,14 +33,15 @@ MasterApplication::MasterApplication(
   : stream_(new EventStream())
   , port_(port)
   , procamTotal_(procamTotal)
-  , connectionHandler_(new MasterConnectionHandler(port_ + 1, stream_))
+  , connectionHandler_(recordDirectory.empty()
+        ? new MasterConnectionHandler(port_ + 1, stream_)
+        : new RecordingConnectionHandler(port_ + 1, stream_, recordDirectory))
   , server_(new apache::thrift::server::TThreadedServer(
         boost::make_shared<MasterProcessorFactory>(connectionHandler_),
         boost::make_shared<apache::thrift::transport::TServerSocket>(port_),
         boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
   , system_(new ProCamSystem())
-  , recordDirectory_(recordDirectory)
 {
   if (procamTotal_ == 0) {
     throw EXCEPTION() << "At least one procam should be attached.";

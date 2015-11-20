@@ -6,6 +6,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include "core/Conv.h"
 #include "master/ProCamRecorder.h"
 
 using namespace dv::master;
@@ -15,6 +16,9 @@ constexpr auto kProcamDir = "procam";
 ProCamRecorder::ProCamRecorder(const std::string &recordDirectory)
   : recordDirectory_(recordDirectory)
 {
+}
+
+ProCamRecorder::~ProCamRecorder() {
 }
 
 void ProCamRecorder::saveFrame(
@@ -34,8 +38,12 @@ void ProCamRecorder::saveFrame(
   imwrite(dest.string(), frame);
 }
 
-void ProCamRecorder::saveCameraParams(const cv::Mat &frame, ConnectionID id)
+void ProCamRecorder::saveCameraParams(
+    const CameraParams &params,
+    ConnectionID id)
 {
+  using namespace dv::conv;
+
   // Record camera parameters in top_level/procma{id}/camera_params directory.
   boost::filesystem::path dest(recordDirectory_);
   dest /= (kProcamDir + std::to_string(id));
@@ -47,7 +55,9 @@ void ProCamRecorder::saveCameraParams(const cv::Mat &frame, ConnectionID id)
   dest /= "cameraParams.xml";
 
   cv::FileStorage fs(dest.string(), cv::FileStorage::WRITE);
-  fs << "CameraParameters" << frame;
+  fs << "ColorCameraParameters" << thriftCamMatToCvMat(params.colorCamMat)
+     << "DepthCameraParameters" << thriftCamMatToCvMat(params.irCamMat)
+     << "DepthCameraDistortion" << thriftDistToCvMat(params.irDist);
 }
 
 void ProCamRecorder::saveDisplayParams(

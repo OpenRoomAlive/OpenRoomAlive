@@ -32,7 +32,7 @@ class ProCamRecorder
   /**
    * Records camera parameters in the directory corresponding to a given proCam.
    */
-  void saveCameraParams(const cv::Mat &frame, ConnectionID id);
+  void saveCameraParams(const CameraParams &params, ConnectionID id);
 
   /**
    * Records display parameters in the directory corresponding to a given

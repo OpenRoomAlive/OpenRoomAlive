@@ -15,6 +15,7 @@ SET(SOURCES
     ProCam.cc
     ProCamRecorder.cc
     ProCamSystem.cc
+    RecordingConnectionHandler.cc
 )
 SET(HEADERS
     Calibrator.h
@@ -30,6 +31,7 @@ SET(HEADERS
     ProCam.h
     ProCamRecorder.h
     ProCamSystem.h
+    RecordingConnectionHandler.h
 )
 
 # Master library (unit testing).
