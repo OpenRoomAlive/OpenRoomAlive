@@ -1,5 +1,8 @@
 build
 
+# Data files.
+data
+
 # Swap files.
 *.sw*
 

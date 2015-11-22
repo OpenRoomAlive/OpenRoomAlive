@@ -7,6 +7,7 @@
 #include <boost/filesystem.hpp>
 
 #include "core/Conv.h"
+#include "core/Exception.h"
 #include "master/ProCamRecorder.h"
 
 using namespace dv::master;
@@ -33,8 +34,10 @@ void ProCamRecorder::saveFrame(
   boost::filesystem::path dest(recordDirectory_);
   dest /= (kProcamDir + std::to_string(id));
   dest /= frameDir;
-  dest /= frameFileName(frameNum_[id][dataType]++, "bmp");
 
+  // Save depth images as OpenEXR and colour images as PNG.
+  const std::string ext = (frame.depth() == CV_32F) ? "exr" : "png";
+  dest /= frameFileName(frameNum_[id][dataType]++, ext.c_str());
   imwrite(dest.string(), frame);
 }
 
@@ -119,5 +122,5 @@ std::string ProCamRecorder::frameFileName(
     const size_t number,
     const std::string &extension)
 {
-  return ("frame" + std::to_string(number) + "." + extension);
+  return "frame" + std::to_string(number) + "." + extension;
 }
