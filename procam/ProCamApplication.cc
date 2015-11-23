@@ -65,7 +65,8 @@ ProCamApplication::ProCamApplication(
     bool enableMaster,
     uint16_t logLevel,
     const std::string &logFilename,
-    const Size &effectiveSize)
+    const Size &effectiveSize,
+    uint32_t latency)
   : masterIP_(masterIP)
   , port_(port)
   , display_(enableDisplay
@@ -86,6 +87,7 @@ ProCamApplication::ProCamApplication(
   , master_(boost::make_shared<protocol::TBinaryProtocol>(transport_))
   , baseline_(new BaselineCapture())
   , enableMaster_(enableMaster)
+  , latency_(latency)
 {
 }
 
@@ -136,6 +138,7 @@ void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
   conv::cvSizeToThriftResolution(
       grayCode_.getRes(),
       displayParams.effectiveRes);
+  displayParams.latency = latency_;
 }
 
 void ProCamApplication::getColorImage(Frame& frame) {

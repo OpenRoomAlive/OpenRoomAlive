@@ -70,6 +70,10 @@ int main(int argc, char **argv) {
         ( "effective-size"
         , po::value<dv::Size>()->default_value(dv::Size{64, 64})
         , "Set the effective display size."
+        )
+        ( "latency"
+        , po::value<uint32_t>()->default_value(250)
+        , "Minimum wait time between displaying an image and capturing it (ms)."
         );
 
     // Parse options.
@@ -92,7 +96,8 @@ int main(int argc, char **argv) {
         options["enable-master"].as<bool>(),
         options["log-level"].as<uint16_t>(),
         options["log-filename"].as<std::string>(),
-        options["effective-size"].as<dv::Size>()
+        options["effective-size"].as<dv::Size>(),
+        options["latency"].as<uint32_t>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;

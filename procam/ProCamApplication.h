@@ -35,7 +35,8 @@ class ProCamApplication : public ProCamIf {
       bool enableMaster,
       uint16_t logLevel,
       const std::string &logFile,
-      const Size &effectiveSize);
+      const Size &effectiveSize,
+      uint32_t latency);
   ~ProCamApplication();
 
   /**
@@ -140,6 +141,8 @@ class ProCamApplication : public ProCamIf {
   const std::shared_ptr<BaselineCapture> baseline_;
   /// True if the master is pinged.
   const bool enableMaster_;
+  /// Projector-Camera latency.
+  const uint32_t latency_;
 };
 
 }}

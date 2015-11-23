@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #include <glm/glm.hpp>
 #include <opencv2/opencv.hpp>
 
@@ -19,19 +21,25 @@ class ProCam {
 friend class Calibrator;
 
  public:
-  ProCam() {}
+  ProCam();
   ProCam(
       const cv::Mat &colorCamMat,
       const cv::Mat &irCamMat,
       const cv::Mat &irDist,
       const cv::Size &actualProjRes,
-      const cv::Size &effectiveProjRes);
+      const cv::Size &effectiveProjRes,
+      const std::chrono::milliseconds &latency);
   ~ProCam();
 
   /**
    * Returns the parameters of the display.
    */
   cv::Size getDisplayParams() const { return actualProjRes_; }
+
+  /**
+   * Returns the latency.
+   */
+  std::chrono::milliseconds getLatency() const { return latency_; }
 
  private:
   /// Color camera matrix.
@@ -44,6 +52,8 @@ friend class Calibrator;
   const cv::Size actualProjRes_;
   /// Effective parameters of the display.
   const cv::Size effectiveProjRes_;
+  /// Wait time between displaying and reading an image.
+  const std::chrono::milliseconds latency_;
   /// Projector matrix.
   cv::Mat projMat_;
   /// Projector distortion coefficients.

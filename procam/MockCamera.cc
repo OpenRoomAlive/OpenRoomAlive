@@ -15,16 +15,28 @@ MockCamera::MockCamera(uint16_t logLevel, const std::string &logFilename) {
 
 cv::Mat MockCamera::getColorImage() {
   // 1x1 RGB image.
-  return cv::Mat(1, 1, kColorFormat);
+  return cv::Mat(
+      kColorImageWidth,
+      kColorImageHeight,
+      kColorFormat,
+      cv::Scalar(0, 0, 0));
 }
 
 cv::Mat MockCamera::getDepthImage() {
   // 1x1 32 bit float depth.
-  return cv::Mat(1, 1, kDepthFormat);
+  return cv::Mat(
+      kDepthImageWidth,
+      kDepthImageHeight,
+      kDepthFormat,
+      cv::Scalar(0.0f));
 }
 
 cv::Mat MockCamera::getUndistortedColorImage() {
-  return cv::Mat(1, 1, kColorFormat);
+  return cv::Mat(
+      kDepthImageWidth,
+      kDepthImageHeight,
+      kColorFormat,
+      cv::Scalar(0, 0, 0));
 }
 
 CameraParams MockCamera::getParameters() {

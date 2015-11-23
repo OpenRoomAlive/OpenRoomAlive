@@ -84,7 +84,8 @@ int MasterApplication::run() {
         conv::thriftCamMatToCvMat(cameraParams.irCamMat),
         conv::thriftDistToCvMat(cameraParams.irDist),
         conv::thriftResolutionToCvSize(displaysParams[id].actualRes),
-        conv::thriftResolutionToCvSize(displaysParams[id].effectiveRes));
+        conv::thriftResolutionToCvSize(displaysParams[id].effectiveRes),
+        std::chrono::milliseconds(displaysParams[id].latency));
   }
 
   // Calibrate.

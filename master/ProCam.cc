@@ -6,18 +6,24 @@
 
 using namespace dv::master;
 
+ProCam::ProCam()
+  : latency_(0)
+{
+}
 
 ProCam::ProCam(
     const cv::Mat &colorCamMat,
     const cv::Mat &irCamMat,
     const cv::Mat &irDist,
     const cv::Size &actualProjRes,
-    const cv::Size &effectiveProjRes)
+    const cv::Size &effectiveProjRes,
+    const std::chrono::milliseconds &latency)
   : colorCamMat_(colorCamMat)
   , irCamMat_(irCamMat)
   , irDist_(irDist)
   , actualProjRes_(actualProjRes)
   , effectiveProjRes_(effectiveProjRes)
+  , latency_(latency)
 {
   projMat_ = cv::Mat::eye(3, 3, cv::DataType<float>::type);
 

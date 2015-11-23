@@ -19,7 +19,8 @@ void ProCamSystem::addProCam(
     const cv::Mat &irCamMat,
     const cv::Mat &irDist,
     const cv::Size &actualProjRes,
-    const cv::Size &effectiveProjRes)
+    const cv::Size &effectiveProjRes,
+    const std::chrono::milliseconds &latency)
 {
   std::unique_lock<std::mutex> locker(lock_);
 
@@ -30,7 +31,8 @@ void ProCamSystem::addProCam(
           irCamMat,
           irDist,
           actualProjRes,
-          effectiveProjRes));
+          effectiveProjRes,
+          latency));
 
   if (!result.second || result.first == proCams_.end()) {
     throw std::runtime_error("Cannot create procam unit.");

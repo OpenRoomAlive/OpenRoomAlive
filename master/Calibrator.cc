@@ -18,10 +18,6 @@
 using namespace dv::master;
 using namespace dv;
 
-using namespace std::chrono_literals;
-
-// Duration of a one element of gray code sequence in milliseconds.
-constexpr auto kGrayCodeDuration = 300ms;
 
 // Threshold to determine if two color images are the same.
 constexpr auto kColorDiffThreshold = 100;
@@ -81,7 +77,7 @@ void Calibrator::formProjectorGroups() {
         Orientation::type::HORIZONTAL,
         maxLevel,
         false);
-    std::this_thread::sleep_for(kGrayCodeDuration);
+    std::this_thread::sleep_for(proCam->getLatency());
     auto base = connectionHandler_->getColorImages();
 
     // Capture inverted images
@@ -90,7 +86,7 @@ void Calibrator::formProjectorGroups() {
         Orientation::type::HORIZONTAL,
         maxLevel,
         true);
-    std::this_thread::sleep_for(kGrayCodeDuration);
+    std::this_thread::sleep_for(proCam->getLatency());
     auto inverted = connectionHandler_->getColorImages();
 
     // Form ProCam group
@@ -142,11 +138,13 @@ void Calibrator::displayAndCapture(
     size_t level,
     bool inverted)
 {
+  auto proCam = system_->getProCam(id);
+
   // Display interchangebly the vertical and horizontal patterns.
   // Display the vertical uninverted gray code.
   connectionHandler_->displayGrayCode(id, orientation, level, inverted);
 
-  std::this_thread::sleep_for(kGrayCodeDuration);
+  std::this_thread::sleep_for(proCam->getLatency());
 
   // send a command to ProCam to save the current frame
   auto captured = connectionHandler_->getColorImages();

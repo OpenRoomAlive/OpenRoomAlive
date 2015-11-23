@@ -31,7 +31,6 @@ void BaselineCapture::process(const cv::Mat &frame) {
     return;
   }
   if (count_ < kCandidateFrames) {
-    std::lock_guard<std::mutex> locker(countLock_);
     frame.convertTo(frames_[count_++], CV_32FC1);
     return;
   }

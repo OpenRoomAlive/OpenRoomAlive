@@ -49,6 +49,7 @@ struct Resolution {
 struct DisplayParams {
   1: Resolution actualRes;
   2: Resolution effectiveRes;
+  3: i32 latency;
 }
 
 struct Frame {
