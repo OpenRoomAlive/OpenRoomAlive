@@ -41,6 +41,8 @@ ADD_LIBRARY(master_lib
 )
 TARGET_LINK_LIBRARIES(master_lib
     core
+    folly
+    glog
     pthread
     ${GL_LIBRARIES}
     ${Boost_LIBRARIES}

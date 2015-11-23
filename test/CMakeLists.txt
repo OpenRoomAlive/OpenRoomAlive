@@ -13,6 +13,7 @@ SET(TESTS
     CalibratorTest.cc
     ExceptionTest.cc
     GeometryTest.cc
+    ProCamSystemTest.cc
     ProjectionTest.cc
 )
 
@@ -24,6 +25,7 @@ ADD_EXECUTABLE(tests
 TARGET_LINK_LIBRARIES(tests
     core
     master_lib
+    procam_lib
     ${GTEST_LIBRARIES}
 )
 ADD_TEST(UnitTests tests)

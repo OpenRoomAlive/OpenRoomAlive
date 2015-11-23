@@ -13,12 +13,15 @@
 
 namespace dv { namespace master {
 
+class Calibrator;
+class ProCamSystem;
 
 /**
  * Class representing an ensemble of a Kinect and a Projector.
  */
 class ProCam {
-friend class Calibrator;
+  friend class Calibrator;
+  friend class ProCamSystem;
 
  public:
   ProCam();
@@ -32,9 +35,9 @@ friend class Calibrator;
   ~ProCam();
 
   /**
-   * Returns the parameters of the display.
+   * Returns the actual resolution.
    */
-  cv::Size getDisplayParams() const { return actualProjRes_; }
+  cv::Size getActualResolution() const { return actualProjRes_; }
 
   /**
    * Returns the latency.

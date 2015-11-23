@@ -11,6 +11,8 @@
 #include <mutex>
 #include <unordered_map>
 
+#include <folly/dynamic.h>
+
 #include "master/MasterConnectionHandler.h"
 #include "master/ProCam.h"
 
@@ -28,6 +30,16 @@ friend class Calibrator;
  public:
   ProCamSystem();
   ~ProCamSystem();
+
+  /**
+   * Loads the system from a json object.
+   */
+  void fromJSON(const folly::dynamic &data);
+
+  /**
+   * Saves the system to a file.
+   */
+  folly::dynamic toJSON() const;
 
   /**
    * Adds a new ProCam to the system.

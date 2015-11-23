@@ -13,6 +13,44 @@ ProCamSystem::ProCamSystem() {
 ProCamSystem::~ProCamSystem() {
 }
 
+void ProCamSystem::fromJSON(const folly::dynamic &data) {
+  for (const auto &key : data.keys()) {
+    const auto &cam = data[key];
+    addProCam(
+        key.asInt(),
+        cv::Mat(3, 3, CV_32F),
+        cv::Mat(3, 3, CV_32F),
+        cv::Mat(1, 5, CV_32F),
+        cv::Size(
+            cam["actual-res"]["width"].asInt(),
+            cam["actual-res"]["height"].asInt()),
+        cv::Size(
+            cam["effective-res"]["width"].asInt(),
+            cam["effective-res"]["height"].asInt()),
+        std::chrono::milliseconds(0));
+  }
+}
+
+folly::dynamic ProCamSystem::toJSON() const {
+  folly::dynamic data = folly::dynamic::object;
+  for (const auto &kv : proCams_) {
+    const auto id = kv.first;
+    const auto cam = kv.second;
+
+    data[id] = folly::dynamic::object
+        ( "actual-res", folly::dynamic::object
+            ( "width", cam->actualProjRes_.width )
+            ( "height", cam->actualProjRes_.height )
+        )
+        ( "effective-res", folly::dynamic::object
+            ( "width", cam->effectiveProjRes_.width )
+            ( "height", cam->effectiveProjRes_.height )
+        );
+  }
+
+  return data;
+}
+
 void ProCamSystem::addProCam(
     ConnectionID id,
     const cv::Mat &colorCamMat,

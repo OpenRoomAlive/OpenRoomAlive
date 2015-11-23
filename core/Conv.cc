@@ -55,8 +55,7 @@ cv::Mat thriftDistToCvMat(const DistCoef &distCoef) {
   return dc;
 }
 
-void cvSizeToThriftResolution(const cv::Size &cvRes, Resolution &thriftRes)
-{
+void cvSizeToThriftResolution(const cv::Size &cvRes, Resolution &thriftRes) {
   thriftRes.width = cvRes.width;
   thriftRes.height = cvRes.height;
 }

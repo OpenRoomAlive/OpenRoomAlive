@@ -25,7 +25,8 @@ class MasterApplication {
   MasterApplication(
       uint16_t port,
       size_t procamTotal,
-      const std::string &recordDirectory);
+      const std::string &recordDirectory,
+      bool calibrate);
   ~MasterApplication();
 
   int run();
@@ -43,6 +44,8 @@ class MasterApplication {
   const std::shared_ptr<apache::thrift::server::TServer> server_;
   /// ProCam system.
   const std::shared_ptr<ProCamSystem> system_;
+  /// Indicates if the system need to be re-calibrated.
+  const bool calibrate_;
 };
 
 }}

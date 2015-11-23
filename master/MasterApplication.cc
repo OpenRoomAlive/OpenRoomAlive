@@ -4,10 +4,15 @@
 
 #include <atomic>
 #include <cassert>
+#include <fstream>
 #include <iostream>
 #include <thread>
 
 #include <boost/make_shared.hpp>
+#include <boost/filesystem.hpp>
+
+#include <folly/json.h>
+#include <folly/Dynamic.h>
 
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/server/TThreadedServer.h>
@@ -25,11 +30,13 @@
 
 using namespace dv::master;
 
+constexpr auto kCalibrateFileName = ".calibrate";
 
 MasterApplication::MasterApplication(
     uint16_t port,
     size_t procamTotal,
-    const std::string &recordDirectory)
+    const std::string &recordDirectory,
+    bool calibrate)
   : stream_(new EventStream())
   , port_(port)
   , procamTotal_(procamTotal)
@@ -42,6 +49,7 @@ MasterApplication::MasterApplication(
         boost::make_shared<apache::thrift::transport::TBufferedTransportFactory>(),
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
   , system_(new ProCamSystem())
+  , calibrate_(calibrate)
 {
   if (procamTotal_ == 0) {
     throw EXCEPTION() << "At least one procam should be attached.";
@@ -59,45 +67,55 @@ int MasterApplication::run() {
   });
 
   // Wait for all the procams to connect.
-  std::cout << "Waiting for " << procamTotal_ << " connections." << std::endl;
+  std::cout << "Waiting for " << procamTotal_ << " connections..." << std::endl;
   auto connectionIds = connectionHandler_->waitForConnections(procamTotal_);
+  std::cout << "Procams completed." << std::endl;
 
-  std::cout << "IDs of the connected procams:" << std::endl;
-  for (const auto &id : connectionIds) {
-    std::cout << "  " << id << std::endl;
+  // Check if there is a valid calibration file or if user explicitly
+  // asked to re-calibrate the system from scratch.
+  auto calibFile = boost::filesystem::current_path() / kCalibrateFileName;
+  if (calibrate_ || !boost::filesystem::is_regular(calibFile)) {
+    std::cout << "Calibrating ProCam System..." << std::endl;
+
+    // Create an empty ProCam system.
+    auto camerasParams  = connectionHandler_->getCamerasParams();
+    auto displaysParams = connectionHandler_->getDisplaysParams();
+    for (const auto &id : connectionIds) {
+      auto cameraParam = camerasParams[id];
+      auto displayParam = displaysParams[id];
+      system_->addProCam(
+          id,
+          conv::thriftCamMatToCvMat(cameraParam.colorCamMat),
+          conv::thriftCamMatToCvMat(cameraParam.irCamMat),
+          conv::thriftDistToCvMat(cameraParam.irDist),
+          conv::thriftResolutionToCvSize(displayParam.actualRes),
+          conv::thriftResolutionToCvSize(displayParam.effectiveRes),
+          std::chrono::milliseconds(displayParam.latency));
+    }
+
+    // Calibrate the system using grey codes.
+    Calibrator calibrator(connectionIds, connectionHandler_, system_);
+    calibrator.captureBaselines();
+    calibrator.displayGrayCodes();
+    calibrator.decodeGrayCodes();
+    calibrator.calibrate();
+
+    std::cerr << "Calibration completed." << std::endl;
+
+    // Write the calibration data to .calibrate.
+    std::ofstream(calibFile.string())
+        << folly::toPrettyJson(system_->toJSON()).toStdString()
+        << std::endl;
+  } else {
+    std::cout << "Loading calibration data..." << std::endl;
+
+    // Read the calibration data from the .calibrate file.
+    std::ifstream file(calibFile.string());
+    std::string source(
+        (std::istreambuf_iterator<char>(file)),
+        std::istreambuf_iterator<char>());
+    system_->fromJSON(folly::parseJson(source));
   }
-
-  // Fetch camera params, display params
-  std::cout << "Fetching params from ProCams..." << std::endl;
-  auto camerasParams  = connectionHandler_->getCamerasParams();
-  auto displaysParams = connectionHandler_->getDisplaysParams();
-  std::cout << "Fetching completed." << std::endl;
-
-  // Create ProCamSystem
-  for (const auto &id : connectionIds) {
-    auto cameraParams = camerasParams[id];
-
-    system_->addProCam(
-        id,
-        // TODO(ilijar): Perform these conversion in the ConnectionHandler.
-        conv::thriftCamMatToCvMat(cameraParams.colorCamMat),
-        conv::thriftCamMatToCvMat(cameraParams.irCamMat),
-        conv::thriftDistToCvMat(cameraParams.irDist),
-        conv::thriftResolutionToCvSize(displaysParams[id].actualRes),
-        conv::thriftResolutionToCvSize(displaysParams[id].effectiveRes),
-        std::chrono::milliseconds(displaysParams[id].latency));
-  }
-
-  // Calibrate.
-  Calibrator calibrator(connectionIds, connectionHandler_, system_);
-
-  calibrator.captureBaselines();
-  //calibrator.formProjectorGroups();
-  calibrator.displayGrayCodes();
-  calibrator.decodeGrayCodes();
-  calibrator.calibrate();
-
-  // TODO: Perform 3D reconstruction.
 
   // Spawn thread waiting for user input - input => quit.
   std::atomic<bool> run = {true};

@@ -35,6 +35,10 @@ int main(int argc, char **argv) {
         ( "record"
         , po::value<std::string>()->default_value("")
         , "Set the path to the directory in which test data will be recorded."
+        )
+        ( "calibrate"
+        , po::value<bool>()->default_value(true)
+        , "Re-calibrates the system."
         );
 
     // Parse options.
@@ -52,7 +56,8 @@ int main(int argc, char **argv) {
     return MasterApplication(
         options["port"].as<uint16_t>(),
         options["procam-total"].as<size_t>(),
-        options["record"].as<std::string>()
+        options["record"].as<std::string>(),
+        options["calibrate"].as<bool>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;
