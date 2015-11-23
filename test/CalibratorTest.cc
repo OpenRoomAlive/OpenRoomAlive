@@ -16,9 +16,12 @@
 #include "master/Calibrator.h"
 #include "master/MockConnectionHandler.h"
 #include "master/ProCamSystem.h"
+#include "test/Environment.h"
 
 using namespace dv;
 using namespace dv::master;
+using namespace dv::test;
+
 
 /*
  * Test which checks gray code decoding on an example found on the Internet.
@@ -53,9 +56,9 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
 }
 
 TEST(MockConnectionHandlerTest, Test1) {
-  // Intentionally commented out, test used for manual checking of recorder.
-  /*MockConnectionHandler mock("./data/test1");
-  cv::Mat image = mock.getDepthImage(0);
+  MockConnectionHandler mock(kTestEnv->getDataFile(""));
+
+  /*cv::Mat image = mock.getDepthImage(0);
   cv::namedWindow("Depth image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO);
   std::cout << image << std::endl;
   cv::waitKey(0);*/

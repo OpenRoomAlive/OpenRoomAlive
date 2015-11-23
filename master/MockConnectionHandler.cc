@@ -23,7 +23,8 @@ enum FrameTypes
   DEPTH_BASELINE = 4
 };
 
-MockConnectionHandler::MockConnectionHandler(const std::string &path)
+MockConnectionHandler::MockConnectionHandler(
+    const boost::filesystem::path &path)
   : path_(path)
 {
   namespace fs = boost::filesystem;
@@ -125,5 +126,18 @@ ConnectionHandler::FrameMap MockConnectionHandler::getColorBaselines() {
 }
 
 ConnectionHandler::FrameMap MockConnectionHandler::getDepthBaselines() {
+  throw EXCEPTION() << "Unsupported function.";
+}
+
+ConnectionHandler::FrameMap MockConnectionHandler::getDepthVariances() {
+  throw EXCEPTION() << "Unsupported function.";
+}
+
+cv::Mat MockConnectionHandler::undistort(
+    ConnectionID id,
+    const cv::Mat &imageHD)
+{
+  (void) id;
+  (void) imageHD;
   throw EXCEPTION() << "Unsupported function.";
 }

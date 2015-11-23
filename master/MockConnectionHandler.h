@@ -7,6 +7,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include <boost/filesystem.hpp>
+
 #include "master/ConnectionHandler.h"
 
 namespace dv { namespace master {
@@ -17,7 +19,7 @@ class MockConnectionHandler : public ConnectionHandler {
    * Creates a mock connection handler which uses the recorded images on
    * different procams to serve frames on request.
    */
-  explicit MockConnectionHandler(const std::string &path);
+  explicit MockConnectionHandler(const boost::filesystem::path &path);
 
   /**
    * Returns the IDs of connected procams.
@@ -93,9 +95,19 @@ class MockConnectionHandler : public ConnectionHandler {
    */
   FrameMap getDepthBaselines() override;
 
+  /**
+   * Returns a pre-recorded set of depth variances.
+   */
+  FrameMap getDepthVariances() override;
+
+  /**
+   * Undistorts an image. Not sure how.
+   */
+  cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override;
+
  private:
   /// Path to the directory storing images saved for each procam.
-  const std::string path_;
+  const boost::filesystem::path path_;
   /// IDs of the connected proCams.
   std::vector<ConnectionID> ids_;
   /// Indexes of the next frames to be returned by a specified procam.
