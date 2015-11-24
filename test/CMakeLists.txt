@@ -26,6 +26,7 @@ TARGET_LINK_LIBRARIES(tests
     core
     master_lib
     procam_lib
+    double-conversion
     ${GTEST_LIBRARIES}
 )
 ADD_TEST(UnitTests tests)

@@ -56,10 +56,12 @@ TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
 }
 
 TEST(MockConnectionHandlerTest, Test1) {
-  MockConnectionHandler mock(kTestEnv->getDataFile(""));
+  MockConnectionHandler mock(kTestEnv->getDataFile("test0"));
 
-  /*cv::Mat image = mock.getDepthImage(0);
-  cv::namedWindow("Depth image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO);
-  std::cout << image << std::endl;
+  // Left for manual testing.
+  /*ConnectionHandler::FrameMap images = mock.getColorImages();
+  cv::Mat image = images[0];
+  cv::namedWindow("Display window", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO);
+  imshow("Display window", image);
   cv::waitKey(0);*/
 }

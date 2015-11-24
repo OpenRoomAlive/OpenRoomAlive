@@ -58,6 +58,17 @@ cv::Mat thriftCamMatToCvMat(const CameraMatrix &cameraMat);
 cv::Mat thriftDistToCvMat(const DistCoef &distCoef);
 
 /**
+ * Converts cv::Mat to a thrift camera matrix.
+ */
+CameraMatrix cvMatToThriftCamMat(const cv::Mat cameraMat);
+
+/**
+ * Converts cv::Mat to a thrift matrix of distortion coefficients.
+ */
+DistCoef cvMatToThriftDistCoef(const cv::Mat distCoef);
+
+
+/**
  * Converts cv::Size to thrift Resolution.
  */
 void cvSizeToThriftResolution(const cv::Size &cvRes, Resolution &thriftRes);

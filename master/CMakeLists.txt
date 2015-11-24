@@ -44,6 +44,7 @@ TARGET_LINK_LIBRARIES(master_lib
     folly
     glog
     pthread
+    double-conversion
     ${GL_LIBRARIES}
     ${Boost_LIBRARIES}
 )

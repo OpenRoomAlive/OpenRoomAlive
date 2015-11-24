@@ -12,7 +12,24 @@
 
 using namespace dv::master;
 
-constexpr auto kProcamDir = "procam";
+const std::string ProCamRecorder::kProCamDir = "procam";
+
+const std::unordered_map<ProCamRecorder::RecordedData, std::string,
+  ProCamRecorder::DataHasher> ProCamRecorder::kDataDirNames =
+    { { RecordedData::COLOR,          "color_frames" }
+    , { RecordedData::COLOR_BASELINE, "baseline_color_frames" }
+    , { RecordedData::DEPTH,          "depth_frames" }
+    , { RecordedData::DEPTH_BASELINE, "baseline_depth_frames" }
+    , { RecordedData::DEPTH_VARIANCE, "depth_variance" }
+    , { RecordedData::UNDISTORTED,    "undistorted_frames" }
+    , { RecordedData::UNDISTORTED_HD, "undistorted_HD_frames" }
+    , { RecordedData::CAMERA_PARAMS,  "camera_params" }
+    , { RecordedData::DISPLAY_PARAMS, "display_params" }
+    };
+
+const std::string ProCamRecorder::kColorCamParams = "ColorCameraParameters";
+const std::string ProCamRecorder::kDepthCamParams = "DepthCameraParameters";
+const std::string ProCamRecorder::kDisplayParams  = "DepthCameraDistortion";
 
 ProCamRecorder::ProCamRecorder(const std::string &recordDirectory)
   : recordDirectory_(recordDirectory)
@@ -32,7 +49,7 @@ void ProCamRecorder::saveFrame(
 
   // Destination at which the depth image will be stored.
   boost::filesystem::path dest(recordDirectory_);
-  dest /= (kProcamDir + std::to_string(id));
+  dest /= (kProCamDir + std::to_string(id));
   dest /= frameDir;
 
   // Save depth images as OpenEXR and colour images as PNG.
@@ -49,7 +66,7 @@ void ProCamRecorder::saveCameraParams(
 
   // Record camera parameters in top_level/procma{id}/camera_params directory.
   boost::filesystem::path dest(recordDirectory_);
-  dest /= (kProcamDir + std::to_string(id));
+  dest /= (kProCamDir + std::to_string(id));
 
   // Name of the subdirectory in which data about camera parameters are stored.
   dest /= (kDataDirNames.find(RecordedData::CAMERA_PARAMS)->second);
@@ -58,9 +75,9 @@ void ProCamRecorder::saveCameraParams(
   dest /= "cameraParams.xml";
 
   cv::FileStorage fs(dest.string(), cv::FileStorage::WRITE);
-  fs << "ColorCameraParameters" << thriftCamMatToCvMat(params.colorCamMat)
-     << "DepthCameraParameters" << thriftCamMatToCvMat(params.irCamMat)
-     << "DepthCameraDistortion" << thriftDistToCvMat(params.irDist);
+  fs << kColorCamParams << thriftCamMatToCvMat(params.colorCamMat)
+     << kDepthCamParams << thriftCamMatToCvMat(params.irCamMat)
+     << kDisplayParams  << thriftDistToCvMat(params.irDist);
 }
 
 void ProCamRecorder::saveDisplayParams(
@@ -69,7 +86,7 @@ void ProCamRecorder::saveDisplayParams(
 {
   // Record camera parameters in top_level/procma{id}/displaya_params directory.
   boost::filesystem::path dest(recordDirectory_);
-  dest /= (kProcamDir + std::to_string(id));
+  dest /= (kProCamDir + std::to_string(id));
 
   // Name of the subdirectory in which data about dsiplay parameters are stored.
   dest /= (kDataDirNames.find(RecordedData::DISPLAY_PARAMS)->second);
@@ -97,7 +114,7 @@ void ProCamRecorder::createRecordDirectories(size_t count) {
   for (size_t id = 0; id < count; id++) {
     //Create a directory for frames recorded for a single procam.
     fs::path recordPath(recordDirectory_);
-    recordPath /= (kProcamDir + std::to_string(id));
+    recordPath /= (kProCamDir + std::to_string(id));
     fs::create_directory(recordPath);
 
     // Create a directory for every type of recorded data.

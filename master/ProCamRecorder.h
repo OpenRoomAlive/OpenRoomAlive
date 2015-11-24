@@ -76,17 +76,20 @@ class ProCamRecorder
    * Names of the directories in which the recorded data is stored. Order of data
    * type names should be the same like in the RecordedData enum.
    */
-  const std::unordered_map<RecordedData, std::string, DataHasher> kDataDirNames
-      { { RecordedData::COLOR,          "color_frames" }
-      , { RecordedData::COLOR_BASELINE, "baseline_color_frames" }
-      , { RecordedData::DEPTH,          "depth_frames" }
-      , { RecordedData::DEPTH_BASELINE, "baseline_depth_frames" }
-      , { RecordedData::DEPTH_VARIANCE, "depth_variance" }
-      , { RecordedData::UNDISTORTED,    "undistorted_frames" }
-      , { RecordedData::UNDISTORTED_HD, "undistorted_HD_frames" }
-      , { RecordedData::CAMERA_PARAMS,  "camera_params" }
-      , { RecordedData::DISPLAY_PARAMS, "display_params" }
-      };
+  static const std::unordered_map<RecordedData, std::string, DataHasher>
+      kDataDirNames;
+
+  /**
+   * Prefix used for all directories in which proCam data are saved.
+   */
+  static const std::string kProCamDir;
+
+  /**
+   * Aliases used to access the camera parameters saved in XML file.
+   */
+  static const std::string kColorCamParams;
+  static const std::string kDepthCamParams;
+  static const std::string kDisplayParams;
 
  private:
   /**

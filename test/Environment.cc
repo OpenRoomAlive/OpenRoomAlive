@@ -44,7 +44,6 @@ const boost::filesystem::path Environment::getDataFile(
 
 }}
 
-
 /**
  * Entry point of the test suite.
  */

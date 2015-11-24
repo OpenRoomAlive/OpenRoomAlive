@@ -55,6 +55,35 @@ cv::Mat thriftDistToCvMat(const DistCoef &distCoef) {
   return dc;
 }
 
+CameraMatrix cvMatToThriftCamMat(const cv::Mat cameraMat) {
+  if (cameraMat.rows != 3 || cameraMat.cols != 3) {
+    throw EXCEPTION() << "Invalid size of camera matrix.";
+  }
+
+  CameraMatrix cm;
+  cm.fx = cameraMat.at<double>(0, 0);
+  cm.fy = cameraMat.at<double>(1, 1);
+  cm.cx = cameraMat.at<double>(0, 2);
+  cm.cy = cameraMat.at<double>(1, 2);
+
+  return cm;
+}
+
+DistCoef cvMatToThriftDistCoef(const cv::Mat distCoef) {
+  if (distCoef.rows != 1 || distCoef.cols != 5) {
+    throw EXCEPTION() << "Invalid size of the distortion coefficients matrix.";
+  }
+
+  DistCoef dc;
+  dc.k1 = distCoef.at<double>(0, 0);
+  dc.k2 = distCoef.at<double>(0, 1);
+  dc.p1 = distCoef.at<double>(0, 2);
+  dc.p2 = distCoef.at<double>(0, 3);
+  dc.k3 = distCoef.at<double>(0, 4);
+
+  return dc;
+}
+
 void cvSizeToThriftResolution(const cv::Size &cvRes, Resolution &thriftRes) {
   thriftRes.width = cvRes.width;
   thriftRes.height = cvRes.height;
