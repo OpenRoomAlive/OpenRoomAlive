@@ -154,33 +154,60 @@ void Calibrator::displayAndCapture(
 }
 
 Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
-  GrayCodeBitMaskMap decoded;
-  cv::Mat diff, mask, mask32;
+  GrayCodeBitMaskMap retrievedGraycodes;
+  cv::Mat diff, absDiff, mask, mask32;
+  cv::Mat grayscale, grayscaleInvert, validPixelsLevel, validPixelsTemp;
 
   for (const auto &entry : captured_) {
     const auto &images = entry.second;
+    cv::Mat validPixelsOverall = cv::Mat::ones(images[0].size(), CV_32S);
     cv::Mat grayCode = cv::Mat::zeros(images[0].size(), CV_32S);
 
     for (size_t i = 0; i < images.size() / 2; i++) {
-      // Compute the difference in the frames and convert to grayscale.
-      cv::subtract(images[i * 2], images[i * 2 + 1], diff);
-      cv::cvtColor(diff, mask, CV_BGR2GRAY);
+      // Convert to grayscales.
+      cv::cvtColor(images[i * 2], grayscale, CV_BGR2GRAY);
+      cv::cvtColor(images[i * 2 + 1], grayscaleInvert, CV_BGR2GRAY);
 
-      // Threshold the image and convert to 32 bits (needs tweaking).
-      cv::threshold(mask, mask, 50 - i * 2, 1, cv::THRESH_BINARY);
+      // Find valid pixels in this level
+      // TODO1: figure out how to make running it on both coord. work robustly
+      // (sometimes improves score a bit, sometimes breaks completely)
+      // TODO2: Improve score in general. Gaussian + OTSU?
+      //if (i < (images.size() / 4 - 4) ||
+      //    (i >= (images.size() / 4) && i < (images.size() / 2 - 5)) ) {
+      if (i < (images.size() / 4 - 4)) {
+        cv::absdiff(grayscale, grayscaleInvert, absDiff);
+        cv::threshold(
+            absDiff,
+            validPixelsTemp,
+            10,
+            1,
+            cv::THRESH_BINARY);
+        validPixelsTemp.convertTo(validPixelsLevel, CV_32S);
+      } else {
+        validPixelsLevel = cv::Mat::ones(images[0].size(), CV_32S);
+      }
+      cv::multiply(validPixelsOverall, validPixelsLevel, validPixelsOverall);
+
+      // Retrieve the bitmask from image - compare sets values to 255 in diff
+      // where they were bigger in grayscale, then we change them to 1s
+      cv::compare(grayscale, grayscaleInvert, diff, cv::CMP_GE);
+      cv::threshold(diff, mask, 100, 1, cv::THRESH_BINARY);
       mask.convertTo(mask32, CV_32S);
 
-      // Construct binary code by left shift the current value and add mask.
+      // Construct gray code by left shift the current value and add mask.
       cv::scaleAdd(grayCode, 2, mask32, grayCode);
     }
+
+    // Eliminate invalid pixels.
+    cv::multiply(grayCode, validPixelsOverall, grayCode);
 
     cv::Mat grayCodeUndistorted =
         connectionHandler_->undistort(entry.first.second, grayCode);
 
     removeNoise(grayCodeUndistorted, entry.first.first);
-    decoded[entry.first] = grayCodeUndistorted;
+    retrievedGraycodes[entry.first] = grayCodeUndistorted;
   }
-  return decoded;
+  return retrievedGraycodes;
 }
 
 void Calibrator::removeNoise(const cv::Mat &grayCode, ConnectionID id) {
@@ -475,6 +502,19 @@ void Calibrator::calibrate() {
         {},
         {},
         0);*/
+
+    // TODO(ilijar): remove.
+    for (size_t i = 0; i < worldPointsCalib[0].size(); i++) {
+      std::cout
+          << worldPointsCalib[0][i].x << " "
+          << worldPointsCalib[0][i].y << " "
+          << worldPointsCalib[0][i].z << " "
+          << projectorPointsCalib[0][i].x << " "
+          << projectorPointsCalib[0][i].y << " "
+          << std::endl;
+    }
+
+
     auto rms2 = cv::calibrateCamera(
         worldPointsCalib,
         projectorPointsCalib,
@@ -486,16 +526,6 @@ void Calibrator::calibrate() {
         CV_CALIB_USE_INTRINSIC_GUESS);
 
     std::cout << "Calibration RMS: " << rms2 << std::endl;
-    // TODO(ilijar): remove.
-    for (size_t i = 0; i < worldPointsCalib[0].size(); i++) {
-      std::cout
-          << worldPointsCalib[0][i].x << " "
-          << worldPointsCalib[0][i].y << " "
-          << worldPointsCalib[0][i].z << " "
-          << projectorPointsCalib[0][i].x << " "
-          << projectorPointsCalib[0][i].y << " "
-          << std::endl;
-    }
 
     std::cout << "projMat: "  << std::endl;
     std::cout << projector->projMat_ << std::endl;
