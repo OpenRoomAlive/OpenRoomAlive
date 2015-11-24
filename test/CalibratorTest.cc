@@ -7,61 +7,68 @@
 #include <random>
 #include <vector>
 
+#include <boost/make_shared.hpp>
+#include <boost/shared_ptr.hpp>
+
 #include <gtest/gtest.h>
+
 #include <opencv2/opencv.hpp>
 
-#include "core/GrayCode.h"
 #include "core/ProCam.h"
 #include "core/Types.h"
 #include "master/Calibrator.h"
-#include "master/MockConnectionHandler.h"
 #include "master/ProCamSystem.h"
-#include "test/Environment.h"
+#include "test/mock/MockConnectionHandler.h"
+#include "test/mock/MockEnvironment.h"
 
 using namespace dv;
 using namespace dv::master;
 using namespace dv::test;
 
 
-/*
- * Test which checks gray code decoding on an example found on the Internet.
- */
-TEST(CalibratorTest, GrayCodeToBinaryConversion1) {
-  uint32_t grayCodeValue = 0b01101;
-  uint32_t binaryValue = GrayCode::grayCodeToBinary(grayCodeValue, 5);
-  ASSERT_EQ(binaryValue, 0b01001);
-}
+class CalibratorTest : public ::testing::Test {
+ protected:
+  virtual void SetUp() {
+    // Create the conneciton handler.
+    const auto &dir = kTestEnv->getDataFile("test0");
+    conn = boost::static_pointer_cast<ConnectionHandler>(
+        boost::make_shared<MockConnectionHandler>(dir));
+    ids = conn->waitForConnections(1);
 
-/*
- * Test which checks encodes a random integer value as a gray code and later
- * decodes it.
- */
-TEST(CalibratorTest, GrayCodeToBinaryConversion2) {
-  uint32_t binaryValue = 143851;
-  uint32_t grayCodeValue = binaryValue ^ (binaryValue >> 1);
-  uint32_t retrievedBinaryValue = GrayCode::grayCodeToBinary(
-    grayCodeValue, dv::GrayCode::calculateMaxLevels(binaryValue));
-  ASSERT_EQ(binaryValue, retrievedBinaryValue);
-}
+    // Fetch camera parameters.
+    auto camerasParams  = conn->getCamerasParams();
+    auto displaysParams = conn->getDisplaysParams();
 
-/*
- * Check of gray code decoding for a corner case: 0.
- */
-TEST(CalibratorTest, GrayCodeToBinaryConversion3) {
-  uint32_t binaryValue = 0;
-  uint32_t grayCodeValue = binaryValue ^ (binaryValue >> 1);
-  uint32_t retrievedBinaryValue = GrayCode::grayCodeToBinary(
-    grayCodeValue, dv::GrayCode::calculateMaxLevels(binaryValue));
-  ASSERT_EQ(binaryValue, retrievedBinaryValue);
-}
+    // Create a procam system.
+    system = std::make_shared<ProCamSystem>();
+    for (const auto &id : ids) {
+      auto cameraParam = camerasParams[id];
+      auto displayParam = displaysParams[id];
+      system->addProCam(
+          id,
+          conv::thriftCamMatToCvMat(cameraParam.colorCamMat),
+          conv::thriftCamMatToCvMat(cameraParam.irCamMat),
+          conv::thriftDistToCvMat(cameraParam.irDist),
+          conv::thriftResolutionToCvSize(displayParam.actualRes),
+          conv::thriftResolutionToCvSize(displayParam.effectiveRes),
+          std::chrono::milliseconds(displayParam.latency));
+    }
+  }
 
-TEST(MockConnectionHandlerTest, Test1) {
-  MockConnectionHandler mock(kTestEnv->getDataFile("test0"));
+  virtual void TearDown() {
+  }
 
-  // Left for manual testing.
-  /*ConnectionHandler::FrameMap images = mock.getColorImages();
-  cv::Mat image = images[0];
-  cv::namedWindow("Display window", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO);
-  imshow("Display window", image);
-  cv::waitKey(0);*/
+ protected:
+  boost::shared_ptr<ConnectionHandler> conn;
+  std::vector<ConnectionID> ids;
+  std::shared_ptr<ProCamSystem> system;
+};
+
+
+TEST_F(CalibratorTest, RunCalibration) {
+  Calibrator calibrator(ids, conn, system);
+  calibrator.captureBaselines();
+  calibrator.displayGrayCodes();
+  //calibrator.decodeGrayCodes();
+  //calibrator.calibrate();
 }

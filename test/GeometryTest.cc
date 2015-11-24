@@ -14,7 +14,7 @@ using namespace dv;
 /**
  * planeFit should detect a plane with 100 in a cloud 300 more noisy points.
  */
-TEST(GeometryTest, planeFit) {
+TEST(GeometryTest, PlaneFit) {
   std::vector<cv::Point3f> points;
 
   /// 100 points on a the xz plane at distance 2.0f.
@@ -47,7 +47,7 @@ TEST(GeometryTest, planeFit) {
 /**
  * transformPlane should correctly rotate points on a plane.
  */
-TEST(GeometryTest, transformPlane) {
+TEST(GeometryTest, TransformPlane) {
   std::vector<cv::Point3f> points;
 
   // 25 points on a the xz plane at distance 2.0f.
@@ -68,7 +68,7 @@ TEST(GeometryTest, transformPlane) {
 /**
  * transformPlane throws if points are collinear.
  */
-TEST(GeometryTest, transformPlaneCollinear) {
+TEST(GeometryTest, TransformPlaneCollinear) {
   std::vector<cv::Point3f> points;
 
   // 10 points on a line.

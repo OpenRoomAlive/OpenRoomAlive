@@ -37,7 +37,7 @@ constexpr auto kDecodedAreaThreshold = 200;
 
 Calibrator::Calibrator(
     const std::vector<ConnectionID>& ids,
-    const boost::shared_ptr<MasterConnectionHandler>& connectionHandler,
+    const boost::shared_ptr<ConnectionHandler>& connectionHandler,
     const std::shared_ptr<ProCamSystem>& system)
   : ids_(ids)
   , connectionHandler_(connectionHandler)

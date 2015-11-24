@@ -10,7 +10,6 @@ SET(SOURCES
     GLViewer.cc
     MasterApplication.cc
     MasterConnectionHandler.cc
-    MockConnectionHandler.cc
     MasterServer.cc
     ProCam.cc
     ProCamRecorder.cc
@@ -26,7 +25,6 @@ SET(HEADERS
     MasterApplication.h
     MasterConnectionHandler.h
     MasterConnectionHandler-inl.h
-    MockConnectionHandler.h
     MasterServer.h
     ProCam.h
     ProCamRecorder.h

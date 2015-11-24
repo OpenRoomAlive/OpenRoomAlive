@@ -9,7 +9,7 @@
 
 #include "core/Conv.h"
 #include "core/Exception.h"
-#include "master/MockConnectionHandler.h"
+#include "test/mock/MockConnectionHandler.h"
 
 using namespace dv::master;
 using namespace dv;
@@ -172,8 +172,6 @@ CameraParams MockConnectionHandler::loadCameraParams(ConnectionID id) {
   paramsPath /= ProCamRecorder::kDataDirNames.find(
       ProCamRecorder::RecordedData::CAMERA_PARAMS)->second;
   paramsPath /= "cameraParams.xml";
-
-  std::cout << paramsPath.string() << std::endl;
 
   CameraParams params;
   cv::Mat colCamParams, depthCamParams, distCoefs;

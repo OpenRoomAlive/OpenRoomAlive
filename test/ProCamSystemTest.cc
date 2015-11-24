@@ -30,7 +30,7 @@ float kDistCoeffs[5] = {
 /**
  * Tests loading the system from a json object.
  */
-TEST(ProCamSystemTest, testLoadFromJSON) {
+TEST(ProCamSystemTest, TestLoadFromJSON) {
   folly::dynamic data = folly::dynamic::object
       ( 0, folly::dynamic::object
         ( "actual-res", folly::dynamic::object
@@ -61,7 +61,7 @@ TEST(ProCamSystemTest, testLoadFromJSON) {
 /**
  * Tests writing the system to a json object.
  */
-TEST(ProCamSystemTest, testWriteToJSON) {
+TEST(ProCamSystemTest, TestWriteToJSON) {
   auto sys = std::make_shared<ProCamSystem>();
 
   for (const auto &id : { 1, 2, 3 }) {

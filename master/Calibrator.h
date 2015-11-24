@@ -9,7 +9,7 @@
 
 #include <boost/functional/hash.hpp>
 
-#include "master/MasterConnectionHandler.h"
+#include "master/ConnectionHandler.h"
 #include "master/ProCamSystem.h"
 
 namespace dv { namespace master {
@@ -54,7 +54,7 @@ class Calibrator {
 
   Calibrator(
       const std::vector<ConnectionID>& ids,
-      const boost::shared_ptr<MasterConnectionHandler>& connectionHandler,
+      const boost::shared_ptr<ConnectionHandler>& connectionHandler,
       const std::shared_ptr<ProCamSystem>& system);
   ~Calibrator();
 
@@ -115,7 +115,7 @@ class Calibrator {
   /// IDs of the procam connections
   const std::vector<ConnectionID> ids_;
   /// Pointer to the connection handler
-  const boost::shared_ptr<MasterConnectionHandler> connectionHandler_;
+  const boost::shared_ptr<ConnectionHandler> connectionHandler_;
   /// ProCam system.
   const std::shared_ptr<ProCamSystem> system_;
   /// Map of captured gray code pattern

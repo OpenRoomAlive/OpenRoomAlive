@@ -4,8 +4,10 @@
 
 # List of all test helpers.
 SET(HELPERS
-    Environment.h
-    Environment.cc
+    mock/MockConnectionHandler.h
+    mock/MockConnectionHandler.cc
+    mock/MockEnvironment.h
+    mock/MockEnvironment.cc
 )
 
 # List of all tests.
@@ -13,6 +15,7 @@ SET(TESTS
     CalibratorTest.cc
     ExceptionTest.cc
     GeometryTest.cc
+    GreyCodeTest.cc
     ProCamSystemTest.cc
     ProjectionTest.cc
 )
