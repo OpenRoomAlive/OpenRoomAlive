@@ -67,16 +67,9 @@ class RecordingConnectionHandler : public MasterConnectionHandler {
   cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override;
 
   /**
-   * Invokes getCameraParams on all clients and records the retrieved camera
-   * data.
+   * Invokes getParams on all clients and records the retrieved camera data.
    */
-  std::unordered_map<ConnectionID, CameraParams> getCamerasParams() override;
-
-  /**
-   * Invokes getDisplayParams on all clients and records the retrieved display
-   * data.
-   */
-  std::unordered_map<ConnectionID, DisplayParams> getDisplaysParams() override;
+  ParamMap getParams() override;
 
  private:
   void recordAll(

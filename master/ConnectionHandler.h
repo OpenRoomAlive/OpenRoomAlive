@@ -16,8 +16,10 @@ namespace dv { namespace master {
 
 class ConnectionHandler {
  public:
-  /// Map from ID of a connection to captured image.
+  /// Map from IDs of connections to captured images.
   using FrameMap = std::unordered_map<ConnectionID, cv::Mat>;
+  /// Map from IDs of connections to parameters.
+  using ParamMap = std::unordered_map<ConnectionID, ProCamParam>;
 
   virtual ~ConnectionHandler();
 
@@ -57,15 +59,9 @@ class ConnectionHandler {
   virtual void clearDisplays() = 0;
 
   /**
-   * Invokes getCameraParams on all clients.
+   * Invokes getParams on all clients.
    */
-  virtual std::unordered_map<ConnectionID, CameraParams> getCamerasParams() = 0;
-
-  /**
-   * Invokes getDisplayParams on all clients.
-   */
-  virtual std::unordered_map<ConnectionID, DisplayParams>
-      getDisplaysParams() = 0;
+  virtual ParamMap getParams() = 0;
 
   /**
    * Invokes getColorImage on all clients.

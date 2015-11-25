@@ -78,11 +78,11 @@ int MasterApplication::run() {
     std::cout << "Calibrating ProCam System..." << std::endl;
 
     // Create an empty ProCam system.
-    auto camerasParams  = connectionHandler_->getCamerasParams();
-    auto displaysParams = connectionHandler_->getDisplaysParams();
+    auto params = connectionHandler_->getParams();
     for (const auto &id : connectionIds) {
-      auto cameraParam = camerasParams[id];
-      auto displayParam = displaysParams[id];
+      auto cameraParam = params[id].camera;
+      auto displayParam = params[id].display;
+
       system_->addProCam(
           id,
           conv::thriftCamMatToCvMat(cameraParam.colorCamMat),

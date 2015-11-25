@@ -5,7 +5,11 @@
 #include <iostream>
 #include <fstream>
 
+#include <boost/make_shared.hpp>
 #include <boost/filesystem.hpp>
+
+#include <thrift/protocol/TJSONProtocol.h>
+#include <thrift/transport/TFileTransport.h>
 
 #include "core/Conv.h"
 #include "core/Exception.h"
@@ -105,24 +109,10 @@ cv::Mat MockConnectionHandler::undistort(
   return loadFrame(id, ProCamRecorder::RecordedData::UNDISTORTED_HD);
 }
 
-std::unordered_map<ConnectionID, CameraParams>
-    MockConnectionHandler::getCamerasParams()
-{
-  std::unordered_map<ConnectionID, CameraParams> params;
-
+ConnectionHandler::ParamMap MockConnectionHandler::getParams() {
+  ParamMap params;
   for (ConnectionID id = 0; id < count_; id++) {
-    params[id] = loadCameraParams(id);
-  }
-  return params;
-}
-
-std::unordered_map<ConnectionID, DisplayParams>
-    MockConnectionHandler::getDisplaysParams()
-{
-  std::unordered_map<ConnectionID, DisplayParams> params;
-
-  for (ConnectionID id = 0; id < count_; id++) {
-    params[id] = loadDisplayParams(id);
+    params[id] = loadParam(id);
   }
   return params;
 }
@@ -165,49 +155,22 @@ ConnectionHandler::FrameMap MockConnectionHandler::loadFrames(
   return loadedFrames;
 }
 
-CameraParams MockConnectionHandler::loadCameraParams(ConnectionID id) {
+ProCamParam MockConnectionHandler::loadParam(ConnectionID id) {
+  namespace tt = apache::thrift::transport;
+  namespace tp = apache::thrift::protocol;
+
   // Build a path to the directory in which camera paramters are saved.
-  boost::filesystem::path paramsPath(path_);
-  paramsPath /= (ProCamRecorder::kProCamDir + std::to_string(id));
-  paramsPath /= ProCamRecorder::kDataDirNames.find(
-      ProCamRecorder::RecordedData::CAMERA_PARAMS)->second;
-  paramsPath /= "cameraParams.xml";
+  boost::filesystem::path source(path_);
+  source /= (ProCamRecorder::kProCamDir + std::to_string(id));
+  source /= "param.json";
 
-  CameraParams params;
-  cv::Mat colCamParams, depthCamParams, distCoefs;
+  auto transport = boost::make_shared<tt::TFileTransport>(source.string());
+  auto protocol = boost::make_shared<tp::TJSONProtocol>(
+      boost::static_pointer_cast<tp::TTransport>(transport));
 
-  // Load the camera paramters from a XML file.
-  cv::FileStorage fs(paramsPath.string(), cv::FileStorage::READ);
-
-  fs[ProCamRecorder::kColorCamParams] >> colCamParams;
-  fs[ProCamRecorder::kDepthCamParams] >> depthCamParams;
-  fs[ProCamRecorder::kDisplayParams]  >> distCoefs;
-  fs.release();
-
-  // Convert the paramters to thrift format.
-  params.colorCamMat = dv::conv::cvMatToThriftCamMat(colCamParams);
-  params.irCamMat    = dv::conv::cvMatToThriftCamMat(depthCamParams);
-  params.irDist      = dv::conv::cvMatToThriftDistCoef(distCoefs);
-
-  return params;
-}
-
-DisplayParams MockConnectionHandler::loadDisplayParams(ConnectionID id) {
-  // Build a path to the directory in which display paramters are saved.
-  boost::filesystem::path paramsPath(path_);
-  paramsPath /= (ProCamRecorder::kProCamDir + std::to_string(id));
-  paramsPath /= ProCamRecorder::kDataDirNames.find(
-      ProCamRecorder::RecordedData::DISPLAY_PARAMS)->second;
-  paramsPath /= "displayParams.txt";
-
-  DisplayParams params;
-  // Retrieve the paramters from a file.
-  std::ifstream paramsFile(paramsPath.string());
-  paramsFile >> params.effectiveRes.width;
-  paramsFile >> params.effectiveRes.height;
-  paramsFile.close();
-
-  return params;
+  ProCamParam param;
+  param.read(protocol.get());
+  return param;
 }
 
 std::string MockConnectionHandler::frameName(
@@ -216,13 +179,14 @@ std::string MockConnectionHandler::frameName(
 {
   std::string ext;
   switch (dataType) {
-    case ProCamRecorder::RecordedData::DEPTH          :
-    case ProCamRecorder::RecordedData::DEPTH_BASELINE :
-    case ProCamRecorder::RecordedData::DEPTH_VARIANCE :
+    case ProCamRecorder::RecordedData::DEPTH:
+    case ProCamRecorder::RecordedData::DEPTH_BASELINE:
+    case ProCamRecorder::RecordedData::DEPTH_VARIANCE:
       ext = "exr";
       break;
     default :
       ext = "png";
+      break;
   }
   return "frame" + std::to_string(nextFrame_[id][dataType]++) + "." + ext;
 }

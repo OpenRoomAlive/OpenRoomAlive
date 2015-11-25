@@ -59,12 +59,7 @@ class MockConnectionHandler : public ConnectionHandler {
   /**
    * Retrieves camera params of all connected procams.
    */
-  std::unordered_map<ConnectionID, CameraParams> getCamerasParams() override;
-
-  /**
-   * Retrieves display params of all connected procams.
-   */
-  std::unordered_map<ConnectionID, DisplayParams> getDisplaysParams() override;
+  ParamMap getParams() override;
 
   /**
    * Retrieves pre-recorded color images from all procams.
@@ -125,14 +120,9 @@ class MockConnectionHandler : public ConnectionHandler {
   FrameMap loadFrames(ProCamRecorder::RecordedData dataType);
 
   /**
-   * Loads the camera parameters from an XML file.
+   * Loads the camera parameters from a JSON file.
    */
-  CameraParams loadCameraParams(ConnectionID id);
-
-  /**
-   * Loads display parameters from a text file.
-   */
-  DisplayParams loadDisplayParams(ConnectionID id);
+  ProCamParam loadParam(ConnectionID id);
 
   /**
    * Given the type of the frame that the user wishes to retrieve, returns

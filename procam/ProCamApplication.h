@@ -45,15 +45,9 @@ class ProCamApplication : public ProCamIf {
   int run();
 
   /**
-   * Retrieves the camera parameters.
+   * Retrieves the procam parameters.
    */
-  void getCameraParams(CameraParams& cameraParams) override;
-
-  /**
-   * Retrieves the parameters of the display.
-   */
-  void getDisplayParams(DisplayParams& displayParams) override;
-
+  void getParam(ProCamParam& cameraParams) override;
   /**
    * Retrieves the color BGR image (1920x1080).
    */

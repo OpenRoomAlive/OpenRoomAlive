@@ -32,13 +32,7 @@ class ProCamRecorder
   /**
    * Records camera parameters in the directory corresponding to a given proCam.
    */
-  void saveCameraParams(const CameraParams &params, ConnectionID id);
-
-  /**
-   * Records display parameters in the directory corresponding to a given
-   * proCam.
-   */
-  void saveDisplayParams(const DisplayParams &params, ConnectionID id);
+  void saveParam(const ProCamParam &params, ConnectionID id);
 
   /**
    * If the recordDirectory_ field is not empty, the function checks if the
@@ -61,9 +55,7 @@ class ProCamRecorder
     DEPTH_BASELINE,
     DEPTH_VARIANCE,
     UNDISTORTED,
-    UNDISTORTED_HD,
-    CAMERA_PARAMS,
-    DISPLAY_PARAMS
+    UNDISTORTED_HD
   };
 
   struct DataHasher {
@@ -83,13 +75,6 @@ class ProCamRecorder
    * Prefix used for all directories in which proCam data are saved.
    */
   static const std::string kProCamDir;
-
-  /**
-   * Aliases used to access the camera parameters saved in XML file.
-   */
-  static const std::string kColorCamParams;
-  static const std::string kDepthCamParams;
-  static const std::string kDisplayParams;
 
  private:
   /**

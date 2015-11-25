@@ -102,21 +102,10 @@ class MasterConnectionHandler
   }
 
   /**
-   * Invokes getCameraParams on all clients.
+   * Invokes getParams on all clients.
    */
-  virtual std::unordered_map<ConnectionID, CameraParams>
-      getCamerasParams() override
-  {
-    return InvokeAll(&ProCamClient::getCameraParams);
-  }
-
-  /**
-   * Invokes getDisplayParams on all clients.
-   */
-  virtual std::unordered_map<ConnectionID, DisplayParams>
-      getDisplaysParams() override
-  {
-    return InvokeAll(&ProCamClient::getDisplayParams);
+  virtual ParamMap getParams() override {
+    return InvokeAll(&ProCamClient::getParam);
   }
 
   /**

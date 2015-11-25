@@ -5,6 +5,11 @@
 namespace cpp dv
 
 
+struct Resolution {
+  1: i16 width;
+  2: i16 height;
+}
+
 /**
  * Camera matrix.
  *
@@ -41,15 +46,15 @@ struct CameraParams {
   3: DistCoef irDist;
 }
 
-struct Resolution {
-  1: i16 width;
-  2: i16 height;
-}
-
 struct DisplayParams {
   1: Resolution actualRes;
   2: Resolution effectiveRes;
   3: i32 latency;
+}
+
+struct ProCamParam {
+  1: CameraParams camera;
+  2: DisplayParams display;
 }
 
 struct Frame {
@@ -78,14 +83,9 @@ struct Point {
  */
 service ProCam {
   /**
-   * Retrieves the parameters of the Color and Ir cameras.
+   * Retrieves the parameters of the Color and IR cameras and the display.
    */
-  CameraParams getCameraParams(),
-
-  /**
-   * Retrieves the parameters of the display.
-   */
-  DisplayParams getDisplayParams(),
+  ProCamParam getParam(),
 
   /**
    * Retrieves the BGR image (1920x1080).

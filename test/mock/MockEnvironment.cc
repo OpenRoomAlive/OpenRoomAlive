@@ -4,6 +4,7 @@
 
 #include <mutex>
 #include <iostream>
+
 #include <gtest/gtest.h>
 
 #include "test/mock/MockEnvironment.h"
@@ -25,7 +26,7 @@ void Environment::SetUp() {
   namespace fs = boost::filesystem;
   ASSERT_FALSE(args_.empty());
 
-  for (const auto &dir : fs::absolute(fs::current_path() / args_[0])) {
+  for (const auto &dir : fs::absolute(args_[0])) {
     if (dir == "build") {
       dataDirectory_ /= "data";
       break;

@@ -80,26 +80,14 @@ cv::Mat RecordingConnectionHandler::undistort(
   return undistortedHD;
 }
 
-std::unordered_map<ConnectionID, CameraParams>
-    RecordingConnectionHandler::getCamerasParams()
+ConnectionHandler::ParamMap RecordingConnectionHandler::getParams()
 {
-  auto cameraParams = MasterConnectionHandler::getCamerasParams();
+  auto cameraParams = MasterConnectionHandler::getParams();
 
   for (auto idParams : cameraParams) {
-    recorder_.saveCameraParams(idParams.second, idParams.first);
+    recorder_.saveParam(idParams.second, idParams.first);
   }
   return cameraParams;
-}
-
-std::unordered_map<ConnectionID, DisplayParams>
-    RecordingConnectionHandler::getDisplaysParams()
-{
-  auto displayParams = MasterConnectionHandler::getDisplaysParams();
-
-  for (auto idParams : displayParams) {
-    recorder_.saveDisplayParams(idParams.second, idParams.first);
-  }
-  return displayParams;
 }
 
 void RecordingConnectionHandler::recordAll(

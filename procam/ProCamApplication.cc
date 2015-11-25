@@ -127,18 +127,15 @@ int ProCamApplication::run() {
   return EXIT_SUCCESS;
 }
 
-void ProCamApplication::getCameraParams(CameraParams& cameraParams) {
-  cameraParams = camera_->getParameters();
-}
-
-void ProCamApplication::getDisplayParams(DisplayParams& displayParams) {
+void ProCamApplication::getParam(ProCamParam& params) {
+  params.camera = camera_->getParameters();
   conv::cvSizeToThriftResolution(
       display_->getParameters(),
-      displayParams.actualRes);
+      params.display.actualRes);
   conv::cvSizeToThriftResolution(
       grayCode_.getRes(),
-      displayParams.effectiveRes);
-  displayParams.latency = latency_;
+      params.display.effectiveRes);
+  params.display.latency = latency_;
 }
 
 void ProCamApplication::getColorImage(Frame& frame) {

@@ -4,7 +4,11 @@
 
 #include <fstream>
 
+#include <boost/make_shared.hpp>
 #include <boost/filesystem.hpp>
+
+#include <thrift/protocol/TJSONProtocol.h>
+#include <thrift/transport/TFileTransport.h>
 
 #include "core/Conv.h"
 #include "core/Exception.h"
@@ -23,13 +27,7 @@ const std::unordered_map<ProCamRecorder::RecordedData, std::string,
     , { RecordedData::DEPTH_VARIANCE, "depth_variance" }
     , { RecordedData::UNDISTORTED,    "undistorted_frames" }
     , { RecordedData::UNDISTORTED_HD, "undistorted_HD_frames" }
-    , { RecordedData::CAMERA_PARAMS,  "camera_params" }
-    , { RecordedData::DISPLAY_PARAMS, "display_params" }
     };
-
-const std::string ProCamRecorder::kColorCamParams = "ColorCameraParameters";
-const std::string ProCamRecorder::kDepthCamParams = "DepthCameraParameters";
-const std::string ProCamRecorder::kDisplayParams  = "DepthCameraDistortion";
 
 ProCamRecorder::ProCamRecorder(const std::string &recordDirectory)
   : recordDirectory_(recordDirectory)
@@ -58,48 +56,20 @@ void ProCamRecorder::saveFrame(
   imwrite(dest.string(), frame);
 }
 
-void ProCamRecorder::saveCameraParams(
-    const CameraParams &params,
-    ConnectionID id)
-{
-  using namespace dv::conv;
+void ProCamRecorder::saveParam(const ProCamParam &param, ConnectionID id) {
+  namespace tt = apache::thrift::transport;
+  namespace tp = apache::thrift::protocol;
 
-  // Record camera parameters in top_level/procma{id}/camera_params directory.
+  // Record camera parameters in top_level/procam{id}/param.json directory.
   boost::filesystem::path dest(recordDirectory_);
   dest /= (kProCamDir + std::to_string(id));
+  dest /= "param.json";
 
-  // Name of the subdirectory in which data about camera parameters are stored.
-  dest /= (kDataDirNames.find(RecordedData::CAMERA_PARAMS)->second);
+  auto transport = boost::make_shared<tt::TFileTransport>(dest.string());
+  auto protocol = boost::make_shared<tp::TJSONProtocol>(
+      boost::static_pointer_cast<tp::TTransport>(transport));
 
-  // Name of the new file that will be created to save parameters of the camera.
-  dest /= "cameraParams.xml";
-
-  cv::FileStorage fs(dest.string(), cv::FileStorage::WRITE);
-  fs << kColorCamParams << thriftCamMatToCvMat(params.colorCamMat)
-     << kDepthCamParams << thriftCamMatToCvMat(params.irCamMat)
-     << kDisplayParams  << thriftDistToCvMat(params.irDist);
-}
-
-void ProCamRecorder::saveDisplayParams(
-    const DisplayParams &params,
-    ConnectionID id)
-{
-  // Record camera parameters in top_level/procma{id}/displaya_params directory.
-  boost::filesystem::path dest(recordDirectory_);
-  dest /= (kProCamDir + std::to_string(id));
-
-  // Name of the subdirectory in which data about dsiplay parameters are stored.
-  dest /= (kDataDirNames.find(RecordedData::DISPLAY_PARAMS)->second);
-
-  // Name of the new file in which parameters of the display will be saved.
-  dest /= "displayParams.txt";
-
-  // Save the display parameters to a text file.
-  std::ofstream displayParamsRecord;
-  displayParamsRecord.open(dest.string());
-  displayParamsRecord << params.effectiveRes.width << std::endl
-                      << params.effectiveRes.height;
-  displayParamsRecord.close();
+  param.write(protocol.get());
 }
 
 void ProCamRecorder::createRecordDirectories(size_t count) {
