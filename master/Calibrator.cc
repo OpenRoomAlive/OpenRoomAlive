@@ -359,7 +359,7 @@ void Calibrator::calibrate() {
         }
 
         // Compute the 3D point out of the depth info.
-        auto point3D = projection::map3D(kinect->irCamMat_, depth, r, c);
+        auto point3D = projection::map3D(kinect->irCam_.proj, depth, r, c);
 
         // We're working on undistorted images.
         // Hence, use (r, c) to construct a 2D point in Kinect's color image.

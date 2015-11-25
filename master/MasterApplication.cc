@@ -78,19 +78,17 @@ int MasterApplication::run() {
     std::cout << "Calibrating ProCam System..." << std::endl;
 
     // Create an empty ProCam system.
-    auto params = connectionHandler_->getParams();
-    for (const auto &id : connectionIds) {
-      auto cameraParam = params[id].camera;
-      auto displayParam = params[id].display;
+    for (const auto &param : connectionHandler_->getParams()) {
+      auto camera = param.second.camera;
+      auto display = param.second;
 
       system_->addProCam(
-          id,
-          conv::thriftCamMatToCvMat(cameraParam.colorCamMat),
-          conv::thriftCamMatToCvMat(cameraParam.irCamMat),
-          conv::thriftDistToCvMat(cameraParam.irDist),
-          conv::thriftResolutionToCvSize(displayParam.actualRes),
-          conv::thriftResolutionToCvSize(displayParam.effectiveRes),
-          std::chrono::milliseconds(displayParam.latency));
+          param.first,
+          conv::thriftCamMatToCvMat(camera.bgr),
+          conv::thriftCamMatToCvMat(camera.ir),
+          { display.actualRes.width, display.actualRes.height },
+          { display.effectiveRes.width, display.effectiveRes.height },
+          std::chrono::milliseconds(display.latency));
     }
 
     // Calibrate the system using grey codes.

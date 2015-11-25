@@ -54,7 +54,7 @@ void MockDisplay::update() {
   tcsetattr(fd, TCSANOW, &oldSettings);
 }
 
-cv::Size MockDisplay::getParameters() {
+cv::Size MockDisplay::getResolution() {
   cv::Size resolution;
   resolution.width = getWidth();
   resolution.height = getHeight();

@@ -35,7 +35,7 @@ class Display {
   /**
    * Retrieves the parameters of the display.
    */
-  virtual cv::Size getParameters() = 0;
+  virtual cv::Size getResolution() = 0;
 
   /**
    * Retrieves the width.

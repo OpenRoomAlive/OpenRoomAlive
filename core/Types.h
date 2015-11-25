@@ -7,6 +7,9 @@
 #include <cmath>
 #include <iostream>
 
+#include <opencv2/opencv.hpp>
+
+
 namespace dv {
 
 /**
@@ -14,6 +17,14 @@ namespace dv {
  * associated ProCam.
  */
 using ConnectionID = uint64_t;
+
+/**
+ * Camera matrix & distorion.
+ */
+struct CameraModel {
+  cv::Mat proj;
+  cv::Mat dist;
+};
 
 /**
  * Structure representing the equation of a plane.

@@ -46,9 +46,8 @@ friend class Calibrator;
    */
   void addProCam(
       ConnectionID id,
-      const cv::Mat &colorCamMat,
-      const cv::Mat &irCamMat,
-      const cv::Mat &irDist,
+      const CameraModel &colorCam,
+      const CameraModel &irCam,
       const cv::Size &actualProjRes,
       const cv::Size &effectiveProjRes,
       const std::chrono::milliseconds &latency);

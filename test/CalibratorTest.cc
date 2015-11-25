@@ -38,16 +38,15 @@ class CalibratorTest : public ::testing::Test {
     // Create a procam system.
     system = std::make_shared<ProCamSystem>();
     for (const auto &param : conn->getParams()) {
-      auto &cameraParam = param.second.camera;
-      auto &displayParam = param.second.display;
+      auto &camera = param.second.camera;
+      auto &display = param.second;
       system->addProCam(
           param.first,
-          conv::thriftCamMatToCvMat(cameraParam.colorCamMat),
-          conv::thriftCamMatToCvMat(cameraParam.irCamMat),
-          conv::thriftDistToCvMat(cameraParam.irDist),
-          conv::thriftResolutionToCvSize(displayParam.actualRes),
-          conv::thriftResolutionToCvSize(displayParam.effectiveRes),
-          std::chrono::milliseconds(displayParam.latency));
+          conv::thriftCamMatToCvMat(camera.bgr),
+          conv::thriftCamMatToCvMat(camera.ir),
+          { display.actualRes.width, display.actualRes.height },
+          { display.effectiveRes.width, display.effectiveRes.height },
+          std::chrono::milliseconds(display.latency));
     }
   }
 

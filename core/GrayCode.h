@@ -59,7 +59,7 @@ class GrayCode {
   /**
    * Retrieves the resolution.
    */
-  cv::Size getRes() const { return cv::Size(width_, height_); }
+  cv::Size getResolution() const { return cv::Size(width_, height_); }
 
  private:
   size_t width_;

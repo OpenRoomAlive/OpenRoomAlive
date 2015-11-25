@@ -48,35 +48,18 @@ thriftFrameToCvMatMap(std::unordered_map<K, Frame> frames)
 }
 
 /**
- * Converts a thrift camera matrix to a cv::Mat.
+ * Converts BGRD camera parameters to OpenCV camera and distortion parameters.
  */
-cv::Mat thriftCamMatToCvMat(const CameraMatrix &cameraMat);
-
-/**
- * Converts thrift distortion coefficients to a row cv::Mat with 5 columns.
- */
-cv::Mat thriftDistToCvMat(const DistCoef &distCoef);
-
-/**
- * Converts cv::Mat to a thrift camera matrix.
- */
-CameraMatrix cvMatToThriftCamMat(const cv::Mat cameraMat);
-
-/**
- * Converts cv::Mat to a thrift matrix of distortion coefficients.
- */
-DistCoef cvMatToThriftDistCoef(const cv::Mat distCoef);
+CameraModel thriftCamMatToCvMat(
+    const BGRCameraParams &bgrParams);
 
 
 /**
- * Converts cv::Size to thrift Resolution.
+ * Converts depth camera parameters to OpenCV camera and distortion parameters.
  */
-void cvSizeToThriftResolution(const cv::Size &cvRes, Resolution &thriftRes);
+CameraModel thriftCamMatToCvMat(
+    const IrCameraParams &depthParams);
 
-/**
- * Converts thrift Resolution to cv::Size.
- */
-cv::Size thriftResolutionToCvSize(const Resolution &res);
 
 }}
 

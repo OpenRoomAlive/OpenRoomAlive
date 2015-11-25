@@ -67,9 +67,8 @@ TEST(ProCamSystemTest, TestWriteToJSON) {
   for (const auto &id : { 1, 2, 3 }) {
     sys->addProCam(
         id,
-        cv::Mat(3, 3, CV_32F, kColourCamMatrix),
-        cv::Mat(3, 3, CV_32F, kIrCamMatrix),
-        cv::Mat(1, 5, CV_32F, kDistCoeffs),
+        { cv::Mat(3, 3, CV_32F, kColourCamMatrix), cv::Mat(0, 0, CV_32F) },
+        { cv::Mat(3, 3, CV_32F, kIrCamMatrix), cv::Mat(1, 5, CV_32F) },
         cv::Size(2 * id, 3 * id),
         cv::Size(4 * id, 5 * id),
         std::chrono::milliseconds(6)

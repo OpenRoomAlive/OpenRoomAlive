@@ -117,7 +117,7 @@ GLDisplay::~GLDisplay() {
   destroy();
 }
 
-cv::Size GLDisplay::getParameters() {
+cv::Size GLDisplay::getResolution() {
   return resolution_;
 }
 

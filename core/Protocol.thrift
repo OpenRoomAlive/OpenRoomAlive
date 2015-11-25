@@ -10,51 +10,80 @@ struct Resolution {
   2: i16 height;
 }
 
-/**
- * Camera matrix.
- *
- * (fx, fy) - camera focal lengths
- * (cx, cy) - principal point
- */
-struct CameraMatrix {
-  1: double fx;
-  2: double fy;
-  3: double cx;
-  4: double cy;
-}
 
 /**
- * Distortion coefficients.
- *
- * k - radial distortion
- * p - tangential distortion
+ * BGR camera parameters.
  */
-struct DistCoef {
-  1: double k1;
-  2: double k2;
-  3: double p1;
-  4: double p2;
-  5: double k3;
+struct BGRCameraParams {
+   1: double fx,
+   2: double fy,
+   3: double cx,
+   4: double cy,
+
+   5: double shift_d,
+   6: double shift_m,
+
+   7: double mx_x3y0,
+   8: double mx_x0y3,
+   9: double mx_x2y1,
+  10: double mx_x1y2,
+  11: double mx_x2y0,
+  12: double mx_x0y2,
+  13: double mx_x1y1,
+  14: double mx_x1y0,
+  15: double mx_x0y1,
+  16: double mx_x0y0,
+
+  17: double my_x3y0,
+  18: double my_x0y3,
+  19: double my_x2y1,
+  20: double my_x1y2,
+  21: double my_x2y0,
+  22: double my_x0y2,
+  23: double my_x1y1,
+  24: double my_x1y0,
+  25: double my_x0y1,
+  26: double my_x0y0,
 }
 
+
 /**
- * Camera parameters.
+ * Depth camera parameters.
+ */
+struct IrCameraParams {
+  1: double fx,
+  2: double fy,
+  3: double cx,
+  4: double cy,
+
+  5: double k1,
+  6: double k2,
+  7: double k3,
+  8: double p1,
+  9: double p2,
+}
+
+
+/**
+ * Parameters of the Kinect2 camera.
  */
 struct CameraParams {
-  1: CameraMatrix colorCamMat;
-  2: CameraMatrix irCamMat;
-  3: DistCoef irDist;
+  1: BGRCameraParams bgr,
+  2: IrCameraParams ir,
 }
 
-struct DisplayParams {
-  1: Resolution actualRes;
-  2: Resolution effectiveRes;
-  3: i32 latency;
-}
 
+/**
+ * Parameters of all the elements of a procam.
+ */
 struct ProCamParam {
-  1: CameraParams camera;
-  2: DisplayParams display;
+  // Parameters of the projector.
+  1: Resolution actualRes,
+  2: Resolution effectiveRes,
+  3: i32 latency,
+
+  // Camera parameters.
+  4: CameraParams camera,
 }
 
 struct Frame {

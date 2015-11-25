@@ -40,7 +40,7 @@ cv::Mat MockCamera::getUndistortedColorImage() {
 }
 
 CameraParams MockCamera::getParameters() {
-  return CameraParams();
+  return {};
 }
 
 cv::Mat MockCamera::undistort(

@@ -7,20 +7,20 @@
 using namespace dv::master;
 
 ProCam::ProCam()
-  : latency_(0)
+  : colorCam_({ cv::Mat(3, 3, CV_32F), cv::Mat(0, 0, CV_32F) })
+  , irCam_({ cv::Mat(3, 3, CV_32F), cv::Mat(1, 5, CV_32F) })
+  , latency_(0)
 {
 }
 
 ProCam::ProCam(
-    const cv::Mat &colorCamMat,
-    const cv::Mat &irCamMat,
-    const cv::Mat &irDist,
+    const CameraModel &colorCamMat,
+    const CameraModel &irCamMat,
     const cv::Size &actualProjRes,
     const cv::Size &effectiveProjRes,
     const std::chrono::milliseconds &latency)
-  : colorCamMat_(colorCamMat)
-  , irCamMat_(irCamMat)
-  , irDist_(irDist)
+  : colorCam_(colorCamMat)
+  , irCam_(irCamMat)
   , actualProjRes_(actualProjRes)
   , effectiveProjRes_(effectiveProjRes)
   , latency_(latency)

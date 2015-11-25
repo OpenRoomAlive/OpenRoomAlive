@@ -116,24 +116,52 @@ CameraParams KinectCamera::getParameters() {
   CameraParams cameraParams;
 
   // Retrieve the color camera params from the device.
-  auto color = kinect_->getColorCameraParams();
-  cameraParams.colorCamMat.fx = color.fx;
-  cameraParams.colorCamMat.fy = color.fy;
-  cameraParams.colorCamMat.cx = color.cx;
-  cameraParams.colorCamMat.cy = color.cy;
+  {
+    auto color = kinect_->getColorCameraParams();
+    cameraParams.bgr.fx = color.fx;
+    cameraParams.bgr.fy = color.fy;
+    cameraParams.bgr.cx = color.cx;
+    cameraParams.bgr.cy = color.cy;
+
+    cameraParams.bgr.shift_d = color.shift_d;
+    cameraParams.bgr.shift_m = color.shift_m;
+
+    cameraParams.bgr.mx_x3y0 = color.mx_x3y0;
+    cameraParams.bgr.mx_x0y3 = color.mx_x0y3;
+    cameraParams.bgr.mx_x2y1 = color.mx_x2y1;
+    cameraParams.bgr.mx_x1y2 = color.mx_x1y2;
+    cameraParams.bgr.mx_x2y0 = color.mx_x2y0;
+    cameraParams.bgr.mx_x0y2 = color.mx_x0y2;
+    cameraParams.bgr.mx_x1y1 = color.mx_x1y1;
+    cameraParams.bgr.mx_x1y0 = color.mx_x1y0;
+    cameraParams.bgr.mx_x0y1 = color.mx_x0y1;
+    cameraParams.bgr.mx_x0y0 = color.mx_x0y0;
+    cameraParams.bgr.my_x3y0 = color.my_x3y0;
+    cameraParams.bgr.my_x0y3 = color.my_x0y3;
+    cameraParams.bgr.my_x2y1 = color.my_x2y1;
+    cameraParams.bgr.my_x1y2 = color.my_x1y2;
+    cameraParams.bgr.my_x2y0 = color.my_x2y0;
+    cameraParams.bgr.my_x0y2 = color.my_x0y2;
+    cameraParams.bgr.my_x1y1 = color.my_x1y1;
+    cameraParams.bgr.my_x1y0 = color.my_x1y0;
+    cameraParams.bgr.my_x0y1 = color.my_x0y1;
+    cameraParams.bgr.my_x0y0 = color.my_x0y0;
+  }
 
   // Retrieve the ir camera params from the device.
-  auto ir = kinect_->getIrCameraParams();
-  cameraParams.irCamMat.fx = ir.fx;
-  cameraParams.irCamMat.fy = ir.fy;
-  cameraParams.irCamMat.cx = ir.cx;
-  cameraParams.irCamMat.cy = ir.cy;
+  {
+    auto ir = kinect_->getIrCameraParams();
+    cameraParams.ir.fx = ir.fx;
+    cameraParams.ir.fy = ir.fy;
+    cameraParams.ir.cx = ir.cx;
+    cameraParams.ir.cy = ir.cy;
 
-  cameraParams.irDist.k1 = ir.k1;
-  cameraParams.irDist.k2 = ir.k2;
-  cameraParams.irDist.p1 = ir.p1;
-  cameraParams.irDist.p2 = ir.p2;
-  cameraParams.irDist.k3 = ir.k3;
+    cameraParams.ir.k1 = ir.k1;
+    cameraParams.ir.k2 = ir.k2;
+    cameraParams.ir.k3 = ir.k3;
+    cameraParams.ir.p1 = ir.p1;
+    cameraParams.ir.p2 = ir.p2;
+  }
 
   return cameraParams;
 }
@@ -202,8 +230,8 @@ void KinectCamera::freshFrame() {
 }
 
 cv::Mat KinectCamera::undistort(
-    const cv::Mat &HDImage, 
-    const cv::Mat &depthImage) 
+    const cv::Mat &HDImage,
+    const cv::Mat &depthImage)
 {
   // Prepare HD colour and depth frames.
   libfreenect2::Frame HDFrame(kColorImageWidth, kColorImageHeight, 4);
@@ -216,8 +244,8 @@ cv::Mat KinectCamera::undistort(
       kDepthImageHeight,
       4);
   libfreenect2::Frame HDundistortedFrame(
-      kDepthImageWidth, 
-      kDepthImageHeight, 
+      kDepthImageWidth,
+      kDepthImageHeight,
       4);
 
   // Undistort images.

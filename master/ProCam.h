@@ -26,9 +26,8 @@ class ProCam {
  public:
   ProCam();
   ProCam(
-      const cv::Mat &colorCamMat,
-      const cv::Mat &irCamMat,
-      const cv::Mat &irDist,
+      const CameraModel &colorCam,
+      const CameraModel &irCam,
       const cv::Size &actualProjRes,
       const cv::Size &effectiveProjRes,
       const std::chrono::milliseconds &latency);
@@ -45,12 +44,10 @@ class ProCam {
   std::chrono::milliseconds getLatency() const { return latency_; }
 
  private:
-  /// Color camera matrix.
-  const cv::Mat colorCamMat_;
-  /// Ir camera matrix.
-  const cv::Mat irCamMat_;
-  /// Ir camera distortion coefficients.
-  const cv::Mat irDist_;
+  /// Color camera matrix & distortion.
+  const CameraModel colorCam_;
+  /// Ir camera matrix & distortion.
+  const CameraModel irCam_;
   /// Parameters of the display.
   const cv::Size actualProjRes_;
   /// Effective parameters of the display.

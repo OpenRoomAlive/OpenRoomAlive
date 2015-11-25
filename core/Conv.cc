@@ -31,66 +31,47 @@ void thriftFrameToCvMat(const Frame &frame, cv::Mat &image) {
       const_cast<char*>(frame.data.c_str())).clone();
 }
 
-cv::Mat thriftCamMatToCvMat(const CameraMatrix &cameraMat) {
+
+/**
+ * Converts depth camera parameters to OpenCV camera and distortion parameters.
+ */
+CameraModel thriftCamMatToCvMat(const BGRCameraParams &bgrParams)
+{
+
   cv::Mat cm(3, 3, cv::DataType<double>::type, cvScalar(0.));
 
-  cm.at<double>(0, 0) = cameraMat.fx;
-  cm.at<double>(1, 1) = cameraMat.fy;
-  cm.at<double>(0, 2) = cameraMat.cx;
-  cm.at<double>(1, 2) = cameraMat.cy;
+  cm.at<double>(0, 0) = bgrParams.fx;
+  cm.at<double>(1, 1) = bgrParams.fy;
+  cm.at<double>(0, 2) = bgrParams.cx;
+  cm.at<double>(1, 2) = bgrParams.cy;
   cm.at<double>(2, 2) = 1.0;
 
-  return cm;
+  return { cm, cv::Mat(0, 0, cv::DataType<double>::type) };
 }
 
-cv::Mat thriftDistToCvMat(const DistCoef &distCoef) {
+
+/**
+ * Converts depth camera parameters to OpenCV camera and distortion parameters.
+ */
+CameraModel thriftCamMatToCvMat(const IrCameraParams &irParams)
+{
+  cv::Mat cm(3, 3, cv::DataType<double>::type, cvScalar(0.));
+
+  cm.at<double>(0, 0) = irParams.fx;
+  cm.at<double>(1, 1) = irParams.fy;
+  cm.at<double>(0, 2) = irParams.cx;
+  cm.at<double>(1, 2) = irParams.cy;
+  cm.at<double>(2, 2) = 1.0;
+
   cv::Mat dc(1, 5, cv::DataType<double>::type);
 
-  dc.at<double>(0, 0) = distCoef.k1;
-  dc.at<double>(0, 1) = distCoef.k2;
-  dc.at<double>(0, 2) = distCoef.p1;
-  dc.at<double>(0, 3) = distCoef.p2;
-  dc.at<double>(0, 4) = distCoef.k3;
+  dc.at<double>(0, 0) = irParams.k1;
+  dc.at<double>(0, 1) = irParams.k2;
+  dc.at<double>(0, 2) = irParams.p1;
+  dc.at<double>(0, 3) = irParams.p2;
+  dc.at<double>(0, 4) = irParams.k3;
 
-  return dc;
-}
-
-CameraMatrix cvMatToThriftCamMat(const cv::Mat cameraMat) {
-  if (cameraMat.rows != 3 || cameraMat.cols != 3) {
-    throw EXCEPTION() << "Invalid size of camera matrix.";
-  }
-
-  CameraMatrix cm;
-  cm.fx = cameraMat.at<double>(0, 0);
-  cm.fy = cameraMat.at<double>(1, 1);
-  cm.cx = cameraMat.at<double>(0, 2);
-  cm.cy = cameraMat.at<double>(1, 2);
-
-  return cm;
-}
-
-DistCoef cvMatToThriftDistCoef(const cv::Mat distCoef) {
-  if (distCoef.rows != 1 || distCoef.cols != 5) {
-    throw EXCEPTION() << "Invalid size of the distortion coefficients matrix.";
-  }
-
-  DistCoef dc;
-  dc.k1 = distCoef.at<double>(0, 0);
-  dc.k2 = distCoef.at<double>(0, 1);
-  dc.p1 = distCoef.at<double>(0, 2);
-  dc.p2 = distCoef.at<double>(0, 3);
-  dc.k3 = distCoef.at<double>(0, 4);
-
-  return dc;
-}
-
-void cvSizeToThriftResolution(const cv::Size &cvRes, Resolution &thriftRes) {
-  thriftRes.width = cvRes.width;
-  thriftRes.height = cvRes.height;
-}
-
-cv::Size thriftResolutionToCvSize(const Resolution &res) {
-  return cv::Size(res.width, res.height);
+  return { cm, dc };
 }
 
 }}

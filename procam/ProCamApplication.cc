@@ -129,13 +129,16 @@ int ProCamApplication::run() {
 
 void ProCamApplication::getParam(ProCamParam& params) {
   params.camera = camera_->getParameters();
-  conv::cvSizeToThriftResolution(
-      display_->getParameters(),
-      params.display.actualRes);
-  conv::cvSizeToThriftResolution(
-      grayCode_.getRes(),
-      params.display.effectiveRes);
-  params.display.latency = latency_;
+
+  auto actual = display_->getResolution();
+  params.actualRes.width = actual.width;
+  params.actualRes.height = actual.height;
+
+  auto effective = grayCode_.getResolution();
+  params.effectiveRes.width = effective.width;
+  params.effectiveRes.height = effective.height;
+
+  params.latency = latency_;
 }
 
 void ProCamApplication::getColorImage(Frame& frame) {
