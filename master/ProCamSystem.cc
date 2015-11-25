@@ -17,7 +17,7 @@ void ProCamSystem::fromJSON(const folly::dynamic &data) {
   for (const auto &key : data.keys()) {
     const auto &cam = data[key];
     addProCam(
-        key.asInt(),
+        std::stoi(key.asString().toStdString()),
         { cv::Mat(3, 3, CV_32F), cv::Mat(0, 0, CV_32F) },
         { cv::Mat(3, 3, CV_32F), cv::Mat(1, 5, CV_32F) },
         cv::Size(
@@ -36,7 +36,7 @@ folly::dynamic ProCamSystem::toJSON() const {
     const auto id = kv.first;
     const auto cam = kv.second;
 
-    data[id] = folly::dynamic::object
+    data[std::to_string(id)] = folly::dynamic::object
         ( "actual-res", folly::dynamic::object
             ( "width", cam->actualProjRes_.width )
             ( "height", cam->actualProjRes_.height )

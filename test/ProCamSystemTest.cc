@@ -4,6 +4,8 @@
 
 #include <random>
 
+#include <folly/json.h>
+
 #include <gtest/gtest.h>
 
 #include "master/ProCamSystem.h"
@@ -32,7 +34,7 @@ float kDistCoeffs[5] = {
  */
 TEST(ProCamSystemTest, TestLoadFromJSON) {
   folly::dynamic data = folly::dynamic::object
-      ( 0, folly::dynamic::object
+      ( "0", folly::dynamic::object
         ( "actual-res", folly::dynamic::object
             ( "width", 1024 )
             ( "height", 1024 )
@@ -76,21 +78,22 @@ TEST(ProCamSystemTest, TestWriteToJSON) {
   }
 
   auto json = sys->toJSON();
+  ASSERT_NO_THROW(folly::toPrettyJson(json));
   ASSERT_EQ(3, json.size());
 
-  auto cam1 = json[1];
+  auto cam1 = json["1"];
   EXPECT_EQ( 2, cam1["actual-res"]["width"].asInt());
   EXPECT_EQ( 3, cam1["actual-res"]["height"].asInt());
   EXPECT_EQ( 4, cam1["effective-res"]["width"].asInt());
   EXPECT_EQ( 5, cam1["effective-res"]["height"].asInt());
 
-  auto cam2 = json[2];
+  auto cam2 = json["2"];
   EXPECT_EQ( 4, cam2["actual-res"]["width"].asInt());
   EXPECT_EQ( 6, cam2["actual-res"]["height"].asInt());
   EXPECT_EQ( 8, cam2["effective-res"]["width"].asInt());
   EXPECT_EQ(10, cam2["effective-res"]["height"].asInt());
 
-  auto cam3 = json[3];
+  auto cam3 = json["3"];
   EXPECT_EQ( 6, cam3["actual-res"]["width"].asInt());
   EXPECT_EQ( 9, cam3["actual-res"]["height"].asInt());
   EXPECT_EQ(12, cam3["effective-res"]["width"].asInt());
