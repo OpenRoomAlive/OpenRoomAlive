@@ -6,7 +6,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <core/Procam.h>
+#include <core/ProCam.h>
 
 
 namespace dv { namespace procam {
