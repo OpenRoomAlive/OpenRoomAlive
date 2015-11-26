@@ -166,22 +166,21 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
     for (size_t i = 0; i < images.size() / 2; i++) {
       // Convert to grayscales.
       cv::cvtColor(images[i * 2], grayscale, CV_BGR2GRAY);
+      cv::GaussianBlur(grayscale, grayscale, cv::Size(3, 3), 1);
       cv::cvtColor(images[i * 2 + 1], grayscaleInvert, CV_BGR2GRAY);
+      cv::GaussianBlur(grayscaleInvert, grayscaleInvert, cv::Size(3, 3), 1);
 
-      // Find valid pixels in this level
-      // TODO1: figure out how to make running it on both coord. work robustly
-      // (sometimes improves score a bit, sometimes breaks completely)
-      // TODO2: Improve score in general. Gaussian + OTSU?
-      //if (i < (images.size() / 4 - 4) ||
-      //    (i >= (images.size() / 4) && i < (images.size() / 2 - 5)) ) {
-      if (i < (images.size() / 4 - 4)) {
+      // Find valid pixels in this level.
+      // TODO: Keep tweaking.
+      if (i < (images.size() / 4 - 4) ||
+          (i >= (images.size() / 4) && i < (images.size() / 2 - 8)) ) {
         cv::absdiff(grayscale, grayscaleInvert, absDiff);
         cv::threshold(
             absDiff,
             validPixelsTemp,
             10,
             1,
-            cv::THRESH_BINARY);
+            cv::THRESH_BINARY | cv::THRESH_OTSU);
         validPixelsTemp.convertTo(validPixelsLevel, CV_32S);
       } else {
         validPixelsLevel = cv::Mat::ones(images[0].size(), CV_32S);
@@ -191,7 +190,7 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
       // Retrieve the bitmask from image - compare sets values to 255 in diff
       // where they were bigger in grayscale, then we change them to 1s
       cv::compare(grayscale, grayscaleInvert, diff, cv::CMP_GE);
-      cv::threshold(diff, mask, 100, 1, cv::THRESH_BINARY);
+      cv::threshold(diff, mask, 100, 1, cv::THRESH_BINARY | cv::THRESH_OTSU);
       mask.convertTo(mask32, CV_32S);
 
       // Construct gray code by left shift the current value and add mask.
