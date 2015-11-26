@@ -24,6 +24,7 @@
 #include "procam/Display.h"
 #include "procam/GLDisplay.h"
 #include "procam/KinectCamera.h"
+#include "procam/LaserDetector.h"
 #include "procam/MockCamera.h"
 #include "procam/MockDisplay.h"
 #include "procam/ProCamApplication.h"
@@ -85,7 +86,7 @@ ProCamApplication::ProCamApplication(
         boost::make_shared<protocol::TBinaryProtocolFactory>()))
   , transport_(new transport::TBufferedTransport(
         boost::make_shared<transport::TSocket>(masterIP_, port_)))
-  , master_(boost::make_shared<protocol::TBinaryProtocol>(transport_))
+  , master_(new MasterClient(boost::make_shared<protocol::TBinaryProtocol>(transport_)))
   , baseline_(new BaselineCapture())
   , enableMaster_(enableMaster)
   , latency_(latency)
@@ -267,24 +268,18 @@ void ProCamApplication::pingMaster() {
   }
 
   // Ping the master.
-  if (!master_.ping()) {
+  if (!master_->ping()) {
     throw EXCEPTION() << "Error on master.";
   }
   std::cout << "Connected to master." << std::endl;
 }
 
 void ProCamApplication::detectLaser() {
-  while (display_->isRunning()) {
-    // TODO: Fetch frames & analyse (& send msg to master)
-    cv::Scalar color(0, 0, 0);
-    dv::Color thriftColor;
-    conv::cvScalarToThriftColor(color, thriftColor);
-    dv::Point laser;
-    laser.x = 0;
-    laser.y = 0;
-    laser.z = 0;
-    master_.detectedLaser(laser, thriftColor);
-    std::this_thread::sleep_for(1s);
-  }
+  // TODO: run it only after master agrees - i.e. need new API to let master
+  //       msg procams with "calibration done. start detecting."
+
+  LaserDetector detector(display_, master_, camera_);
+  detector.detect();
+
   updatesStreamOn_ = false;
 }

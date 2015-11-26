@@ -142,7 +142,7 @@ class ProCamApplication : public ProCamIf {
   /// Transport layer of connection to master.
   const boost::shared_ptr<apache::thrift::transport::TBufferedTransport> transport_;
   /// Master client handler.
-  MasterClient master_;
+  const std::shared_ptr<MasterClient> master_;
   /// Baseline capture.
   const std::shared_ptr<BaselineCapture> baseline_;
   /// True if the master is pinged.

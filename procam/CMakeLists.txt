@@ -9,6 +9,7 @@ SET(SOURCES ${SOURCES}
     GLDisplay.cc
     KinectCamera.cc
     KinectFileLogger.cc
+    LaserDetector.cc
     MockCamera.cc
     MockDisplay.cc
     ProCamApplication.cc
@@ -21,6 +22,7 @@ SET(HEADERS ${HEADERS}
     GLDisplay.h
     KinectCamera.h
     KinectFileLogger.h
+    LaserDetector.h
     MockCamera.h
     MockDisplay.h
     ProCamApplication.h
