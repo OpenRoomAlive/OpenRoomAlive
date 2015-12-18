@@ -10,7 +10,7 @@
 #include "core/Types.h"
 
 
-namespace dv { namespace master {
+namespace dv { namespace core {
 
 class GLViewer {
  public:

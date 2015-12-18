@@ -37,6 +37,7 @@ SET(SOURCES
     Conv.cc
     Exception.cc
     Geometry.cc
+    GLViewer.cc
     GrayCode.cc
     Projection.cc
     Types.cc
@@ -49,6 +50,7 @@ SET(HEADERS
     Exception.h
     Geometry.h
     GL.h
+    GLViewer.h
     GrayCode.h
     Projection.h
     Types.h

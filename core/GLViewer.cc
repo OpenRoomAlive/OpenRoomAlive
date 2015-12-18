@@ -3,10 +3,10 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include "core/Exception.h"
-#include "master/GLViewer.h"
+#include "core/GLViewer.h"
 
 using namespace dv;
-using namespace dv::master;
+using namespace dv::core;
 
 
 constexpr float kGridSize = 2.0f;
