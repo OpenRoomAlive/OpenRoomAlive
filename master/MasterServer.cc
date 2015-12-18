@@ -32,3 +32,4 @@ void MasterServer::detectedLaser(const Point& point, const Color &color) {
       conv::thriftPointToCvPoint(point),
       conv::thriftColorToCvScalar(color)));
 }
+

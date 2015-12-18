@@ -7,6 +7,7 @@ SET(SOURCES
     ConnectionHandler.cc
     Event.cc
     EventStream.cc
+    LaserDrawer.cc
     MasterApplication.cc
     MasterConnectionHandler.cc
     MasterServer.cc
@@ -20,6 +21,7 @@ SET(HEADERS
     ConnectionHandler.h
     Event.h
     EventStream.h
+    LaserDrawer.h
     MasterApplication.h
     MasterConnectionHandler.h
     MasterConnectionHandler-inl.h

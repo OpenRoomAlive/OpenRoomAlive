@@ -34,7 +34,7 @@ std::vector<uint8_t> GrayCode::generate(
     size_t size,
     size_t level,
     size_t maxLevel) {
-  // In the formula, level 0 is the one with THINNEST stripes and for us the 
+  // In the formula, level 0 is the one with THINNEST stripes and for us the
   // level 0 is the first one displayed - with THCICKEST stripes. Hence we use
   // this mask instead of "1 << level".
   auto mask = 1 << (maxLevel - level);

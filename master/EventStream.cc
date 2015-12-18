@@ -44,3 +44,4 @@ void EventStream::close() {
   closedStream_ = true;
   sizeCond_.notify_all();
 }
+

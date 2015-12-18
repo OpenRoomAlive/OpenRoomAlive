@@ -15,7 +15,7 @@
 namespace dv { namespace master {
 
 /**
-   * Class wrapping the functionality responsible for ProCam calibration.
+ * Class wrapping the functionality responsible for ProCam calibration.
  */
 class Calibrator {
  private:
