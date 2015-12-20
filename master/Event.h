@@ -24,6 +24,8 @@ class Event {
 
   ConnectionID getProCamID() const { return id_; };
 
+  cv::Scalar getColor() const { return color_; };
+
  private:
   /// ID of the ProCam that sent the event.
   const ConnectionID id_;

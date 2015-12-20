@@ -5,6 +5,7 @@
 #include <thread>
 
 #include "core/Conv.h"
+#include "procam/BaselineCapture.h"
 #include "procam/LaserDetector.h"
 
 using namespace dv::procam;
@@ -21,29 +22,29 @@ constexpr auto kLaserThreshold = 30;
 constexpr auto kMaxPointsLaserAnalysis = 50;
 
 // Width of scaled down frame for processing.
-constexpr auto kScaledFrameWidth = 680;
+constexpr auto kScaledFrameWidth = 512;
 
 // Height of scaled down frame for processing.
-constexpr auto kScaledFrameHeight = 480;
+constexpr auto kScaledFrameHeight = 424;
 
 LaserDetector::LaserDetector(
     const std::shared_ptr<Display>& display,
     const std::shared_ptr<MasterClient>& master,
-    const std::shared_ptr<BGRDCamera>& camera)
+    const std::shared_ptr<BGRDCamera>& camera,
+    const std::shared_ptr<BaselineCapture>& baseline)
   : display_(display)
   , master_(master)
   , camera_(camera)
+  , baseline_(baseline)
 {
 }
 
 void LaserDetector::detect() {
-  // TODO: Send 3D points to master.
-
   // Frames.
   cv::Mat prev = cv::Mat::zeros(
       cv::Size(kScaledFrameWidth, kScaledFrameHeight),
       CV_8UC1);
-  cv::Mat frame, diff, diffThresh;
+  cv::Mat colorFrame, frame, diff, diffThresh;
 
   // Source of input.
   // TODO: T79 - remove video-based painting once not needed.
@@ -69,8 +70,11 @@ void LaserDetector::detect() {
       frame = camera_->getColorImage();
     }
 
-    // Get smaller (HD proc. takes too long) grayscale image.
+    colorFrame = frame.clone();
+
+    // Scale down (HD proc. takes too long)
     cv::resize(frame, frame, cv::Size(kScaledFrameWidth, kScaledFrameHeight));
+    // Get grayscale image.
     cv::cvtColor(frame, frame, CV_BGR2GRAY);
 
     if (tracked) {
@@ -172,14 +176,47 @@ void LaserDetector::detect() {
     // TODO: detect color and send it + on master side use it (dynamical list
     // of laser colors)
     if (tracked) {
-      cv::Scalar color(0, 0, 0);
-      dv::Color thriftColor;
-      conv::cvScalarToThriftColor(color, thriftColor);
-      dv::Point laser;
-      laser.x = track->x;
-      laser.y = track->y;
-      laser.z = 0;
-      master_->detectedLaser(laser, thriftColor);
+      // Get the laser position in otherwise black HD image.
+      cv::Mat laserIm = cv::Mat::zeros(
+          cv::Size(kScaledFrameWidth, kScaledFrameHeight),
+          kColorFormat);
+      laserIm.at<uint32_t>(track->y, track->x) = 0xFFFFFFFF;
+      cv::resize(
+          laserIm,
+          laserIm,
+          cv::Size(kColorImageWidth, kColorImageHeight));
+
+      // Undistort the HD image and find laser position in depth image.
+      track->x = -1;
+      track->y = -1;
+      cv::Mat undistortLaserIm = camera_->undistort(
+          laserIm,
+          baseline_->getDepthImage());
+      for (size_t r = 0; r < kDepthImageHeight; r++) {
+        for (size_t c = 0; c < kDepthImageWidth; c++) {
+          if (undistortLaserIm.at<uint32_t>(r, c) > 0) {
+            track->x = c;
+            track->y = r;
+            break;
+          }
+        }
+      }
+
+      // Send point only if we didn't lose it when undistorting.
+      if (track->x != -1 || track->y != -1) {
+        // Get laser colour.
+        cv::Vec4b bgraPixel = colorFrame.at<cv::Vec4b>(track->y, track->x);
+        cv::Scalar color(bgraPixel[2], bgraPixel[1], bgraPixel[0]);
+        dv::Color thriftColor;
+        conv::cvScalarToThriftColor(color, thriftColor);
+
+        // Send depth point corresponding to laser.
+        dv::Point laser;
+        laser.x = track->x;
+        laser.y = track->y;
+        laser.depth = baseline_->getDepthImage().at<double>(track->y, track->x);
+        master_->detectedLaser(laser, thriftColor);
+      }
     }
 
     std::this_thread::sleep_for(10ms);

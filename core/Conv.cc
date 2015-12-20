@@ -85,7 +85,7 @@ void cvScalarToThriftColor(const cv::Scalar &color, Color &thriftColor) {
 }
 
 cv::Point3f thriftPointToCvPoint(const Point &point) {
-  return cv::Point3f(point.x, point.y, point.z);
+  return cv::Point3f(point.x, point.y, point.depth);
 }
 
 std::vector<std::pair<cv::Point2i, cv::Point2i>> thriftSegmentsToCvPoints(

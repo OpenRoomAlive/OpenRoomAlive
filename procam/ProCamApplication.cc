@@ -278,7 +278,7 @@ void ProCamApplication::detectLaser() {
   // TODO: run it only after master agrees - i.e. need new API to let master
   //       msg procams with "calibration done. start detecting."
 
-  LaserDetector detector(display_, master_, camera_);
+  LaserDetector detector(display_, master_, camera_, baseline_);
   detector.detect();
 
   updatesStreamOn_ = false;

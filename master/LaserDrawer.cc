@@ -42,12 +42,14 @@ void LaserDrawer::run() {
     // reject all extreme coordinates).
     if (newPosition.x != 0 && newPosition.y != 0) {
       if (tracked) {
-        cv::Scalar color(0, 255, 0);
         std::vector<std::pair<cv::Point2i, cv::Point2i>> path;
         path.emplace_back(
             cv::Point2i(position.x, position.y),
             cv::Point2i(newPosition.x, newPosition.y));
-        connectionHandler_->updateLaser(event.getProCamID(), path, color);
+        connectionHandler_->updateLaser(
+            event.getProCamID(),
+            path,
+            event.getColor());
       }
 
       tracked = true;

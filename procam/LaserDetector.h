@@ -19,7 +19,8 @@ class LaserDetector {
   LaserDetector(
       const std::shared_ptr<Display>& display,
       const std::shared_ptr<MasterClient>& master,
-      const std::shared_ptr<BGRDCamera>& camera);
+      const std::shared_ptr<BGRDCamera>& camera,
+      const std::shared_ptr<BaselineCapture>& baseline);
 
   /**
    * Detect lasers in Kinect view until display is turned off.
@@ -33,6 +34,8 @@ class LaserDetector {
   const std::shared_ptr<MasterClient> master_;
   /// Kinect camera implementation.
   const std::shared_ptr<BGRDCamera> camera_;
+  /// Baseline capture.
+  const std::shared_ptr<BaselineCapture> baseline_;
 };
 
 }}

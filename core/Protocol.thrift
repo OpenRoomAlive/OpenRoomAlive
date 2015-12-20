@@ -99,12 +99,12 @@ enum Orientation {
 }
 
 /**
- * 3D point for laser position.
+ * Depth Point for laser tracking.
  */
 struct Point {
   1: double x;
   2: double y;
-  3: double z;
+  3: double depth;
 }
 
 /**
