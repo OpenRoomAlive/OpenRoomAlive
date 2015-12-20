@@ -30,9 +30,12 @@ class MockDisplay : public Display {
   cv::Size getResolution() override;
   virtual size_t getWidth() override;
   virtual size_t getHeight() override;
+  cv::Mat getImage() override;
 
  private:
   std::atomic<bool> isRunning_;
+  cv::Mat image_;
+  cv::Size resolution_;
 };
 
 }}

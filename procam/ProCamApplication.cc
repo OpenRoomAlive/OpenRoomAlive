@@ -76,7 +76,7 @@ ProCamApplication::ProCamApplication(
         : static_cast<Display*>(new MockDisplay()))
   , camera_(enableKinect
         ? static_cast<BGRDCamera*>(new KinectCamera(logLevel, logFilename))
-        : static_cast<BGRDCamera*>(new MockCamera(logLevel, logFilename)))
+        : static_cast<BGRDCamera*>(new MockCamera(display_)))
   , grayCode_(effectiveSize.width, effectiveSize.height)
   , server_(new server::TSimpleServer(
         boost::make_shared<ProCamProcessor>(

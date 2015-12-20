@@ -14,8 +14,14 @@ using namespace dv::procam;
 using namespace dv;
 
 
+constexpr size_t kProjectorWidth = 1024;
+constexpr size_t kProjectorHeight = 768;
+
+
 MockDisplay::MockDisplay()
-  : isRunning_(true)
+  : isRunning_(true),
+    image_(cv::Mat::zeros(1, 1, CV_8UC4)),
+    resolution_(kProjectorWidth, kProjectorHeight)
 {
 }
 
@@ -55,18 +61,15 @@ void MockDisplay::update() {
 }
 
 cv::Size MockDisplay::getResolution() {
-  cv::Size resolution;
-  resolution.width = getWidth();
-  resolution.height = getHeight();
-  return resolution;
+  return resolution_;
 }
 
 size_t MockDisplay::getWidth() {
-  return 1024;
+  return resolution_.width;
 }
 
 size_t MockDisplay::getHeight() {
-  return 1024;
+  return resolution_.height;
 }
 
 void MockDisplay::stop() {
@@ -74,7 +77,7 @@ void MockDisplay::stop() {
 }
 
 void MockDisplay::displayImage(const cv::Mat &image) {
-  (void) image;
+  image_ = image;
 }
 
 void MockDisplay::updateWithLaser(
@@ -82,4 +85,8 @@ void MockDisplay::updateWithLaser(
     const cv::Scalar &color) {
   (void) segments;
   (void) color;
+}
+
+cv::Mat MockDisplay::getImage() {
+  return image_;
 }

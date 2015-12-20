@@ -32,6 +32,7 @@ class GLDisplay : public Display {
   cv::Size getResolution() override;
   virtual size_t getWidth() override;
   virtual size_t getHeight() override;
+  cv::Mat getImage() override;
 
  private:
   /**

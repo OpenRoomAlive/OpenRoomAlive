@@ -257,3 +257,8 @@ void GLDisplay::updateWithLaser(
   cv::line(image_, cv::Point2i(200, 100), cv::Point2i(200, 500), color, 1);
   */
 }
+
+cv::Mat GLDisplay::getImage() {
+  std::lock_guard<std::mutex> locker(lock_);
+  return image_;
+}

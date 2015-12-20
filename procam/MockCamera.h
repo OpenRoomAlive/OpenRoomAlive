@@ -5,6 +5,7 @@
 #pragma once
 
 #include "procam/BGRDCamera.h"
+#include "procam/Display.h"
 
 
 namespace dv { namespace procam {
@@ -14,7 +15,7 @@ namespace dv { namespace procam {
  */
 class MockCamera : public BGRDCamera {
  public:
-  MockCamera(uint16_t logLevel, const std::string &logFilename);
+  MockCamera(const std::shared_ptr<Display> display);
 
   cv::Mat getColorImage() override;
   cv::Mat getDepthImage() override;
@@ -22,6 +23,8 @@ class MockCamera : public BGRDCamera {
   CameraParams getParameters() override;
   void freshFrame() override {}
   cv::Mat undistort(const cv::Mat &HDImage, const cv::Mat &depthImage) override;
+ private:
+  std::shared_ptr<Display> display_;
 };
 
 }}
