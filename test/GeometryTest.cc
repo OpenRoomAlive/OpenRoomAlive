@@ -43,17 +43,22 @@ TEST(GeometryTest, PlaneFit) {
   EXPECT_NEAR(0.890916f, plane.d,  1e-5f);
 }
 
-
 /**
  * transformPlane should correctly rotate points on a plane.
  */
 TEST(GeometryTest, TransformPlane) {
   std::vector<cv::Point3f> points;
 
-  // 25 points on a the xz plane at distance 2.0f.
-  for (int i = 0; i < 5; ++i) {
-    for (int j = 0; j < 5; ++j) {
-      points.emplace_back(i - 2.5f, 2.0f, j - 2.5f);
+  // 25 points on a plane tilted 45 degrees around z.
+  for (int i = -10; i <= 10; ++i) {
+    for (int j = -10; j <= 10; ++j) {
+      const float x = i + j;
+      const float y = i + j;
+      const float z = i - j;
+      points.emplace_back(
+          0.5f + x * 0.005f,
+          0.0f + y * 0.005f,
+          0.5f + z * 0.005f);
     }
   }
 

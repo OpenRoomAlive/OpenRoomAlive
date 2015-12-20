@@ -8,6 +8,8 @@
 
 #include <boost/math/constants/constants.hpp>
 
+#include <glm/ext.hpp>
+
 #include "core/Exception.h"
 #include "core/Geometry.h"
 
@@ -17,11 +19,6 @@ constexpr size_t kSplitTheta = 20;
 constexpr size_t kSplitR = 30;
 constexpr float kEps = 1e-5;
 
-
-static cv::Point3f normalize(const cv::Point3f p) {
-  const auto length = std::sqrt(p.dot(p));
-  return cv::Point3f(p.x / length, p.y / length, p.z / length);
-}
 
 static float findMedian(std::vector<float> &numbers) {
   std::nth_element(
@@ -166,27 +163,28 @@ std::vector<cv::Point3f> transformPlane(
   }
 
   // Normalize the vector of the new plane.
-  auto l = std::sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
+  const float l = std::sqrt(n.dot(n));
+  if (l < kEps) {
+    throw EXCEPTION() << "Normal vector cannot be null.";
+  }
+
   const cv::Point3f m(n.x / l, n.y / l, n.z / l);
 
   // Find out the three orthogonal axes of the rotation matrix.
-  const auto r0 = planeNormal;
-  const auto r2 = normalize(planeNormal.cross(m));
-  const auto r1 = normalize(r2.cross(planeNormal));
+  const auto rotQ = glm::rotation(
+      glm::vec3(planeNormal.x, planeNormal.y, planeNormal.z),
+      glm::vec3(m.x, m.y, m.z));
 
   // Find the center point on the old plane - points will be rotated around it.
   const auto &c = findCenter(points);
 
-  // Rotate all points around the center using the matrix.
+  // Rotate all points and move them to the origin.
   std::vector<cv::Point3f> newPoints;
   for (const auto &point : points) {
-    const cv::Point3f d = point - c;
+    const auto d = point - c;
+    const auto p = glm::rotate(rotQ, {d.x, d.y, d.z, 0.0f});
+    newPoints.emplace_back(p.x, p.y, p.z);
 
-    const float px = d.x * r0.x + d.y * r1.x + d.z * r2.x;
-    const float py = d.x * r0.y + d.y * r1.y + d.z * r2.y;
-    const float pz = d.x * r0.z + d.y * r1.z + d.z * r2.z;
-
-    newPoints.emplace_back(c.x + px, c.y + py, c.z + pz);
   }
   return newPoints;
 }
