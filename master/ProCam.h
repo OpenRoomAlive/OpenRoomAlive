@@ -5,9 +5,12 @@
 #pragma once
 
 #include <chrono>
+#include <unordered_map>
 
 #include <glm/glm.hpp>
 #include <opencv2/opencv.hpp>
+
+#include <boost/functional/hash.hpp>
 
 #include "core/Types.h"
 
@@ -54,7 +57,7 @@ class ProCam {
   const cv::Size effectiveProjRes_;
   /// Wait time between displaying and reading an image.
   const std::chrono::milliseconds latency_;
-  /// Projector matrix.
+  /// Projector calibration matrix.
   cv::Mat projMat_;
   /// Projector distortion coefficients.
   cv::Mat projDist_;
@@ -66,6 +69,8 @@ class ProCam {
   cv::Mat depthVariance_;
   /// Cameras that can observe some part of projector's image.
   std::vector<ConnectionID> projectorGroup_;
+  /// Stores poses of the kinects in the projector group.
+  std::unordered_map<ConnectionID, CameraPose, boost::hash<ConnectionID>> poses;
 };
 
 }}

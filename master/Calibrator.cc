@@ -400,13 +400,14 @@ void Calibrator::calibrate() {
 
   // Calibrate each projector.
   for (const auto &projectorId : ids_) {
+    std::cout << "Calibrating projector: " << projectorId << std::endl;
     auto projector = system_->getProCam(projectorId);
 
     // Vector of vectors of points per each view.
     std::vector<std::vector<cv::Point3f>> worldPointsCalib(ids_.size());
     std::vector<std::vector<cv::Point2f>> projectorPointsCalib(ids_.size());
 
-    // TODO(ilijar): iterate only over the projector group memebers.
+    // TODO(ilijar): T78 -- iterate only over the projector group memebers.
     for (size_t i = 0; i < ids_.size(); ++i) {
       const auto &kinectId = ids_[i];
       const auto &colorToProj
@@ -463,6 +464,7 @@ void Calibrator::calibrate() {
       }
     }
 
+    // Try to avoid using initial intrinsic guess.
     std::vector<std::vector<cv::Point3f>> worldPointsPlane(ids_.size());
     std::vector<std::vector<cv::Point2f>> projectorPointsPlane(ids_.size());
 
@@ -524,19 +526,32 @@ void Calibrator::calibrate() {
         tvecs,
         CV_CALIB_USE_INTRINSIC_GUESS);
 
-    std::cout << "Calibration RMS: " << rms2 << std::endl;
-
-    std::cout << "projMat: "  << std::endl;
-    std::cout << projector->projMat_ << std::endl;
-
-    std::cout << "Rotation vectors: " << std::endl;
-    for (const auto &r : rvecs) {
-      std::cout << r << " " << std::endl;
+    // Store the computed rotation and translation vectors.
+    for (size_t i = 0; i < ids_.size(); ++i) {
+      CameraPose p;
+      p.rvec = rvecs[i];
+      p.tvec = tvecs[i];
+      projector->poses[i] = p;
     }
 
-    std::cout << "Translation vectors: " << std::endl;
-    for (const auto &t : tvecs) {
-      std::cout << "Translation vector: " << t << std::endl;
+    std::cout << "Calibration RMS: " << rms2 << std::endl;
+
+    std::cout << "Projector " << projectorId
+              << " calibration matrix: " << std::endl;
+    std::cout << projector->projMat_ << std::endl;
+  }
+
+  // TODO(ilijar): remove.
+  std::cout << "Rotation and translation vectors:" << std::endl;
+  for (auto projectorId : ids_) {
+    std::cout << "Projector: " << projectorId << std::endl;
+    auto projector = system_->getProCam(projectorId);
+    for (auto kinectId : ids_) {
+      auto pose = projector->poses[kinectId];
+      std::cout << "Kinect: " << kinectId << std::endl;
+      std::cout << "Tvec: " << pose.tvec << std::endl
+                << " Rvec: " << pose.rvec << std::endl
+                << "--------------------" << std::endl;
     }
   }
 }

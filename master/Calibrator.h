@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <set>
 #include <vector>
 
 #include <boost/functional/hash.hpp>

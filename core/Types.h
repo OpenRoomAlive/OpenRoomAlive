@@ -27,6 +27,14 @@ struct CameraModel {
 };
 
 /**
+ * Camera pose.
+ */
+struct CameraPose {
+  cv::Mat rvec;
+  cv::Mat tvec;
+};
+
+/**
  * Structure representing the equation of a plane.
  */
 struct Plane {
