@@ -104,6 +104,11 @@ class ConnectionHandler {
   virtual cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) = 0;
 
   /**
+   * Asks ProCams to start detecting the laser pointer.
+   */
+  virtual void startLaserDetection() = 0;
+
+  /**
    * Asks ProCam to draw the path of a laser with given color.
    */
   virtual void updateLaser(

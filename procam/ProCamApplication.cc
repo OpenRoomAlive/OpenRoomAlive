@@ -91,6 +91,7 @@ ProCamApplication::ProCamApplication(
   , enableMaster_(enableMaster)
   , latency_(latency)
   , updatesStreamOn_(true)
+  , detectingLaser_(false)
 {
 }
 
@@ -274,9 +275,21 @@ void ProCamApplication::pingMaster() {
   std::cout << "Connected to master." << std::endl;
 }
 
+void ProCamApplication::startLaserDetection() {
+  std::unique_lock<std::mutex> locker(detectionLock_);
+  detectingLaser_ = true;
+  detectionLock_.unlock();
+  detectionCond_.notify_all();
+}
+
 void ProCamApplication::detectLaser() {
-  // TODO: run it only after master agrees - i.e. need new API to let master
-  //       msg procams with "calibration done. start detecting."
+  // Start detecting the laser after receiving the signal from the master.
+  {
+    std::unique_lock<std::mutex> locker(detectionLock_);
+    detectionCond_.wait(locker, [this] () {
+      return detectingLaser_;
+    });
+  }
 
   LaserDetector detector(display_, master_, camera_, baseline_);
   detector.detect();

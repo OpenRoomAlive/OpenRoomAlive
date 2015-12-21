@@ -168,7 +168,7 @@ class MasterConnectionHandler
   }
 
   /**
-   * Asks porcam to undistort the provided HD image.
+   * Asks procam to undistort the provided HD image.
    */
   virtual cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override {
     Frame imageHDThrift;
@@ -185,12 +185,20 @@ class MasterConnectionHandler
   }
 
   /**
+   * Asks ProCams to start detecting the laser.
+   */
+  void startLaserDetection() override {
+    InvokeAll(&ProCamClient::startLaserDetection);
+  }
+
+  /**
    * Asks ProCam to draw the path of a laser with given color.
    */
   void updateLaser(
       ConnectionID id,
       const std::vector<std::pair<cv::Point2i, cv::Point2i>> &path,
-      const cv::Scalar &color) override {
+      const cv::Scalar &color) override
+  {
     Color thriftColor;
     conv::cvScalarToThriftColor(color, thriftColor);
 

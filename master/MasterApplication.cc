@@ -125,6 +125,7 @@ int MasterApplication::run() {
 
   // Perform laser drawing.
   connectionHandler_->clearDisplays();
+  connectionHandler_->startLaserDetection();
   LaserDrawer(connectionIds, system_, stream_, connectionHandler_).run();
 
   // Disconnect all clients.

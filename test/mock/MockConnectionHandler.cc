@@ -131,6 +131,8 @@ size_t MockConnectionHandler::countDirs(const boost::filesystem::path path) {
   return count;
 }
 
+void MockConnectionHandler::startLaserDetection() {
+}
 
 void MockConnectionHandler::updateLaser(
       ConnectionID id,

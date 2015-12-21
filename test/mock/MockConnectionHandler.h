@@ -102,6 +102,11 @@ class MockConnectionHandler : public ConnectionHandler {
   cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override;
 
   /**
+   * Asks ProCams to start laser detection.
+   */
+  void startLaserDetection() override;
+
+  /**
    * Asks ProCam to draw the path of a laser with given color.
    */
   void updateLaser(

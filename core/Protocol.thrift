@@ -194,6 +194,11 @@ service ProCam {
   Frame undistort(1: Frame inputHDImageThrift),
 
   /**
+   * Starts detecting the laser.
+   */
+  void startLaserDetection();
+
+  /**
    * Update in image the laser path of color 'color' with provided 'segments'.
    */
   void updateLaser(1: list<Segment> segments, 2: Color color);
