@@ -109,11 +109,11 @@ class MasterConnectionHandler
   }
 
   /**
-   * Invokes getColorImage on all clients.
+   * Invokes getGrayscaleImage on all clients.
    */
-  virtual FrameMap getColorImages() override {
+  virtual FrameMap getGrayscaleImages() override {
     return conv::thriftFrameToCvMatMap(
-        InvokeAll(&ProCamClient::getColorImage));
+        InvokeAll(&ProCamClient::getGrayscaleImage));
   }
 
   /**

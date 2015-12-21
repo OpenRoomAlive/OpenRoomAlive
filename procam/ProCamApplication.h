@@ -49,9 +49,9 @@ class ProCamApplication : public ProCamIf {
    */
   void getParam(ProCamParam& cameraParams) override;
   /**
-   * Retrieves the color BGR image (1920x1080).
+   * Retrieves the FullHD grayscale image (1920x1080).
    */
-  void getColorImage(Frame &frame) override;
+  void getGrayscaleImage(Frame &frame) override;
 
   /**
    * Retrieves the undistorted Depth image (512x424).

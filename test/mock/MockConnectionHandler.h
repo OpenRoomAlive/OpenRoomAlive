@@ -64,7 +64,7 @@ class MockConnectionHandler : public ConnectionHandler {
   /**
    * Retrieves pre-recorded color images from all procams.
    */
-  FrameMap getColorImages() override;
+  FrameMap getGrayscaleImages() override;
 
   /**
    * Retrieves a pre-recorded depth image from a specified procam.

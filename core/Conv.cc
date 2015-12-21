@@ -2,6 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 Group 13. All rights reserved.
 
+#include "core/Compression.h"
 #include "core/Conv.h"
 #include "core/Exception.h"
 
@@ -16,21 +17,16 @@ void cvMatToThriftFrame(const cv::Mat &image, Frame &frame) {
   frame.rows = image.rows;
   frame.cols = image.cols;
   frame.format = image.type();
-  frame.data = std::string(data, data + size);
+  frame.data = comp::compress(std::string(data, size));
 }
 
 void thriftFrameToCvMat(const Frame &frame, cv::Mat &image) {
-  if (static_cast<size_t>(frame.rows * frame.cols * 4) != frame.data.size()) {
-    throw EXCEPTION() << "Invalid frame image.";
-  }
-
   image = cv::Mat(
       frame.rows,
       frame.cols,
       frame.format,
-      const_cast<char*>(frame.data.c_str())).clone();
+      const_cast<char*>(comp::decompress(frame.data).c_str())).clone();
 }
-
 
 /**
  * Converts depth camera parameters to OpenCV camera and distortion parameters.

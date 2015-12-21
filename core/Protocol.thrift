@@ -136,9 +136,9 @@ service ProCam {
   ProCamParam getParam(),
 
   /**
-   * Retrieves the BGR image (1920x1080).
+   * Retrieves the grayscale image (1920x1080).
    */
-  Frame getColorImage(),
+  Frame getGrayscaleImage(),
 
   /**
    * Retrieves the undistorted depth image (512x424).

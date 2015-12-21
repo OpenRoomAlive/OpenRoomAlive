@@ -49,11 +49,11 @@ class ProCamRecorder
    * Enum class representing the types of data recorded by the recorder.
    */
   enum class RecordedData {
-    COLOR,
     COLOR_BASELINE,
     DEPTH,
     DEPTH_BASELINE,
     DEPTH_VARIANCE,
+    GRAYSCALE,
     UNDISTORTED,
     UNDISTORTED_HD
   };

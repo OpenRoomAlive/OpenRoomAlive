@@ -28,7 +28,7 @@ class RecordingConnectionHandler : public MasterConnectionHandler {
   /**
    * Invokes getColorImage on all clients and records the retrieved frames.
    */
-  FrameMap getColorImages() override;
+  FrameMap getGrayscaleImages() override;
 
   /**
    * Retrieves the depth image of a procam and records it.

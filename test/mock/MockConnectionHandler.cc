@@ -72,8 +72,8 @@ void MockConnectionHandler::stop() {
 void MockConnectionHandler::clearDisplays() {
 }
 
-ConnectionHandler::FrameMap MockConnectionHandler::getColorImages() {
-  return loadFrames(ProCamRecorder::RecordedData::COLOR);
+ConnectionHandler::FrameMap MockConnectionHandler::getGrayscaleImages() {
+  return loadFrames(ProCamRecorder::RecordedData::GRAYSCALE);
 }
 
 cv::Mat MockConnectionHandler::getDepthImage(ConnectionID id) {

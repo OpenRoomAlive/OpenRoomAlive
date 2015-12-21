@@ -159,9 +159,10 @@ void ProCamApplication::getParam(ProCamParam& params) {
   params.latency = latency_;
 }
 
-void ProCamApplication::getColorImage(Frame& frame) {
+void ProCamApplication::getGrayscaleImage(Frame& frame) {
   camera_->freshFrame();
-  cv::Mat image = camera_->getColorImage();
+  cv::Mat image;
+  cv::cvtColor(camera_->getColorImage(), image, CV_BGR2GRAY);
   conv::cvMatToThriftFrame(image, frame);
 }
 

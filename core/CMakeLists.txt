@@ -34,6 +34,7 @@ SET_SOURCE_FILES_PROPERTIES(
 
 # List of all sources in core.
 SET(SOURCES
+    Compression.cc
     Conv.cc
     Exception.cc
     Geometry.cc
@@ -46,6 +47,7 @@ SET(SOURCES
 # List of all files in core.
 SET(HEADERS
     Async.h
+    Compression.h
     Conv.h
     Exception.h
     Geometry.h
@@ -64,5 +66,6 @@ ADD_LIBRARY(core
 )
 TARGET_LINK_LIBRARIES(core
     thrift
+    boost_iostreams
     ${OpenCV_LIBRARIES}
 )

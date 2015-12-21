@@ -20,11 +20,11 @@ const std::string ProCamRecorder::kProCamDir = "procam";
 
 const std::unordered_map<ProCamRecorder::RecordedData, std::string,
   ProCamRecorder::DataHasher> ProCamRecorder::kDataDirNames =
-    { { RecordedData::COLOR,          "color_frames" }
-    , { RecordedData::COLOR_BASELINE, "baseline_color_frames" }
+    { { RecordedData::COLOR_BASELINE, "baseline_color_frames" }
     , { RecordedData::DEPTH,          "depth_frames" }
     , { RecordedData::DEPTH_BASELINE, "baseline_depth_frames" }
     , { RecordedData::DEPTH_VARIANCE, "depth_variance" }
+    , { RecordedData::GRAYSCALE,      "fullHD_frames" }
     , { RecordedData::UNDISTORTED,    "undistorted_frames" }
     , { RecordedData::UNDISTORTED_HD, "undistorted_HD_frames" }
     };

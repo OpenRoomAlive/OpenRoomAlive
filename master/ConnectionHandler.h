@@ -66,7 +66,7 @@ class ConnectionHandler {
   /**
    * Invokes getColorImage on all clients.
    */
-  virtual FrameMap getColorImages() = 0;
+  virtual FrameMap getGrayscaleImages() = 0;
 
   /**
    * Retrieves the depth image of a client.

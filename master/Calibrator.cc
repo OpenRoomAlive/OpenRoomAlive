@@ -78,7 +78,7 @@ void Calibrator::formProjectorGroups() {
         maxLevel,
         false);
     std::this_thread::sleep_for(proCam->getLatency());
-    auto base = connectionHandler_->getColorImages();
+    auto base = connectionHandler_->getGrayscaleImages();
 
     // Capture inverted images
     connectionHandler_->displayGrayCode(
@@ -87,7 +87,7 @@ void Calibrator::formProjectorGroups() {
         maxLevel,
         true);
     std::this_thread::sleep_for(proCam->getLatency());
-    auto inverted = connectionHandler_->getColorImages();
+    auto inverted = connectionHandler_->getGrayscaleImages();
 
     // Form ProCam group
     for (const auto &target : ids_) {
@@ -95,8 +95,6 @@ void Calibrator::formProjectorGroups() {
       cv::Mat diff;
       cv::absdiff(base[target], inverted[target], diff);
 
-      // Base and inverted images are captured in BGR32 so we convert to grayscale
-      cv::cvtColor(diff, diff, CV_BGR2GRAY);
       cv::threshold(diff, diff, 30, 1, cv::THRESH_BINARY);
       if (cv::sum(diff)[0] > kColorDiffThreshold) {
         proCam->projectorGroup_.push_back(target);
@@ -147,7 +145,7 @@ void Calibrator::displayAndCapture(
   std::this_thread::sleep_for(proCam->getLatency());
 
   // send a command to ProCam to save the current frame
-  auto captured = connectionHandler_->getColorImages();
+  auto captured = connectionHandler_->getGrayscaleImages();
   for (const auto &image : captured) {
     captured_[std::make_pair(id, image.first)].push_back(image.second);
   }
@@ -164,11 +162,8 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
     cv::Mat grayCode = cv::Mat::zeros(images[0].size(), CV_32S);
 
     for (size_t i = 0; i < images.size() / 2; i++) {
-      // Convert to grayscales.
-      cv::cvtColor(images[i * 2], grayscale, CV_BGR2GRAY);
-      cv::GaussianBlur(grayscale, grayscale, cv::Size(3, 3), 1);
-      cv::cvtColor(images[i * 2 + 1], grayscaleInvert, CV_BGR2GRAY);
-      cv::GaussianBlur(grayscaleInvert, grayscaleInvert, cv::Size(3, 3), 1);
+      cv::GaussianBlur(images[i * 2], grayscale, cv::Size(3, 3), 1);
+      cv::GaussianBlur(images[i * 2 + 1], grayscaleInvert, cv::Size(3, 3), 1);
 
       // Find valid pixels in this level.
       // TODO: Keep tweaking.

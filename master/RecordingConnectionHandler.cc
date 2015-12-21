@@ -26,9 +26,9 @@ std::vector<ConnectionID> RecordingConnectionHandler::waitForConnections(
   return MasterConnectionHandler::waitForConnections(count);
 }
 
-ConnectionHandler::FrameMap RecordingConnectionHandler::getColorImages() {
-  FrameMap colorImages = MasterConnectionHandler::getColorImages();
-  recordAll(colorImages, ProCamRecorder::RecordedData::COLOR);
+ConnectionHandler::FrameMap RecordingConnectionHandler::getGrayscaleImages() {
+  FrameMap colorImages = MasterConnectionHandler::getGrayscaleImages();
+  recordAll(colorImages, ProCamRecorder::RecordedData::GRAYSCALE);
   return colorImages;
 }
 
