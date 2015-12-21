@@ -150,12 +150,30 @@ cv::Mat MockConnectionHandler::loadFrame(
 {
   auto frameDir = ProCamRecorder::kDataDirNames.find(dataType)->second;
 
-  boost::filesystem::path framePath(path_);
-  framePath /= (ProCamRecorder::kProCamDir + std::to_string(id));
-  framePath /= frameDir;
-  framePath /= frameName(id, dataType);
+  boost::filesystem::path path(path_);
+  path /= (ProCamRecorder::kProCamDir + std::to_string(id));
+  path /= frameDir;
 
-  return(cv::imread(framePath.string(), CV_LOAD_IMAGE_UNCHANGED));
+  std::string ext;
+  switch (dataType) {
+    case ProCamRecorder::RecordedData::DEPTH:
+    case ProCamRecorder::RecordedData::DEPTH_BASELINE:
+    case ProCamRecorder::RecordedData::DEPTH_VARIANCE:
+    case ProCamRecorder::RecordedData::UNDISTORTED_HD:
+    {
+      path /= "frame" + std::to_string(nextFrame_[id][dataType]++) + ".yml";
+      cv::FileStorage fs(path.string(), cv::FileStorage::READ);
+      cv::Mat image;
+      fs["mat"] >> image;
+      fs.release();
+      return image;
+    }
+    default:
+    {
+      path /= "frame" + std::to_string(nextFrame_[id][dataType]++) + ".png";
+      return cv::imread(path.string(), CV_LOAD_IMAGE_UNCHANGED);
+    }
+  }
 }
 
 ConnectionHandler::FrameMap MockConnectionHandler::loadFrames(
@@ -183,23 +201,9 @@ ProCamParam MockConnectionHandler::loadParam(ConnectionID id) {
 
   ProCamParam param;
   param.read(protocol.get());
-  return param;
-}
 
-std::string MockConnectionHandler::frameName(
-    ConnectionID id,
-    ProCamRecorder::RecordedData dataType)
-{
-  std::string ext;
-  switch (dataType) {
-    case ProCamRecorder::RecordedData::DEPTH:
-    case ProCamRecorder::RecordedData::DEPTH_BASELINE:
-    case ProCamRecorder::RecordedData::DEPTH_VARIANCE:
-      ext = "exr";
-      break;
-    default :
-      ext = "png";
-      break;
-  }
-  return "frame" + std::to_string(nextFrame_[id][dataType]++) + "." + ext;
+  // Override the wait time for gray code display.
+  param.latency = 0;
+
+  return param;
 }

@@ -49,7 +49,7 @@ TEST(GeometryTest, PlaneFit) {
 TEST(GeometryTest, TransformPlane) {
   std::vector<cv::Point3f> points;
 
-  // 25 points on a plane tilted 45 degrees around z.
+  // 100 points on a plane tilted 45 degrees around z.
   for (int i = -10; i <= 10; ++i) {
     for (int j = -10; j <= 10; ++j) {
       const float x = i + j;
@@ -67,19 +67,20 @@ TEST(GeometryTest, TransformPlane) {
   for (const auto &point : rotated) {
     EXPECT_NEAR(0.0f, point.z - rotated[0].z, 1e-5f);
   }
-}
 
+  // Make sure relative distances are the same.
+  for (size_t i = 0; i < points.size(); ++i) {
+    for (size_t j = i + 1; j < points.size(); ++j) {
+      const auto &s0 = points[i];
+      const auto &e0 = points[j];
+      const auto &s1 = rotated[i];
+      const auto &e1 = rotated[j];
 
-/**
- * transformPlane throws if points are collinear.
- */
-TEST(GeometryTest, TransformPlaneCollinear) {
-  std::vector<cv::Point3f> points;
+      const float d0 = std::sqrt((s0 - e0).dot(s0 - e0));
+      const float d1 = std::sqrt((s1 - e1).dot(s1 - e1));
 
-  // 10 points on a line.
-  for (int i = 0; i < 10; ++i) {
-    points.emplace_back(i, 0, i);
+      EXPECT_NEAR(d0, d1, 1e-5f);
+    }
   }
-
-  EXPECT_ANY_THROW(transformPlane(points, {0.0f, 1.0f, 0.0f}));
 }
+

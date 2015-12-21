@@ -14,7 +14,19 @@ namespace dv { namespace core {
 
 class GLViewer {
  public:
+  /**
+   * Creates a GL window.
+   */
   GLViewer();
+
+  /**
+   * Convenience constructor that takes a lambda performing draw calls.
+   */
+  explicit GLViewer(std::function<void()> func);
+
+  /**
+   * Cleans up th GL window.
+   */
   ~GLViewer();
 
   /**
@@ -35,7 +47,18 @@ class GLViewer {
   /**
    * Draws an array of points.
    */
-  void drawPoints(const std::vector<cv::Point3f> &points);
+  void drawPoints(
+      const std::vector<cv::Point3f> &worldPoints,
+      const std::vector<cv::Point2f> &projPoints,
+      const cv::Size &size);
+
+  /**
+   * Draws a camera frustum.
+   */
+  void drawCamera(
+      const cv::Mat &cam,
+      const cv::Mat &r,
+      const cv::Mat &t);
 
  private:
   /**

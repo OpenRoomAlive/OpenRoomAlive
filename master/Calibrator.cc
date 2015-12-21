@@ -9,6 +9,7 @@
 
 #include "core/Geometry.h"
 #include "core/GrayCode.h"
+#include "core/GLViewer.h"
 #include "core/Projection.h"
 #include "core/ProCam.h"
 #include "core/Types.h"
@@ -254,7 +255,8 @@ void Calibrator::removeNoise(const cv::Mat &grayCode, ConnectionID id) {
           ascending++;
         }
       }
-      std::cout << "cluster: " << i << " has ascending col: " << ascending
+      std::cout
+          << "cluster: " << i << " has ascending col: " << ascending
           << " and descending col: " << descending << std::endl;
       if (descending * 2 > ascending) {
         // Discard this cluster
@@ -285,7 +287,8 @@ void Calibrator::removeNoise(const cv::Mat &grayCode, ConnectionID id) {
           ascending++;
         }
       }
-      std::cout << "cluster: " << i << " has ascending row: " << ascending
+      std::cout
+          << "cluster: " << i << " has ascending row: " << ascending
           << " and descending row: " << descending << std::endl;
       if (descending * 2 > ascending) {
         // Discard this cluster
@@ -297,24 +300,20 @@ void Calibrator::removeNoise(const cv::Mat &grayCode, ConnectionID id) {
 
 void Calibrator::decodeGrayCodes() {
   // Construct the bit mask.
-  auto decodedBitMask = decodeToBitMask();
+  const auto decodedBitMask = decodeToBitMask();
   // Consturct the mappings from color image points to projector points.
   colorToProjPoints(decodedBitMask);
 }
 
-void Calibrator::colorToProjPoints(
-    Calibrator::GrayCodeBitMaskMap &decodedGrayCodes)
-{
-  // Iterate over grayCode maps for all pairs of connections.
-  for (auto &connectionsCodes : decodedGrayCodes) {
-    colorToProj_.emplace(
-        connectionsCodes.first,
-        std::unordered_map<cv::Point2i, cv::Point2i, cvPoint2iHasher>());
+void Calibrator::colorToProjPoints(const GrayCodeBitMaskMap &decodedGrayCodes) {
 
+  // Iterate over grayCode maps for all pairs of connections.
+  for (const auto &connectionsCodes : decodedGrayCodes) {
     auto &connectionPair = connectionsCodes.first;
     auto &grayCodes = connectionsCodes.second;
 
     auto projId = connectionPair.first;
+
     // Retrieve parameters of the projector.
     auto effectiveProjRes = system_->getProCam(projId)->effectiveProjRes_;
 
@@ -330,22 +329,25 @@ void Calibrator::colorToProjPoints(
     uint32_t colMask = (1 << colLevels) - 1;
 
     for (size_t r = 0; r < static_cast<size_t>(grayCodes.rows); r++) {
+      auto encodings = grayCodes.ptr<uint32_t>(r);
       for (size_t c = 0; c < static_cast<size_t>(grayCodes.cols); c++) {
-        uint32_t encoding = grayCodes.at<uint32_t>(r, c);
+        uint32_t encoding = encodings[c];
 
         // Only greycoded pixels should satisfy this condition, other should
         // have been thresholded.
-        if (encoding > 0) {
-          uint32_t rowBits = (encoding >> colLevels) & rowMask;
-          uint32_t colBits = encoding & colMask;
-
-          auto decRow = GrayCode::grayCodeToBinary(rowBits, rowLevels);
-          auto decCol = GrayCode::grayCodeToBinary(colBits, colLevels);
-
-          colorToProj_[connectionPair].emplace(
-              cv::Point2i(r, c),
-              cv::Point2i(decRow, decCol));
+        if (encoding <= 0) {
+          continue;
         }
+
+        uint32_t rowBits = (encoding >> colLevels) & rowMask;
+        uint32_t colBits = encoding & colMask;
+
+        auto decRow = GrayCode::grayCodeToBinary(rowBits, rowLevels);
+        auto decCol = GrayCode::grayCodeToBinary(colBits, colLevels);
+
+        colorToProj_[connectionPair].emplace(
+            cv::Point2i(r, c),
+            cv::Point2i(decRow, decCol));
       }
     }
   }
@@ -360,9 +362,7 @@ void Calibrator::calibrate() {
 
   // Find (3D, 2D color image) points captured by the kinects.
   for (const auto &kinectId : ids_) {
-    kinect3D2D.emplace(
-        kinectId, std::vector<std::pair<cv::Point3f, cv::Point2i>>());
-
+    auto &map3Dto2D = kinect3D2D[kinectId];
     auto kinect = system_->getProCam(kinectId);
     auto depthImage = kinect->depthBaseline_;
 
@@ -388,7 +388,7 @@ void Calibrator::calibrate() {
         auto point2D = cv::Point2i(r, c);
 
         // Construct the 3D - 2D (color image) correspondence.
-        kinect3D2D[kinectId].push_back(std::make_pair(point3D, point2D));
+        map3Dto2D.push_back(std::make_pair(point3D, point2D));
       }
     }
   }
@@ -397,6 +397,7 @@ void Calibrator::calibrate() {
   for (const auto &projectorId : ids_) {
     std::cout << "Calibrating projector: " << projectorId << std::endl;
     auto projector = system_->getProCam(projectorId);
+    auto effectiveRes = projector->effectiveProjRes_;
 
     // Vector of vectors of points per each view.
     std::vector<std::vector<cv::Point3f>> worldPointsCalib(ids_.size());
@@ -405,8 +406,7 @@ void Calibrator::calibrate() {
     // TODO(ilijar): T78 -- iterate only over the projector group memebers.
     for (size_t i = 0; i < ids_.size(); ++i) {
       const auto &kinectId = ids_[i];
-      const auto &colorToProj
-          = colorToProj_[std::make_pair(projectorId, kinectId)];
+      const auto &colorToProj = colorToProj_[{projectorId, kinectId}];
 
       auto &worldPoints = worldPointsCalib[i];
       auto &projectorPoints = projectorPointsCalib[i];
@@ -421,8 +421,8 @@ void Calibrator::calibrate() {
 
       // Populate the buckets.
       for (const auto &pointPair : kinect3D2D[kinectId]) {
-        auto kinectColorPoint = pointPair.second;
-        auto kinect3DPoint = pointPair.first;
+        auto &kinectColorPoint = pointPair.second;
+        auto &kinect3DPoint = pointPair.first;
 
         // Get the projector point corresponding to the kinect color point.
         auto decodedPoint = colorToProj.find(kinectColorPoint);
@@ -432,13 +432,7 @@ void Calibrator::calibrate() {
           continue;
         }
 
-        auto bucket = buckets.find(decodedPoint->second);
-
-        // Create a new bucket if needed.
-        if (bucket == buckets.end()) {
-          buckets.emplace(decodedPoint->second, std::vector<cv::Point3f>());
-        }
-
+        // Add the point to the bucket.
         buckets[decodedPoint->second].emplace_back(kinect3DPoint);
       }
 
@@ -447,8 +441,8 @@ void Calibrator::calibrate() {
         // Perform the conversion to the projector coordinate system.
         // Origin is in the bottom left corner with +x pointing to the left.
         auto projPoint = cv::Point2f(
-            projector->effectiveProjRes_.width - bucket.first.y - 1,
-            projector->effectiveProjRes_.height - bucket.first.x - 1);
+            effectiveRes.width - bucket.first.y - 1,
+            effectiveRes.height - bucket.first.x - 1);
 
         // Use centroid of the points from the bucket.
         auto worldPoint = findMedianCenter(bucket.second);
@@ -483,13 +477,25 @@ void Calibrator::calibrate() {
           projectorPoints.push_back(proj);
         }
       }
+
+      // Transform the points so they are on a plane with z = 0.
+      worldPoints = transformPlane(worldPoints, {0, 0, 1});
+      for (auto &pt : worldPoints) {
+        pt.z = 0.0f;
+      }
     }
 
-    std::vector<cv::Mat> rvecs, tvecs;
+    // Provide an initial guess for the values of the intrinsic matrix.
+    projector->projMat_.at<float>(0, 0) = 1000.0f;
+    projector->projMat_.at<float>(1, 1) = 1000.0f;
+    projector->projMat_.at<float>(0, 2) = effectiveRes.width / 2;
+    projector->projMat_.at<float>(1, 2) = effectiveRes.height / 2;
 
-    // Calibrate the projector.
-    // TODO(nand): rotate points so all Z's are 0.
-    /*auto rms1 = cv::calibrateCamera(
+    // Find the calibration matrix in two steps.
+    // First, a set of points on a planar surface with z = 0 is used to
+    // compute an initial guess for the camera parameters, after which
+    // the projection matrix is refined using all the correspondences.
+    auto rms1 = cv::calibrateCamera(
         worldPointsPlane,
         projectorPointsPlane,
         projector->effectiveProjRes_,
@@ -497,19 +503,10 @@ void Calibrator::calibrate() {
         projector->projDist_,
         {},
         {},
-        0);*/
-
-    // TODO(ilijar): remove.
-    for (size_t i = 0; i < worldPointsCalib[0].size(); i++) {
-      std::cout
-          << worldPointsCalib[0][i].x << " "
-          << worldPointsCalib[0][i].y << " "
-          << worldPointsCalib[0][i].z << " "
-          << projectorPointsCalib[0][i].x << " "
-          << projectorPointsCalib[0][i].y << " "
-          << std::endl;
-    }
-
+        CV_CALIB_USE_INTRINSIC_GUESS |
+        CV_CALIB_FIX_PRINCIPAL_POINT
+    );
+    std::cerr << rms1 << std::endl << projector->projMat_ << std::endl;
 
     auto rms2 = cv::calibrateCamera(
         worldPointsCalib,
@@ -517,23 +514,40 @@ void Calibrator::calibrate() {
         projector->effectiveProjRes_,
         projector->projMat_,
         projector->projDist_,
-        rvecs,
-        tvecs,
-        CV_CALIB_USE_INTRINSIC_GUESS);
+        {},
+        {},
+        CV_CALIB_USE_INTRINSIC_GUESS
+    );
+    std::cerr << rms2 << std::endl << projector->projMat_ << std::endl;
 
     // Store the computed rotation and translation vectors.
     for (size_t i = 0; i < ids_.size(); ++i) {
-      CameraPose p;
-      p.rvec = rvecs[i];
-      p.tvec = tvecs[i];
-      projector->poses[i] = p;
+      cv::solvePnP(
+          worldPointsCalib[i],
+          projectorPointsCalib[i],
+          projector->projMat_,
+          projector->projDist_,
+          projector->poses[i].rvec,
+          projector->poses[i].tvec,
+          false,
+          CV_ITERATIVE);
     }
 
-    std::cout << "Calibration RMS: " << rms2 << std::endl;
+    std::cout
+        << "Projector #" << projectorId << std::endl
+        //<< "  RMS: " << rms1 << " " << rms2 << std::endl
+        << "  matrix: " << projector->projMat_ << std::endl;
 
-    std::cout << "Projector " << projectorId
-              << " calibration matrix: " << std::endl;
-    std::cout << projector->projMat_ << std::endl;
+    core::GLViewer viewer([&] {
+      viewer.drawPoints(
+          worldPointsCalib[0],
+          projectorPointsCalib[0],
+          projector->effectiveProjRes_);
+      viewer.drawCamera(
+          projector->projMat_,
+          projector->poses[0].rvec,
+          projector->poses[0].tvec);
+    });
   }
 
   // TODO(ilijar): remove.
@@ -543,10 +557,11 @@ void Calibrator::calibrate() {
     auto projector = system_->getProCam(projectorId);
     for (auto kinectId : ids_) {
       auto pose = projector->poses[kinectId];
-      std::cout << "Kinect: " << kinectId << std::endl;
-      std::cout << "Tvec: " << pose.tvec << std::endl
-                << " Rvec: " << pose.rvec << std::endl
-                << "--------------------" << std::endl;
+      std::cout
+          << "Kinect: " << kinectId << std::endl
+          << "Tvec: " << std::endl << pose.tvec << std::endl
+          << "Rvec: " << std::endl << pose.rvec << std::endl
+          << "--------------------" << std::endl;
     }
   }
 }

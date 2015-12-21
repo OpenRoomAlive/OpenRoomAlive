@@ -74,7 +74,7 @@ try
   : window_(nullptr)
   , wndSize_({640, 480})
   , view_(glm::lookAt(
-        glm::vec3{5.0f},
+        glm::vec3{10.0f},
         glm::vec3{0.0f},
         glm::vec3{0.0f, 1.0f, 0.0f}))
   , invView_(glm::inverse(view_))
@@ -108,11 +108,20 @@ try
   glClear(GL_COLOR_BUFFER_BIT);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_DEPTH_TEST);
 } catch(...) {
   destroy();
   throw;
 }
 
+GLViewer::GLViewer(std::function<void()> func)
+  : GLViewer()
+{
+  while (isRunning()) {
+    func();
+    frame();
+  }
+}
 
 GLViewer::~GLViewer() {
 }
@@ -183,16 +192,16 @@ void GLViewer::frame() {
   glBegin(GL_LINES);
     // Red for X.
     glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(-kGridSize, 0.0f, 0.0f);
-    glVertex3f(+kGridSize, 0.0f, 0.0f);
+    glVertex3f(-kGridSize,        0.0f, 0.0f);
+    glVertex3f(+kGridSize + 1.0f, 0.0f, 0.0f);
     // Green for Y.
     glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(0.0f,       0.0f, 0.0f);
-    glVertex3f(0.0f, +kGridSize, 0.0f);
+    glVertex3f(0.0f, -kGridSize,        0.0f);
+    glVertex3f(0.0f, +kGridSize + 1.0f, 0.0f);
     // Blue for Z.
     glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(0.0f, 0.0f, -kGridSize);
-    glVertex3f(0.0f, 0.0f, +kGridSize);
+    glVertex3f(0.0f, 0.0f, -kGridSize       );
+    glVertex3f(0.0f, 0.0f, +kGridSize + 1.0f);
   glEnd();
 }
 
@@ -201,14 +210,105 @@ void GLViewer::drawPlane(const Plane &plane) {
   (void) plane;
 }
 
-void GLViewer::drawPoints(const std::vector<cv::Point3f> &points) {
+
+void GLViewer::drawPoints(
+    const std::vector<cv::Point3f> &worldPoints,
+    const std::vector<cv::Point2f> &projPoints,
+    const cv::Size &size)
+{
+  if (worldPoints.size() != projPoints.size()) {
+    throw EXCEPTION() << "Vector lengths are not equal.";
+  }
+
   glPointSize(3.0f);
   glBegin(GL_POINTS);
   glColor3f(1.0f, 0.0f, 0.0f);
-  for (const auto &point : points) {
-    glVertex3f(point.x, point.y, point.z);
+  for (size_t i = 0; i < worldPoints.size(); ++i) {
+    glColor3f(projPoints[i].x / size.width, projPoints[i].y / size.height, 0);
+    glVertex3f(worldPoints[i].x, worldPoints[i].y, worldPoints[i].z);
   }
   glEnd();
+}
+
+
+void GLViewer::drawCamera(
+    const cv::Mat &cam,
+    const cv::Mat &r,
+    const cv::Mat &t)
+{
+  // Extract camera parameters.
+  float fx = cam.at<double>(0, 0);
+  float fy = cam.at<double>(1, 1);
+  float cx = cam.at<double>(0, 2);
+  float cy = cam.at<double>(1, 2);
+  float n  = 0.1f;
+  float f  = 4.0f;
+
+  // Compute the intrinsic matrix.
+  glm::mat4 mk(
+      fx / cx,    0.0f,                 0.0f,  0.0f,
+         0.0f, fy / cy,                 0.0f,  0.0f,
+         0.0f,    0.0f,   -(f + n) / (f - n), -1.0f,
+         0.0f,    0.0f, -2 * f * n / (f - n),  0.0f
+  );
+
+  // Compute the rotation & translation matrix.
+  cv::Mat rm;
+  cv::Rodrigues(r, rm);
+  rm.convertTo(rm, CV_32F);
+  glm::mat4 mr(
+    rm.at<float>(0, 0), rm.at<float>(1, 0), rm.at<float>(2, 0), 0.0f,
+    rm.at<float>(0, 1), rm.at<float>(1, 1), rm.at<float>(2, 1), 0.0f,
+    rm.at<float>(0, 2), rm.at<float>(1, 2), rm.at<float>(2, 2), 0.0f,
+    t.at<double>(0, 0), t.at<double>(1, 0), t.at<double>(2, 0), 1.0f
+  );
+
+  // Compute the inverse MV matrix.
+  glm::mat4 inv = glm::inverse(mk * mr);
+
+  glm::vec4 corners[] = {
+      {-1, -1, -1, 1},
+      {-1, -1, +1, 1},
+      {-1, +1, -1, 1},
+      {-1, +1, +1, 1},
+      {+1, -1, -1, 1},
+      {+1, -1, +1, 1},
+      {+1, +1, -1, 1},
+      {+1, +1, +1, 1}
+  };
+  for (auto &corner : corners) {
+    corner = inv * corner;
+    corner.x /= corner.w;
+    corner.y /= corner.w;
+    corner.z /= corner.w;
+    corner.w = 1.0f;
+  }
+
+  {
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_LINES);
+      glVertex3fv(glm::value_ptr(corners[0b000]));
+      glVertex3fv(glm::value_ptr(corners[0b001]));
+      glVertex3fv(glm::value_ptr(corners[0b010]));
+      glVertex3fv(glm::value_ptr(corners[0b011]));
+      glVertex3fv(glm::value_ptr(corners[0b100]));
+      glVertex3fv(glm::value_ptr(corners[0b101]));
+      glVertex3fv(glm::value_ptr(corners[0b110]));
+      glVertex3fv(glm::value_ptr(corners[0b111]));
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+      glVertex3fv(glm::value_ptr(corners[0b000]));
+      glVertex3fv(glm::value_ptr(corners[0b010]));
+      glVertex3fv(glm::value_ptr(corners[0b110]));
+      glVertex3fv(glm::value_ptr(corners[0b100]));
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+      glVertex3fv(glm::value_ptr(corners[0b001]));
+      glVertex3fv(glm::value_ptr(corners[0b011]));
+      glVertex3fv(glm::value_ptr(corners[0b111]));
+      glVertex3fv(glm::value_ptr(corners[0b101]));
+    glEnd();
+  }
 }
 
 

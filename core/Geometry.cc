@@ -14,8 +14,8 @@
 #include "core/Geometry.h"
 
 
-constexpr size_t kSplitPhi = 10;
-constexpr size_t kSplitTheta = 20;
+constexpr size_t kSplitPhi = 80;
+constexpr size_t kSplitTheta = 80;
 constexpr size_t kSplitR = 30;
 constexpr float kEps = 1e-5;
 
@@ -40,7 +40,7 @@ Plane planeFit(
 
   // Compute the center point. The hough transform is performed in this
   // system in order to make best use of the buckets on R.
-  const auto center = findCenter(points);
+  const auto center = findCentroid(points);
 
   // Compute the range for r.
   auto maxR = std::numeric_limits<float>::min();
@@ -145,22 +145,26 @@ std::vector<cv::Point3f> transformPlane(
     const std::vector<cv::Point3f> &points,
     const cv::Point3f &n)
 {
+  if (points.size() < 3) {
+    throw EXCEPTION() << "transformPlane requires at least 3 points.";
+  }
 
-  // Find the normal vector of the old plane and normalize it.
-  const auto ab = points[1] - points[0];
-  cv::Point3f planeNormal(0.0f);
-  for (const auto &point : points) {
-    const auto ac = point - points[0];
-    const auto cross = ab.cross(ac);
-    const float l = std::sqrt(cross.dot(cross));
-    if (l > kEps) {
-      planeNormal = cross * (1.0f / l);
-      break;
-    }
+  // Find the centroid of the points in the dataset.
+  const auto &c = findCentroid(points);
+
+  // Find the best fitting normal vector using SVD. The normal vector is the
+  // vector corresponding to the least singular value.
+  cv::Mat a(points.size(), 3, CV_32F);
+  for (size_t i = 0; i < points.size(); ++i) {
+    a.at<float>(i, 0) = points[i].x - c.x;
+    a.at<float>(i, 1) = points[i].y - c.y;
+    a.at<float>(i, 2) = points[i].z - c.z;
   }
-  if (planeNormal.dot(planeNormal) < kEps) {
-    throw EXCEPTION() << "Points cannot be collinear.";
-  }
+  cv::SVD svd(a, 0);
+  cv::Point3f planeNormal(
+      svd.vt.at<float>(2, 0),
+      svd.vt.at<float>(2, 1),
+      svd.vt.at<float>(2, 2));
 
   // Normalize the vector of the new plane.
   const float l = std::sqrt(n.dot(n));
@@ -175,21 +179,16 @@ std::vector<cv::Point3f> transformPlane(
       glm::vec3(planeNormal.x, planeNormal.y, planeNormal.z),
       glm::vec3(m.x, m.y, m.z));
 
-  // Find the center point on the old plane - points will be rotated around it.
-  const auto &c = findCenter(points);
-
   // Rotate all points and move them to the origin.
   std::vector<cv::Point3f> newPoints;
   for (const auto &point : points) {
-    const auto d = point - c;
-    const auto p = glm::rotate(rotQ, {d.x, d.y, d.z, 0.0f});
+    const auto p = glm::rotate(rotQ, {point.x, point.y, point.z, 1.0f});
     newPoints.emplace_back(p.x, p.y, p.z);
-
   }
   return newPoints;
 }
 
-cv::Point3f findCenter(const std::vector<cv::Point3f> &points) {
+cv::Point3f findCentroid(const std::vector<cv::Point3f> &points) {
   const auto sum = std::accumulate(
       points.begin(),
       points.end(),

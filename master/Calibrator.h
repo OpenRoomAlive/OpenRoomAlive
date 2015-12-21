@@ -103,7 +103,7 @@ class Calibrator {
    * Constructs the mapping from points in the color image to
    * the points in the projector screen space.
    */
-  void colorToProjPoints(GrayCodeBitMaskMap &decodedGrayCodes);
+  void colorToProjPoints(const GrayCodeBitMaskMap &decodedGrayCodes);
 
   /*
    * Filters noise from decoded gray code.
@@ -119,12 +119,12 @@ class Calibrator {
   const std::shared_ptr<ProCamSystem> system_;
   /// Map of captured gray code pattern
   CapturedMap captured_;
+
   /**
    * Contains mappings from the points in the kinect color image
    * to the points in the projector's screen.
    */
   ColorProjectorMap colorToProj_;
-
 };
 
 }}

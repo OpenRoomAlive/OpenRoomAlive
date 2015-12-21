@@ -51,9 +51,23 @@ void ProCamRecorder::saveFrame(
   dest /= frameDir;
 
   // Save depth images as OpenEXR and colour images as PNG.
-  const std::string ext = (frame.depth() == CV_32F) ? "exr" : "png";
-  dest /= frameFileName(frameNum_[id][dataType]++, ext.c_str());
-  imwrite(dest.string(), frame);
+  switch (frame.depth()) {
+    case CV_32F:
+    case CV_32S:
+    {
+      const auto &name = frameFileName(frameNum_[id][dataType]++, "yml");
+      cv::FileStorage fs((dest / name).string(), cv::FileStorage::WRITE);
+      fs << "mat" << frame;
+      fs.release();
+      break;
+    }
+    default:
+    {
+      const auto &name = frameFileName(frameNum_[id][dataType]++, "png");
+      imwrite((dest / name).string(), frame);
+      break;
+    }
+  }
 }
 
 void ProCamRecorder::saveParam(const ProCamParam &param, ConnectionID id) {

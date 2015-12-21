@@ -137,12 +137,6 @@ class MockConnectionHandler : public ConnectionHandler {
    */
   ProCamParam loadParam(ConnectionID id);
 
-  /**
-   * Given the type of the frame that the user wishes to retrieve, returns
-   * the name of the file that should be loaded into a cv::Mat.
-   */
-  std::string frameName(ConnectionID id, ProCamRecorder::RecordedData dataType);
-
  private:
   /// Path to the directory storing images saved for each procam.
   const boost::filesystem::path path_;

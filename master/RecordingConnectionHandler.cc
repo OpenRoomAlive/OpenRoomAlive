@@ -76,7 +76,7 @@ cv::Mat RecordingConnectionHandler::undistort(
 {
   cv::Mat undistortedHD = MasterConnectionHandler::undistort(id, imageHD);
   recorder_.saveFrame(
-    imageHD, id, ProCamRecorder::RecordedData::UNDISTORTED_HD);
+    undistortedHD, id, ProCamRecorder::RecordedData::UNDISTORTED_HD);
   return undistortedHD;
 }
 
