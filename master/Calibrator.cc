@@ -485,19 +485,21 @@ void Calibrator::calibrate() {
       }
     }
 
-    // Provide an initial guess for the values of the intrinsic matrix.
-    projector->projMat_.at<float>(0, 0) = 1000.0f;
-    projector->projMat_.at<float>(1, 1) = 1000.0f;
-    projector->projMat_.at<float>(0, 2) = effectiveRes.width / 2;
-    projector->projMat_.at<float>(1, 2) = effectiveRes.height / 2;
-
     // Find the calibration matrix in two steps.
     // First, a set of points on a planar surface with z = 0 is used to
     // compute an initial guess for the camera parameters, after which
     // the projection matrix is refined using all the correspondences.
-    auto rms1 = cv::calibrateCamera(
+    projector->projMat_ = cv::initCameraMatrix2D(
         worldPointsPlane,
         projectorPointsPlane,
+        projector->effectiveProjRes_,
+        static_cast<float>(effectiveRes.width) /
+        static_cast<float>(effectiveRes.height)
+    );
+
+    auto rms = cv::calibrateCamera(
+        worldPointsCalib,
+        projectorPointsCalib,
         projector->effectiveProjRes_,
         projector->projMat_,
         projector->projDist_,
@@ -506,19 +508,9 @@ void Calibrator::calibrate() {
         CV_CALIB_USE_INTRINSIC_GUESS |
         CV_CALIB_FIX_PRINCIPAL_POINT
     );
-    std::cerr << rms1 << std::endl << projector->projMat_ << std::endl;
-
-    auto rms2 = cv::calibrateCamera(
-        worldPointsCalib,
-        projectorPointsCalib,
-        projector->effectiveProjRes_,
-        projector->projMat_,
-        projector->projDist_,
-        {},
-        {},
-        CV_CALIB_USE_INTRINSIC_GUESS
-    );
-    std::cerr << rms2 << std::endl << projector->projMat_ << std::endl;
+    std::cerr
+        << projector->projMat_ << std::endl
+        << projector->projDist_ << std::endl;
 
     // Store the computed rotation and translation vectors.
     for (size_t i = 0; i < ids_.size(); ++i) {
@@ -535,7 +527,7 @@ void Calibrator::calibrate() {
 
     std::cout
         << "Projector #" << projectorId << std::endl
-        //<< "  RMS: " << rms1 << " " << rms2 << std::endl
+        << "  RMS: " << rms << std::endl
         << "  matrix: " << projector->projMat_ << std::endl;
 
     core::GLViewer viewer([&] {

@@ -60,12 +60,10 @@ class CalibratorTest : public ::testing::Test {
 };
 
 
-TEST_F(CalibratorTest, RunCalibration) {
-  /*
+TEST_F(CalibratorTest, DISABLED_RunCalibration) {
   Calibrator calibrator(ids, conn, system);
   calibrator.captureBaselines();
   calibrator.displayGrayCodes();
   calibrator.decodeGrayCodes();
   calibrator.calibrate();
-  */
 }
