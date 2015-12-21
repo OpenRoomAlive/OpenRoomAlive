@@ -35,6 +35,8 @@ IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
 ELSE()
   ADD_COMPILE_OPTIONS(-O3)
 ENDIF()
+# Clear Build type.
+unset(CMAKE_BUILD_TYPE CACHE)
 
 # Create a __FILENAME__ macro that only contains a relative path.
 SET(CMAKE_CXX_FLAGS
