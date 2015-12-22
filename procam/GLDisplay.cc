@@ -99,8 +99,6 @@ try
     glViewport(0, 0, frameWidth, frameHeight);
   }
 
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
   glEnable(GL_TEXTURE_2D);
   glGenTextures(1, &texture_);
   glBindTexture(GL_TEXTURE_2D, texture_);
@@ -136,11 +134,20 @@ bool GLDisplay::isRunning() {
 void GLDisplay::update() {
   {
     std::lock_guard<std::mutex> locker(lock_);
-    displayedImage_ = image_;
+
+    // OpenCV origin is in the top left corner with y down.
+    // OpenGL origin is in the bottom left corner with y up.
+    // Flip vertically before displaying.
+    cv::Mat flipped(image_.rows, image_.cols, CV_8UC3, cv::Scalar(0));
+    cv::flip(image_, flipped, 0);
+
+    displayedImage_ = flipped;
   }
   glfwShowWindow(window_);
 
   glBindTexture(GL_TEXTURE_2D, texture_);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, displayedImage_.step[0]);
   switch (displayedImage_.elemSize()) {
     case 1: {
       glTexImage2D(
@@ -191,10 +198,10 @@ void GLDisplay::update() {
 
   glClear(GL_COLOR_BUFFER_BIT);
   glBegin(GL_QUADS);
-    glTexCoord2f(1.0f, 1.0f); glVertex2f(-1.0f, -1.0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex2f(-1.0f, +1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex2f(+1.0f, +1.0f);
-    glTexCoord2f(0.0f, 1.0f); glVertex2f(+1.0f, -1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f, +1.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(+1.0f, +1.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex2f(+1.0f, -1.0f);
   glEnd();
 
   glfwSwapBuffers(window_);
@@ -239,7 +246,14 @@ void GLDisplay::updateWithLaser(
     const cv::Scalar &color)
 {
   std::lock_guard<std::mutex> locker(lock_);
+
   for (const auto &seg : segments) {
     cv::line(image_, seg.first, seg.second, color, 1);
   }
+
+  /*
+  cv::line(image_, cv::Point2i(0, 200), cv::Point2i(200,400), color, 1);
+  cv::line(image_, cv::Point2i(100, 100), cv::Point2i(500, 100), color, 1);
+  cv::line(image_, cv::Point2i(200, 100), cv::Point2i(200, 500), color, 1);
+  */
 }

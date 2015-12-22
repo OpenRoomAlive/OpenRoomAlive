@@ -28,7 +28,7 @@ constexpr size_t kDepthImageWidth = 512;
 constexpr size_t kDepthImageHeight = 424;
 
 // Treshold used to filter out some of the depth image noise.
-constexpr auto kDepthVarianceTreshold = 10;
+constexpr auto kDepthVarianceTreshold = 36;
 
 // 1m = 1000mm
 constexpr float kMilimetersToMeters = 1000.0f;
@@ -215,7 +215,8 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
     cv::Mat grayCodeUndistorted =
         connectionHandler_->undistort(entry.first.second, grayCode);
 
-    removeNoise(grayCodeUndistorted, entry.first.first);
+    // Removes too much
+    //removeNoise(grayCodeUndistorted, entry.first.first);
     retrievedGraycodes[entry.first] = grayCodeUndistorted;
   }
   return retrievedGraycodes;
@@ -473,6 +474,7 @@ void Calibrator::calibrate() {
       }
     }
 
+    /*
     // Try to avoid using initial intrinsic guess.
     std::vector<std::vector<cv::Point3f>> worldPointsPlane(
         projectorGroupSize);
@@ -562,6 +564,41 @@ void Calibrator::calibrate() {
           projector->poses[0].rvec,
           projector->poses[0].tvec);
     });
+    */
+
+    // If you are running the calibration using initCameraMatrix2D & solvePnP,
+    // don't delete the following. Comment it out as it is done above.
+    projector->projMat_.at<float>(0, 0) = 1000.0f;
+    projector->projMat_.at<float>(1, 1) = 1000.0f;
+    projector->projMat_.at<float>(0, 2) = effectiveRes.width / 2;
+    projector->projMat_.at<float>(1, 2) = 0.0f;
+    projector->projMat_.at<float>(2, 2) = 1.0f;
+
+    std::vector<cv::Mat> rvecs, tvecs;
+
+    auto rms = cv::calibrateCamera(
+        worldPointsCalib,
+        projectorPointsCalib,
+        effectiveRes,
+        projector->projMat_,
+        projector->projDist_,
+        rvecs,
+        tvecs,
+        CV_CALIB_USE_INTRINSIC_GUESS);
+
+    // Store the computed rotation and translation vectors.
+    for (size_t i = 0; i < projector->projectorGroup_.size(); ++i) {
+      CameraPose p;
+      p.rvec = rvecs[i];
+      p.tvec = tvecs[i];
+      projector->poses[projector->projectorGroup_[i]] = p;
+    }
+
+    std::cout << "Projector #" << projectorId << std::endl;
+    std::cout << "Points used: " << worldPointsCalib[0].size() << std::endl;
+    std::cout << "RMS: " << rms << std::endl;
+    std::cout << "Calibration matrix: " << std::endl;
+    std::cout << projector->projMat_ << std::endl;
   }
 
   // TODO(ilijar): remove.

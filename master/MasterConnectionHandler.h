@@ -201,7 +201,6 @@ class MasterConnectionHandler
   {
     Color thriftColor;
     conv::cvScalarToThriftColor(color, thriftColor);
-
     InvokeOne<const std::vector<Segment>&, const Color&>(
         id,
         &ProCamClient::updateLaser,

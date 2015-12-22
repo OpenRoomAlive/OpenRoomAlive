@@ -214,7 +214,7 @@ void LaserDetector::detect() {
         dv::Point laser;
         laser.x = track->x;
         laser.y = track->y;
-        laser.depth = baseline_->getDepthImage().at<double>(track->y, track->x);
+        laser.depth = baseline_->getDepthImage().at<float>(track->y, track->x);
         master_->detectedLaser(laser, thriftColor);
       }
     }

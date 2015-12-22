@@ -27,7 +27,10 @@ class LaserDrawer {
   void run();
 
  private:
-  /// ProCam ids.
+  void handleEvent(const Event &e);
+
+ private:
+ /// ProCam ids.
   const std::vector<ConnectionID> ids_;
   /// ProCam system.
   const std::shared_ptr<ProCamSystem> system_;
@@ -35,6 +38,10 @@ class LaserDrawer {
   const std::shared_ptr<EventStream> stream_;
   /// Connection handler.
   const boost::shared_ptr<ConnectionHandler> connectionHandler_;
+  /// Flag denoting if the laser is being tracked.
+  bool tracked_;
+  /// Laser position.
+  cv::Point3f position_;
 };
 
 }}
