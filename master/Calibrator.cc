@@ -21,7 +21,7 @@ using namespace dv;
 
 
 // Threshold to determine if two color images are the same.
-constexpr auto kColorDiffThreshold = 100;
+constexpr auto kColorDiffThreshold = 1000;
 
 // Depth image resolution -- TODO(ilijar): apply D98 comment.
 constexpr size_t kDepthImageWidth = 512;
@@ -76,7 +76,7 @@ void Calibrator::formProjectorGroups() {
     connectionHandler_->displayGrayCode(
         id,
         Orientation::type::HORIZONTAL,
-        maxLevel,
+        maxLevel / 2,
         false);
     std::this_thread::sleep_for(proCam->getLatency());
     auto base = connectionHandler_->getGrayscaleImages();
@@ -85,7 +85,7 @@ void Calibrator::formProjectorGroups() {
     connectionHandler_->displayGrayCode(
         id,
         Orientation::type::HORIZONTAL,
-        maxLevel,
+        maxLevel / 2,
         true);
     std::this_thread::sleep_for(proCam->getLatency());
     auto inverted = connectionHandler_->getGrayscaleImages();
@@ -97,6 +97,7 @@ void Calibrator::formProjectorGroups() {
       cv::absdiff(base[target], inverted[target], diff);
 
       cv::threshold(diff, diff, 30, 1, cv::THRESH_BINARY);
+
       if (cv::sum(diff)[0] > kColorDiffThreshold) {
         proCam->projectorGroup_.push_back(target);
       }

@@ -94,6 +94,7 @@ int MasterApplication::run() {
     // Calibrate the system using grey codes.
     Calibrator calibrator(connectionIds, connectionHandler_, system_);
     calibrator.captureBaselines();
+    calibrator.formProjectorGroups();
     calibrator.displayGrayCodes();
     calibrator.decodeGrayCodes();
     calibrator.calibrate();

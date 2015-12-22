@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
 #include <memory>
 
 #include <thrift/server/TServer.h>
