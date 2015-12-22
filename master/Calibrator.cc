@@ -7,6 +7,7 @@
 #include <iostream>
 #include <thread>
 
+#include "core/Conv.h"
 #include "core/Geometry.h"
 #include "core/GrayCode.h"
 #include "core/GLViewer.h"
@@ -14,6 +15,7 @@
 #include "core/ProCam.h"
 #include "core/Types.h"
 #include "master/Calibrator.h"
+#include "master/ConnectionHandler.h"
 
 
 using namespace dv::master;
@@ -24,8 +26,10 @@ using namespace dv;
 constexpr auto kColorDiffThreshold = 1000;
 
 // Depth image resolution -- TODO(ilijar): apply D98 comment.
-constexpr size_t kDepthImageWidth = 512;
+constexpr size_t kDepthImageWidth  = 512;
 constexpr size_t kDepthImageHeight = 424;
+constexpr size_t kColorImageWidth  = 1920;
+constexpr size_t kColorImageHeight = 1080;
 
 // Treshold used to filter out some of the depth image noise.
 constexpr auto kDepthVarianceTreshold = 36;
@@ -44,6 +48,16 @@ Calibrator::Calibrator(
   , connectionHandler_(connectionHandler)
   , system_(system)
 {
+  auto paramsMap = connectionHandler_->getParams();
+
+  for (auto id : ids_) {
+    auto params = paramsMap[id];
+
+    registration_[id] = std::shared_ptr<libfreenect2::Registration>(
+        new libfreenect2::Registration(
+            dv::conv::thriftToFreenectIrParams(params.camera.ir),
+            dv::conv::thriftToFreenectColorParams(params.camera.bgr)));
+  }
 }
 
 Calibrator::~Calibrator() {
@@ -212,8 +226,7 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
     // Eliminate invalid pixels.
     cv::multiply(grayCode, validPixelsOverall, grayCode);
 
-    cv::Mat grayCodeUndistorted =
-        connectionHandler_->undistort(entry.first.second, grayCode);
+    cv::Mat grayCodeUndistorted = undistort(grayCode, entry.first.second);
 
     // Removes too much
     //removeNoise(grayCodeUndistorted, entry.first.first);
@@ -617,3 +630,45 @@ void Calibrator::calibrate() {
   }
 }
 
+cv::Mat Calibrator::undistort(
+    const cv::Mat &HDImage,
+    ConnectionID id)
+{
+  // Retrieve the registration object for the current proCam.
+  std::shared_ptr<libfreenect2::Registration> registration = registration_[id];
+
+  // Retrieve the depth baseline for image undistortion.
+  const cv::Mat &depthImage = system_->getProCam(id)->depthBaseline_;
+
+  // Prepare HD colour and depth frames.
+  libfreenect2::Frame HDFrame(kColorImageWidth, kColorImageHeight, 4);
+  libfreenect2::Frame depthFrame(kDepthImageWidth, kDepthImageHeight, 4);
+  HDFrame.data = HDImage.data;
+  depthFrame.data = depthImage.data;
+
+  libfreenect2::Frame depthUndistortedFrame(
+      kDepthImageWidth,
+      kDepthImageHeight,
+      4);
+  libfreenect2::Frame HDundistortedFrame(
+      kDepthImageWidth,
+      kDepthImageHeight,
+      4);
+
+  // Undistort images.
+  registration->apply(
+      &HDFrame,
+      &depthFrame,
+      &depthUndistortedFrame,
+      &HDundistortedFrame);
+
+  // Construct the BGR graycode undistorted image.
+  cv::Mat undistorted;
+  cv::Mat(
+      HDundistortedFrame.height,
+      HDundistortedFrame.width,
+      CV_32S,
+      HDundistortedFrame.data).copyTo(undistorted);
+
+  return undistorted;
+}

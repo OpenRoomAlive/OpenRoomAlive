@@ -71,15 +71,6 @@ ConnectionHandler::FrameMap RecordingConnectionHandler::getDepthVariances() {
   return depthVariances;
 }
 
-cv::Mat RecordingConnectionHandler::undistort(
-    ConnectionID id, const cv::Mat &imageHD)
-{
-  cv::Mat undistortedHD = MasterConnectionHandler::undistort(id, imageHD);
-  recorder_.saveFrame(
-    undistortedHD, id, ProCamRecorder::RecordedData::UNDISTORTED_HD);
-  return undistortedHD;
-}
-
 ConnectionHandler::ParamMap RecordingConnectionHandler::getParams()
 {
   auto cameraParams = MasterConnectionHandler::getParams();

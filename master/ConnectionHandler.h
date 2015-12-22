@@ -99,11 +99,6 @@ class ConnectionHandler {
   virtual FrameMap getDepthVariances() = 0;
 
   /**
-   * Asks porcam to undistort the provided HD image.
-   */
-  virtual cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) = 0;
-
-  /**
    * Asks ProCams to start detecting the laser pointer.
    */
   virtual void startLaserDetection() = 0;

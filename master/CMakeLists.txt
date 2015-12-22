@@ -45,6 +45,8 @@ TARGET_LINK_LIBRARIES(master_lib
     double-conversion
     ${GL_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${freenect2_LIBRARIES}
+    dl
 )
 
 # Master executable.

@@ -109,5 +109,62 @@ std::vector<Segment> cvPointsToThriftSegments(
   return segments;
 }
 
+libfreenect2::Freenect2Device::IrCameraParams thriftToFreenectIrParams(
+    const dv::IrCameraParams &params)
+{
+  libfreenect2::Freenect2Device::IrCameraParams freenectParams;
+
+  freenectParams.fx = params.fx;
+  freenectParams.fy = params.fy;
+  freenectParams.cx = params.cx;
+  freenectParams.cy = params.cy;
+
+  freenectParams.k1 = params.k1;
+  freenectParams.k2 = params.k2;
+  freenectParams.k3 = params.k3;
+  freenectParams.p1 = params.p1;
+  freenectParams.p2 = params.p2;
+
+  return freenectParams;
+}
+
+libfreenect2::Freenect2Device::ColorCameraParams thriftToFreenectColorParams(
+    const dv::BGRCameraParams &params)
+{
+  libfreenect2::Freenect2Device::ColorCameraParams freenectParams;
+
+  freenectParams.fx = params.fx;
+  freenectParams.fy = params.fy;
+  freenectParams.cx = params.cx;
+  freenectParams.cy = params.cy;
+
+  freenectParams.shift_d = params.shift_d;
+  freenectParams.shift_m = params.shift_m;
+
+  freenectParams.mx_x3y0 = params.mx_x3y0;
+  freenectParams.mx_x0y3 = params.mx_x0y3;
+  freenectParams.mx_x2y1 = params.mx_x2y1;
+  freenectParams.mx_x1y2 = params.mx_x1y2;
+  freenectParams.mx_x2y0 = params.mx_x2y0;
+  freenectParams.mx_x0y2 = params.mx_x0y2;
+  freenectParams.mx_x1y1 = params.mx_x1y1;
+  freenectParams.mx_x1y0 = params.mx_x1y0;
+  freenectParams.mx_x0y1 = params.mx_x0y1;
+  freenectParams.mx_x0y0 = params.mx_x0y0;
+
+  freenectParams.my_x3y0 = params.my_x3y0;
+  freenectParams.my_x0y3 = params.my_x0y3;
+  freenectParams.my_x2y1 = params.my_x2y1;
+  freenectParams.my_x1y2 = params.my_x1y2;
+  freenectParams.my_x2y0 = params.my_x2y0;
+  freenectParams.my_x0y2 = params.my_x0y2;
+  freenectParams.my_x1y1 = params.my_x1y1;
+  freenectParams.my_x1y0 = params.my_x1y0;
+  freenectParams.my_x0y1 = params.my_x0y1;
+  freenectParams.my_x0y0 = params.my_x0y0;
+
+  return freenectParams;
+}
+
 }}
 

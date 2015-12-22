@@ -189,11 +189,6 @@ service ProCam {
   oneway void close();
 
   /**
-   * Undistorts provided HD image using Kinect's parameters and depth baseline.
-   */
-  Frame undistort(1: Frame inputHDImageThrift),
-
-  /**
    * Starts detecting the laser.
    */
   void startLaserDetection();

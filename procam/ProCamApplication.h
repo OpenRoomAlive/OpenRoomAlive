@@ -107,7 +107,7 @@ class ProCamApplication : public ProCamIf {
    */
   void undistort(
       Frame& undistortedImageThrift,
-      const Frame& HDImageThrift) override;
+      const Frame& HDImageThrift);
 
   /**
    * Starts detecting the laser.

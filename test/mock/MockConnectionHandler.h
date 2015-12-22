@@ -97,11 +97,6 @@ class MockConnectionHandler : public ConnectionHandler {
   FrameMap getDepthVariances() override;
 
   /**
-   * Undistorts an image. Not sure how.
-   */
-  cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override;
-
-  /**
    * Asks ProCams to start laser detection.
    */
   void startLaserDetection() override;

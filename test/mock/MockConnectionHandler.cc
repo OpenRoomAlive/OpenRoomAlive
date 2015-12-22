@@ -100,15 +100,6 @@ ConnectionHandler::FrameMap MockConnectionHandler::getDepthVariances() {
   return loadFrames(ProCamRecorder::RecordedData::DEPTH_VARIANCE);
 }
 
-cv::Mat MockConnectionHandler::undistort(
-    ConnectionID id,
-    const cv::Mat &imageHD)
-{
-  (void) imageHD;
-
-  return loadFrame(id, ProCamRecorder::RecordedData::UNDISTORTED_HD);
-}
-
 ConnectionHandler::ParamMap MockConnectionHandler::getParams() {
   ParamMap params;
   for (ConnectionID id = 0; id < count_; id++) {

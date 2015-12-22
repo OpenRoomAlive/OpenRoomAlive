@@ -7,6 +7,8 @@
 #include <vector>
 
 #include <boost/functional/hash.hpp>
+#include <libfreenect2/libfreenect2.hpp>
+#include <libfreenect2/registration.h>
 
 #include "master/ConnectionHandler.h"
 #include "master/ProCamSystem.h"
@@ -110,6 +112,13 @@ class Calibrator {
    */
   void removeNoise(const cv::Mat &grayCode, ConnectionID id);
 
+  /**
+   * Undistorts the HD grayscale image.
+   */
+  cv::Mat undistort(
+    const cv::Mat &HDImage,
+    ConnectionID id);
+
  private:
   /// IDs of the procam connections
   const std::vector<ConnectionID> ids_;
@@ -119,6 +128,9 @@ class Calibrator {
   const std::shared_ptr<ProCamSystem> system_;
   /// Map of captured gray code pattern
   CapturedMap captured_;
+  /// Kinect registration.
+  std::unordered_map<ConnectionID, std::shared_ptr<libfreenect2::Registration>>
+      registration_;
 
   /**
    * Contains mappings from the points in the kinect color image

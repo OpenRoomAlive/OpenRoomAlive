@@ -168,23 +168,6 @@ class MasterConnectionHandler
   }
 
   /**
-   * Asks procam to undistort the provided HD image.
-   */
-  virtual cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override {
-    Frame imageHDThrift;
-    conv::cvMatToThriftFrame(imageHD, imageHDThrift);
-
-    cv::Mat image;
-    conv::thriftFrameToCvMat(
-        InvokeOne<Frame, const Frame&>(
-            id,
-            &ProCamClient::undistort,
-            imageHDThrift),
-        image);
-    return image;
-  }
-
-  /**
    * Asks ProCams to start detecting the laser.
    */
   void startLaserDetection() override {

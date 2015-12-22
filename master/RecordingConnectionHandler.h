@@ -62,11 +62,6 @@ class RecordingConnectionHandler : public MasterConnectionHandler {
   FrameMap getDepthVariances() override;
 
   /**
-   * Asks porcam to undistort the provided HD image and records the result.
-   */
-  cv::Mat undistort(ConnectionID id, const cv::Mat &imageHD) override;
-
-  /**
    * Invokes getParams on all clients and records the retrieved camera data.
    */
   ParamMap getParams() override;

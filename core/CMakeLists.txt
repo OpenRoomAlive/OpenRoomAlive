@@ -67,5 +67,6 @@ ADD_LIBRARY(core
 TARGET_LINK_LIBRARIES(core
     thrift
     boost_iostreams
+    dl
     ${OpenCV_LIBRARIES}
 )

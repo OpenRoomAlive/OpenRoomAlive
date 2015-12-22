@@ -6,6 +6,7 @@
 
 #include <unordered_map>
 
+#include <libfreenect2/libfreenect2.hpp>
 #include <opencv2/opencv.hpp>
 
 #include "core/ProCam.h"
@@ -88,5 +89,16 @@ std::vector<std::pair<cv::Point2i, cv::Point2i>> thriftSegmentsToCvPoints(
 std::vector<Segment> cvPointsToThriftSegments(
     const std::vector<std::pair<cv::Point2i, cv::Point2i>> &path);
 
-}}
+/**
+ * Converts the color camera parameters in thrift format to libfreenect2 format.
+ */
+libfreenect2::Freenect2Device::ColorCameraParams thriftToFreenectColorParams(
+    const dv::BGRCameraParams &params);
 
+/**
+ * Converts the ir camera parameters in thrift format to libfreenect2 format.
+ */
+libfreenect2::Freenect2Device::IrCameraParams thriftToFreenectIrParams(
+    const dv::IrCameraParams &params);
+
+}}
