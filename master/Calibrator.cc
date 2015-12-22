@@ -116,9 +116,9 @@ void Calibrator::formProjectorGroups() {
         proCam->projectorGroup_.push_back(target);
       }
     }
-  }
 
-  connectionHandler_->clearDisplays();
+    connectionHandler_->clearDisplay(id);
+  }
 
   /*
   // TODO: T80
