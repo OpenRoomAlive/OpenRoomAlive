@@ -105,6 +105,21 @@ void Calibrator::formProjectorGroups() {
   }
 
   connectionHandler_->clearDisplays();
+
+  /*
+  // TODO: T80
+  std::cout << "Formed projector groups." << std::endl;
+  for (const auto projectorId : ids_) {
+    std::cout << "Members of projector "
+              << projectorId << " group: "
+              << std::endl;
+    auto projector = system_->getProCam(projectorId);
+    for (const auto kinectId : projector->projectorGroup_) {
+      std::cout << kinectId << " ";
+    }
+    std::cout << std::endl << "--------" << std::endl;
+  }
+  */
 }
 
 void Calibrator::displayGrayCodes() {
@@ -397,16 +412,20 @@ void Calibrator::calibrate() {
   // Calibrate each projector.
   for (const auto &projectorId : ids_) {
     std::cout << "Calibrating projector: " << projectorId << std::endl;
-    auto projector = system_->getProCam(projectorId);
-    auto effectiveRes = projector->effectiveProjRes_;
+
+    const auto projector = system_->getProCam(projectorId);
+    const auto effectiveRes = projector->effectiveProjRes_;
+    const auto projectorGroupSize = projector->projectorGroup_.size();
 
     // Vector of vectors of points per each view.
-    std::vector<std::vector<cv::Point3f>> worldPointsCalib(ids_.size());
-    std::vector<std::vector<cv::Point2f>> projectorPointsCalib(ids_.size());
+    std::vector<std::vector<cv::Point3f>> worldPointsCalib(
+        projectorGroupSize);
+    std::vector<std::vector<cv::Point2f>> projectorPointsCalib(
+        projectorGroupSize);
 
-    // TODO(ilijar): T78 -- iterate only over the projector group memebers.
-    for (size_t i = 0; i < ids_.size(); ++i) {
-      const auto &kinectId = ids_[i];
+    // Add points from each view (Kinect in the projector group).
+    for (size_t i = 0; i < projectorGroupSize; ++i) {
+      const auto &kinectId = projector->projectorGroup_[i];
       const auto &colorToProj = colorToProj_[{projectorId, kinectId}];
 
       auto &worldPoints = worldPointsCalib[i];
@@ -455,10 +474,12 @@ void Calibrator::calibrate() {
     }
 
     // Try to avoid using initial intrinsic guess.
-    std::vector<std::vector<cv::Point3f>> worldPointsPlane(ids_.size());
-    std::vector<std::vector<cv::Point2f>> projectorPointsPlane(ids_.size());
+    std::vector<std::vector<cv::Point3f>> worldPointsPlane(
+        projectorGroupSize);
+    std::vector<std::vector<cv::Point2f>> projectorPointsPlane(
+        projectorGroupSize);
 
-    for (size_t i = 0; i < ids_.size(); ++i) {
+    for (size_t i = 0; i < projectorGroupSize; ++i) {
       auto &worldPoints = worldPointsPlane[i];
       auto &projectorPoints = projectorPointsPlane[i];
 
@@ -499,7 +520,7 @@ void Calibrator::calibrate() {
     );
 
     auto rms = cv::calibrateCamera(
-        worldPointsCalib,
+       worldPointsCalib,
         projectorPointsCalib,
         projector->effectiveProjRes_,
         projector->projMat_,
@@ -524,7 +545,7 @@ void Calibrator::calibrate() {
           projector->poses[i].tvec,
           false,
           CV_ITERATIVE);
-    }
+   }
 
     std::cout
         << "Projector #" << projectorId << std::endl
@@ -548,7 +569,7 @@ void Calibrator::calibrate() {
   for (auto projectorId : ids_) {
     std::cout << "Projector: " << projectorId << std::endl;
     auto projector = system_->getProCam(projectorId);
-    for (auto kinectId : ids_) {
+    for (auto kinectId : projector->projectorGroup_) {
       auto pose = projector->poses[kinectId];
       std::cout
           << "Kinect: " << kinectId << std::endl
