@@ -221,7 +221,7 @@ void ProCamApplication::displayWhite() {
 }
 
 void ProCamApplication::clearDisplay() {
-  display_->displayImage(cv::Mat::zeros(display_->getResolution(), CV_8UC3));
+  display_->displayImage(cv::Mat::zeros(grayCode_.getResolution(), CV_8UC3));
 }
 
 void ProCamApplication::close() {
