@@ -36,14 +36,15 @@ void LaserDrawer::run() {
       break;
     }
     auto event = eventPair.second;
-    auto newPosition = event.getPosition();
 
-    // x = column, y = row
-    auto column = newPosition.x;
-    auto row = newPosition.y;
-    // x = row, y = column
-    newPosition.x = row;
-    newPosition.y = column;
+    // (*)
+    // (x, y) points sent by the procams are centered in top right corner,
+    // i.e. x increases to the left and y increases down. Thus, in order
+    // to transfer it to the coordinate system centered in the top left corner
+    // we leave the y as it is and invert the x.
+    //event.point_.x = 512 - event.point_.x - 1;
+
+    auto newPosition = event.getPosition();
 
     // TODO: Process event using 1. our matrices 2. the whole 3D reconstruction.
     // TODO: Dynamically create list of laser colors and use it for responses.
@@ -56,12 +57,7 @@ void LaserDrawer::run() {
         handleEvent(event);
       }
 
-      /*
-      std::cout << "Received: " << newPosition << std::endl;
-      std::cout << "Inverted: " << "r: " << newPosition.y
-                                << "c: " << newPosition.x
-                                << std::endl;
-      */
+      std::cout << "Received [x, y, depth]: " << newPosition << std::endl;
 
       tracked_ = true;
       position_ = newPosition;
@@ -70,16 +66,7 @@ void LaserDrawer::run() {
 }
 
 void LaserDrawer::handleEvent(const Event &e) {
-  auto p = e.getPosition();
-
-  // x = column, y = row
-  auto row = p.y;
-  auto column = p.x;
-
-  // x = row, y = column
-  p.x = row;
-  p.y = column;
-
+  const auto p = e.getPosition();
   const auto kinectId = e.getProCamID();
 
   // Find the projector that can see the detected point.
@@ -91,9 +78,6 @@ void LaserDrawer::handleEvent(const Event &e) {
     if (pose == projector->poses.end()) {
       continue;
     }
-
-    std::cout << "Received:" << std::endl;
-    std::cout << "Prev: " << position_ << " Curr: " << p << std::endl;
 
     std::vector<cv::Point3f> objectPoints { position_, p };
 
@@ -115,12 +99,6 @@ void LaserDrawer::handleEvent(const Event &e) {
         objectPoints[1].x,
         objectPoints[1].y);
 
-    std::cout << "3D:" << std::endl;
-    std::cout << "Prev: "
-              << objectPoints[0]
-              << " Curr: "
-              << objectPoints[1] << std::endl;
-
     std::vector<cv::Point2f> imagePoints;
 
     // Project the points to projector space.
@@ -133,32 +111,18 @@ void LaserDrawer::handleEvent(const Event &e) {
         imagePoints);
 
     /*
-    cv::Point2i p1(imagePoints[0].y, imagePoints[0].x);
-    cv::Point2i p2(imagePoints[1].y, imagePoints[1].x);
+    // (*)
+    cv::Point2i p1(imagePoints[0].x, imagePoints[0].y);
+    cv::Point2i p2(imagePoints[1].x, imagePoints[1].y);
     */
 
     cv::Point2i p1(
         projector->effectiveProjRes_.width - imagePoints[0].x - 1,
-        projector->effectiveProjRes_.height - imagePoints[0].y - 1);
+        imagePoints[0].y);
 
     cv::Point2i p2(
         projector->effectiveProjRes_.width - imagePoints[1].x - 1,
-        projector->effectiveProjRes_.height - imagePoints[1].y - 1);
-
-    /*
-    cv::Point2i p1(
-        imagePoints[0].x,
-        projector->effectiveProjRes_.height - imagePoints[0].y - 1);
-
-    cv::Point2i p2(
-        imagePoints[1].x,
-        projector->effectiveProjRes_.height - imagePoints[1].y - 1);
-    */
-
-    std::cout << "Projected: " << std::endl;
-    std::cout << "Prev: " << p1
-              << " Curr: " << p2
-              << std::endl;
+        imagePoints[1].y);
 
     // Send a message to display the laser segment.
     std::vector<std::pair<cv::Point2i, cv::Point2i>> path;

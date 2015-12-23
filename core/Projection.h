@@ -39,12 +39,12 @@ cv::Point2f project(
  * @param camera Camera matrix of the form [ fx  0 cx]
  *                                         [  0 fy cy]
  *                                         [  0  0  1]
- * @param depth  Depth value at (r, c) in meters.
- * @param r      Row from in which the depth pixel occurs.
- * @param c      Column in which the depth pixel occurs.
+ * @param depth  Depth value at point (x, y) in meters.
+ * @param xx     X value.
+ * @param yy     Y value.
  * @return 3D coordinate
  */
-cv::Point3f map3D(const cv::Mat& camera, float depth, size_t r, size_t c);
+cv::Point3f map3D(const cv::Mat& camera, float depth, size_t xx, size_t yy);
 
 /**
  * Converts K, R, T to a view and a projection matrix.

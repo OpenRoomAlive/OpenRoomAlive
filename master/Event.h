@@ -26,13 +26,13 @@ class Event {
 
   cv::Scalar getColor() const { return color_; };
 
- private:
+ public:
   /// ID of the ProCam that sent the event.
-  const ConnectionID id_;
+  ConnectionID id_;
   /// Point representing new detected position of the laser.
-  const cv::Point3f point_;
+  cv::Point3f point_;
   /// Color of the detected laser.
-  const cv::Scalar color_;
+  cv::Scalar color_;
 };
 
 } }

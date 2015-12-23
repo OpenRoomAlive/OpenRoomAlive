@@ -33,7 +33,7 @@ cv::Point2f project(
   return cv::Point2f(u, v);
 }
 
-cv::Point3f map3D(const cv::Mat& camera, float depth, size_t r, size_t c) {
+cv::Point3f map3D(const cv::Mat& camera, float depth, size_t xx, size_t yy) {
   // Principal points of the camera.
   const double cx = camera.at<double>(0, 2);
   const double cy = camera.at<double>(1, 2);
@@ -43,10 +43,9 @@ cv::Point3f map3D(const cv::Mat& camera, float depth, size_t r, size_t c) {
   const double fy = camera.at<double>(1, 1);
 
   const double x =
-      ((static_cast<double>(c) - cx) * static_cast<double>(depth)) / fx;
-  // TODO(ilijar) : T51
+      ((static_cast<double>(xx) - cx) * static_cast<double>(depth)) / fx;
   const double y =
-      ((static_cast<double>(424 - r - 1) - cy) * static_cast<double>(depth)) / fy;
+       ((static_cast<double>(yy) - cy) * static_cast<double>(depth)) / fy;
   const double z = static_cast<double>(depth);
 
   return cv::Point3f(x, y, z);

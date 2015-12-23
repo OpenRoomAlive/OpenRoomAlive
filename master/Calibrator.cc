@@ -280,10 +280,10 @@ void Calibrator::colorToProjPoints(const GrayCodeBitMaskMap &decodedGrayCodes) {
     uint32_t rowMask = (1 << rowLevels) - 1;
     uint32_t colMask = (1 << colLevels) - 1;
 
-    for (size_t r = 0; r < static_cast<size_t>(grayCodes.rows); r++) {
-      auto encodings = grayCodes.ptr<uint32_t>(r);
-      for (size_t c = 0; c < static_cast<size_t>(grayCodes.cols); c++) {
-        uint32_t encoding = encodings[c];
+    for (size_t y = 0; y < static_cast<size_t>(grayCodes.rows); y++) {
+      auto encodings = grayCodes.ptr<uint32_t>(y);
+      for (size_t x = 0; x < static_cast<size_t>(grayCodes.cols); x++) {
+        uint32_t encoding = encodings[x];
 
         // Only greycoded pixels should satisfy this condition, other should
         // have been thresholded.
@@ -298,8 +298,8 @@ void Calibrator::colorToProjPoints(const GrayCodeBitMaskMap &decodedGrayCodes) {
         auto decCol = GrayCode::grayCodeToBinary(colBits, colLevels);
 
         colorToProj_[connectionPair].emplace(
-            cv::Point2i(r, c),
-            cv::Point2i(decRow, decCol));
+            cv::Point2i(x, y),
+            cv::Point2i(decCol, decRow));
       }
     }
   }
@@ -318,31 +318,46 @@ void Calibrator::calibrate() {
     auto kinect = system_->getProCam(kinectId);
     auto depthImage = kinect->depthBaseline_;
 
+    auto reject3D = 0;
+
     // Use the depth frame to compute the 3D points.
-    for (size_t r = 0; r < kDepthImageHeight; ++r) {
-      for (size_t c = 0; c < kDepthImageWidth; ++c) {
+    for (size_t y = 0; y < kDepthImageHeight; ++y) {
+      for (size_t x = 0; x < kDepthImageWidth; ++x) {
+
+        // We're working on undistorted images.
+        // Hence, use (x, y) to construct a 2D point in Kinect's color image.
+        // Note that the point is wrt the origin in the top left corner.
+        auto point2D = cv::Point2i(x, y);
 
         // Extract depth (in meters) and the corresponding variance.
-        auto depth = depthImage.at<float>(r, c) / kMilimetersToMeters;
-        auto variance = kinect->depthVariance_.at<float>(r, c);
+        auto depth = depthImage.at<float>(point2D) / kMilimetersToMeters;
+        auto variance = kinect->depthVariance_.at<float>(point2D);
 
         // Filter out the noisy points.
         if (equals(depth, 0.0f) || variance > kDepthVarianceTreshold) {
+          ++reject3D;
           continue;
         }
 
-        // Compute the 3D point out of the depth info.
-        auto point3D = projection::map3D(kinect->irCam_.proj, depth, r, c);
 
-        // We're working on undistorted images.
-        // Hence, use (r, c) to construct a 2D point in Kinect's color image.
-        // Note that the point is wrt the origin in the top left corner.
-        auto point2D = cv::Point2i(r, c);
+        // Compute the 3D point out of the depth info.
+        auto point3D = projection::map3D(kinect->irCam_.proj, depth, x, y);
+
+        /*
+        std::cout << point3D.x << " "
+                  << point3D.y << " "
+                  << point3D.z << " "
+                  << x         << " "
+                  << y         << " "
+                  << std::endl;
+        */
 
         // Construct the 3D - 2D (color image) correspondence.
         map3Dto2D.push_back(std::make_pair(point3D, point2D));
       }
     }
+
+    std::cout << "Rejected based on depth variance: " << reject3D << std::endl;
   }
 
   // Calibrate each projector.
@@ -394,11 +409,22 @@ void Calibrator::calibrate() {
 
       // Construct the 3D - 2D (projector) point correspondences.
       for (const auto &bucket : buckets) {
-        // Perform the conversion to the projector coordinate system.
-        // Origin is in the bottom left corner with +x pointing to the left.
+        // We need to relate decoded (x, y) values to projector coordinates.
         auto projPoint = cv::Point2f(
-            effectiveRes.width - bucket.first.y - 1,
-            effectiveRes.height - bucket.first.x - 1);
+            effectiveRes.width - bucket.first.x - 1,
+            bucket.first.y);
+
+        // TODO: Think about this.
+        /*
+        auto projPoint = cv::Point2f(
+            bucket.first.x,
+            bucket.first.y);
+        */
+        /*
+        auto projPoint = cv::Point2f(
+            effectiveRes.width - bucket.first.x - 1,
+            effectiveRes.height - bucket.first.y - 1);
+        */
 
         // Use centroid of the points from the bucket.
         auto worldPoint = findMedianCenter(bucket.second);
@@ -528,6 +554,17 @@ void Calibrator::calibrate() {
       p.tvec = tvecs[i];
       projector->poses[projector->projectorGroup_[i]] = p;
     }
+
+    /*
+    for (size_t i = 0; i < worldPointsCalib[0].size(); ++i) {
+      std::cout << worldPointsCalib[0][i].x << " "
+                << worldPointsCalib[0][i].y << " "
+                << worldPointsCalib[0][i].z << " "
+                << projectorPointsCalib[0][i].x << " "
+                << projectorPointsCalib[0][i].y << " "
+                << std::endl;
+    }
+    */
 
     std::cout << "Projector #" << projectorId << std::endl;
     std::cout << "Points used: " << worldPointsCalib[0].size() << std::endl;
