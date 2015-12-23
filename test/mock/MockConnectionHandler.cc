@@ -146,25 +146,35 @@ cv::Mat MockConnectionHandler::loadFrame(
   path /= frameDir;
 
   std::string ext;
+  cv::Mat image;
+
   switch (dataType) {
     case ProCamRecorder::RecordedData::DEPTH:
     case ProCamRecorder::RecordedData::DEPTH_BASELINE:
     case ProCamRecorder::RecordedData::DEPTH_VARIANCE:
     case ProCamRecorder::RecordedData::UNDISTORTED_HD:
     {
-      path /= "frame" + std::to_string(nextFrame_[id][dataType]++) + ".yml";
+      path /= "frame" + std::to_string(nextFrame_[id][dataType]) + ".yml";
       cv::FileStorage fs(path.string(), cv::FileStorage::READ);
-      cv::Mat image;
       fs["mat"] >> image;
       fs.release();
-      return image;
+      break;
     }
     default:
     {
-      path /= "frame" + std::to_string(nextFrame_[id][dataType]++) + ".png";
-      return cv::imread(path.string(), CV_LOAD_IMAGE_UNCHANGED);
+      path /= "frame" + std::to_string(nextFrame_[id][dataType]) + ".png";
+      image = cv::imread(path.string(), CV_LOAD_IMAGE_UNCHANGED);
+      break;
     }
   }
+
+  nextFrame_[id][dataType]++;
+
+  if (!image.data) {
+    throw EXCEPTION() << "Cannot read '" << path.string() << "'";
+  }
+
+  return image;
 }
 
 ConnectionHandler::FrameMap MockConnectionHandler::loadFrames(

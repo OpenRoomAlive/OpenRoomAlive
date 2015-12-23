@@ -63,6 +63,7 @@ class CalibratorTest : public ::testing::Test {
 TEST_F(CalibratorTest, DISABLED_RunCalibration) {
   Calibrator calibrator(ids, conn, system);
   calibrator.captureBaselines();
+  calibrator.formProjectorGroups();
   calibrator.displayGrayCodes();
   calibrator.decodeGrayCodes();
   calibrator.calibrate();
