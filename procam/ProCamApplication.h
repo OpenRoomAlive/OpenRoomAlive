@@ -21,6 +21,7 @@ namespace dv { namespace procam {
 class BaselineCapture;
 class BGRDCamera;
 class Display;
+class LaserDetector;
 
 
 /**
@@ -151,6 +152,8 @@ class ProCamApplication : public ProCamIf {
   const std::shared_ptr<MasterClient> master_;
   /// Baseline capture.
   const std::shared_ptr<BaselineCapture> baseline_;
+  /// Laser pointer tracker.
+  const std::shared_ptr<LaserDetector> laser_;
   /// True if the master is pinged.
   const bool enableMaster_;
   /// Projector-Camera latency.

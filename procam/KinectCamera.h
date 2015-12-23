@@ -55,7 +55,10 @@ class KinectCamera : public BGRDCamera {
   /**
    * Undistorts provided HD image using Kinect's parameters and depth baseline.
    */
-  cv::Mat undistort(const cv::Mat &HDImage, const cv::Mat &depthImage) override;
+  cv::Mat undistort(
+      const cv::Mat &HDImage,
+      const cv::Mat &depthImage,
+      int format) override;
 
  private:
   /**

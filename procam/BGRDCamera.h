@@ -57,7 +57,8 @@ class BGRDCamera {
    */
   virtual cv::Mat undistort(
       const cv::Mat &HDImage,
-      const cv::Mat &depthImage) = 0;
+      const cv::Mat &depthImage,
+      int format = CV_32S) = 0;
 };
 
 }}

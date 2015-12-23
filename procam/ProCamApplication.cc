@@ -88,6 +88,11 @@ ProCamApplication::ProCamApplication(
         boost::make_shared<transport::TSocket>(masterIP_, port_)))
   , master_(new MasterClient(boost::make_shared<protocol::TBinaryProtocol>(transport_)))
   , baseline_(new BaselineCapture())
+  , laser_(new LaserDetector(
+        display_,
+        enableMaster ? master_ : nullptr,
+        camera_,
+        baseline_))
   , enableMaster_(enableMaster)
   , latency_(latency)
   , updatesStreamOn_(true)
@@ -110,14 +115,14 @@ int ProCamApplication::run() {
     // Open the connection with master and ping it.
     pingMaster();
 
-    // Using the open connection, start sending updates of laser positions.
-    auto futureLaser = asyncExecute([this]() {
-      detectLaser();
-    });
-
     // Continuously update display and depth baseline.
     while (display_->isRunning()) {
       baseline_->process(camera_->getDepthImage());
+      if (detectingLaser_) {
+        laser_->detect(
+            camera_->getColorImage(),
+            camera_->getDepthImage());
+      }
       display_->update();
     }
 
@@ -131,14 +136,14 @@ int ProCamApplication::run() {
     server_->stop();
     std::cerr << "Disconnected from master." << std::endl;
     futureServer.get();
-    futureLaser.get();
   } else {
     // Debug stuff here.
-    cv::namedWindow("test");
     while (cv::waitKey(1) != 'q') {
       auto depth = camera_->getDepthImage();
       baseline_->process(depth);
-      cv::imshow("test", baseline_->getDepthImage() / 5000.0f);
+      laser_->detect(
+          camera_->getColorImage(),
+          camera_->getDepthImage());
     }
   }
 
@@ -281,19 +286,4 @@ void ProCamApplication::startLaserDetection() {
   detectingLaser_ = true;
   detectionLock_.unlock();
   detectionCond_.notify_all();
-}
-
-void ProCamApplication::detectLaser() {
-  // Start detecting the laser after receiving the signal from the master.
-  {
-    std::unique_lock<std::mutex> locker(detectionLock_);
-    detectionCond_.wait(locker, [this] () {
-      return detectingLaser_;
-    });
-  }
-
-  LaserDetector detector(display_, master_, camera_, baseline_);
-  detector.detect();
-
-  updatesStreamOn_ = false;
 }

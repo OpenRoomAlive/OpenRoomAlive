@@ -9,8 +9,8 @@ using namespace dv;
 using namespace dv::procam;
 
 
-MockCamera::MockCamera(const std::shared_ptr<Display> display)
-    : display_(display)
+MockCamera::MockCamera(const std::shared_ptr<Display> &display)
+  : display_(display)
 {
 }
 
@@ -92,8 +92,9 @@ CameraParams MockCamera::getParameters() {
 
 cv::Mat MockCamera::undistort(
     const cv::Mat &HDImage,
-    const cv::Mat &depthImage)
+    const cv::Mat &depthImage,
+    int format)
 {
   // Hardcoded to CV_32S because we are undistorting graycode
-  return cv::Mat(depthImage.size(), CV_32S, HDImage.data);
+  return cv::Mat(depthImage.size(), format, HDImage.data);
 }

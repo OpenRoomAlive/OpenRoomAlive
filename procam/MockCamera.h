@@ -15,16 +15,19 @@ namespace dv { namespace procam {
  */
 class MockCamera : public BGRDCamera {
  public:
-  MockCamera(const std::shared_ptr<Display> display);
+  MockCamera(const std::shared_ptr<Display> &display);
 
   cv::Mat getColorImage() override;
   cv::Mat getDepthImage() override;
   cv::Mat getUndistortedColorImage() override;
   CameraParams getParameters() override;
   void freshFrame() override {}
-  cv::Mat undistort(const cv::Mat &HDImage, const cv::Mat &depthImage) override;
+  cv::Mat undistort(
+      const cv::Mat &HDImage,
+      const cv::Mat &depthImage,
+      int format) override;
  private:
-  std::shared_ptr<Display> display_;
+  const std::shared_ptr<Display> &display_;
 };
 
 }}

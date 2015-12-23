@@ -231,7 +231,8 @@ void KinectCamera::freshFrame() {
 
 cv::Mat KinectCamera::undistort(
     const cv::Mat &HDImage,
-    const cv::Mat &depthImage)
+    const cv::Mat &depthImage,
+    int format)
 {
   // Prepare HD colour and depth frames.
   libfreenect2::Frame HDFrame(kColorImageWidth, kColorImageHeight, 4);
@@ -260,7 +261,7 @@ cv::Mat KinectCamera::undistort(
   cv::Mat(
       HDundistortedFrame.height,
       HDundistortedFrame.width,
-      CV_32S,
+      format,
       HDundistortedFrame.data).copyTo(undistorted);
 
   return undistorted;

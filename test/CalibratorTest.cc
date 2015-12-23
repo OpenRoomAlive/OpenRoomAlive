@@ -28,7 +28,7 @@ using namespace dv::test;
 
 class CalibratorTest : public ::testing::Test {
  protected:
-  virtual void SetUp() {
+  void SetUp() override {
     // Create the conneciton handler.
     const auto &dir = kTestEnv->getDataFile("test0");
     conn = boost::static_pointer_cast<ConnectionHandler>(
@@ -48,9 +48,6 @@ class CalibratorTest : public ::testing::Test {
           { display.effectiveRes.width, display.effectiveRes.height },
           std::chrono::milliseconds(display.latency));
     }
-  }
-
-  virtual void TearDown() {
   }
 
  protected:

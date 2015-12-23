@@ -40,9 +40,21 @@ class BaselineCapture {
   cv::Mat getDepthVariance() const;
 
   /**
+   * Returns the mask of valid points.
+   */
+  cv::Mat getDepthMask() const;
+
+  /**
    * Blocks until the baseline and variance are computed.
    */
   void framesProcessed();
+
+  /**
+   * Reports if the baseline has been processed.
+   */
+  bool ready() {
+    return ready_;
+  }
 
  private:
   /// Number of candidate frames to use to find the still baseline. Pre: > 1.
@@ -59,6 +71,10 @@ class BaselineCapture {
   cv::Mat baseline_;
   /// Extracted depth variance.
   cv::Mat variance_;
+  /// Returns the mask of valid points.
+  cv::Mat mask_;
+  /// True if baseline is ready.
+  bool ready_;
 };
 
 }}
