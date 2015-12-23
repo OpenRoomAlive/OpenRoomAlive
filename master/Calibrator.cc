@@ -38,7 +38,7 @@ constexpr auto kDepthVarianceTreshold = 36;
 constexpr float kMilimetersToMeters = 1000.0f;
 
 // Threshold for minimum area of decoded graycode
-constexpr auto kDecodedAreaThreshold = 200;
+constexpr auto kDecodedAreaThreshold = 30;
 
 Calibrator::Calibrator(
     const std::vector<ConnectionID>& ids,
@@ -197,16 +197,15 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
       cv::GaussianBlur(images[i * 2 + 1], grayscaleInvert, cv::Size(3, 3), 1);
 
       // Find valid pixels in this level.
-      // TODO: Keep tweaking.
-      if (i < (images.size() / 4 - 4) ||
-          (i >= (images.size() / 4) && i < (images.size() / 2 - 8)) ) {
+      if (i < (images.size() / 4 - 3) ||
+         (i >= (images.size() / 4) && i < (images.size() / 2 - 6)) ) {
         cv::absdiff(grayscale, grayscaleInvert, absDiff);
         cv::threshold(
             absDiff,
             validPixelsTemp,
-            10,
+            15,
             1,
-            cv::THRESH_BINARY | cv::THRESH_OTSU);
+            cv::THRESH_BINARY);
         validPixelsTemp.convertTo(validPixelsLevel, CV_32S);
       } else {
         validPixelsLevel = cv::Mat::ones(images[0].size(), CV_32S);
@@ -228,14 +227,15 @@ Calibrator::GrayCodeBitMaskMap Calibrator::decodeToBitMask() {
 
     cv::Mat grayCodeUndistorted = undistort(grayCode, entry.first.second);
 
-    // Removes too much
-    //removeNoise(grayCodeUndistorted, entry.first.first);
+    removeNoise(grayCodeUndistorted);
+
     retrievedGraycodes[entry.first] = grayCodeUndistorted;
   }
   return retrievedGraycodes;
 }
 
-void Calibrator::removeNoise(const cv::Mat &grayCode, ConnectionID id) {
+
+void Calibrator::removeNoise(const cv::Mat &grayCode) {
   cv::Mat grayCode8;
   grayCode.convertTo(grayCode8, CV_8UC1);
 
@@ -246,84 +246,6 @@ void Calibrator::removeNoise(const cv::Mat &grayCode, ConnectionID id) {
     auto area = cv::contourArea(contours[i]);
     if (area < kDecodedAreaThreshold) {
       cv::drawContours(grayCode, contours, i, cv::Scalar(0, 0, 0), CV_FILLED);
-    } else {
-      // Remove reflection
-      auto rect = cv::boundingRect(contours[i]);
-      auto effectiveProjRes = system_->getProCam(id)->effectiveProjRes_;
-
-      size_t colLevels = GrayCode::calculateDisplayedLevels(
-          effectiveProjRes.width);
-      size_t rowLevels = GrayCode::calculateDisplayedLevels(
-          effectiveProjRes.height);
-
-      uint32_t colMask = (1 << colLevels) - 1;
-      uint32_t rowMask = (1 << rowLevels) - 1;
-
-      // Select a horizontal line and check if decoded column is decreasing
-      size_t ascending = 0;
-      size_t descending = 0;
-
-      for (int y = rect.y; y < rect.y + rect.height; ++y) {
-        int gradient = 0;
-        for (int x = rect.x; x < rect.x + rect.width - 1; ++x) {
-          auto curr = grayCode.at<uint32_t>(y, x);
-          auto next = grayCode.at<uint32_t>(y, x + 1);
-
-          // Skip pixels without gray code to account for holes and irregular
-          // perimeter of the contour enclosed by bounding rectangle
-          if (curr != 0 && next != 0) {
-            curr &= colMask;
-            next &= colMask;
-            auto currCol = GrayCode::grayCodeToBinary(curr, colLevels);
-            auto nextCol = GrayCode::grayCodeToBinary(next, colLevels);
-            gradient += nextCol - currCol;
-          }
-        }
-        if (gradient < 0) {
-          descending++;
-        } else if (gradient > 0) {
-          ascending++;
-        }
-      }
-      std::cout
-          << "cluster: " << i << " has ascending col: " << ascending
-          << " and descending col: " << descending << std::endl;
-      if (descending * 2 > ascending) {
-        // Discard this cluster
-        cv::drawContours(grayCode, contours, i, cv::Scalar(0, 0, 0), CV_FILLED);
-      }
-
-      // Select a vertical line and check if decoded row is decreasing
-      ascending = 0;
-      descending = 0;
-      for (int x = rect.x; x < rect.x + rect.width; ++x) {
-        int gradient = 0;
-        for (int y = rect.y; y < rect.y + rect.height - 1; ++y) {
-          auto curr = grayCode.at<uint32_t>(y, x);
-          auto next = grayCode.at<uint32_t>(y + 1, x);
-          // Skip pixels without gray code to account for holes and irregular
-          // perimeter of the contour enclosed by bounding rectangle
-          if (curr != 0 && next != 0) {
-            curr = (curr >> colLevels) & rowMask;
-            next = (next >> colLevels) & rowMask;
-            auto currRow = GrayCode::grayCodeToBinary(curr, rowLevels);
-            auto nextRow = GrayCode::grayCodeToBinary(next, rowLevels);
-            gradient += nextRow - currRow;
-          }
-        }
-        if (gradient < 0) {
-          descending++;
-        } else if (gradient > 0) {
-          ascending++;
-        }
-      }
-      std::cout
-          << "cluster: " << i << " has ascending row: " << ascending
-          << " and descending row: " << descending << std::endl;
-      if (descending * 2 > ascending) {
-        // Discard this cluster
-        cv::drawContours(grayCode, contours, i, cv::Scalar(0, 0, 0), CV_FILLED);
-      }
     }
   }
 }

@@ -110,7 +110,7 @@ class Calibrator {
   /*
    * Filters noise from decoded gray code.
    */
-  void removeNoise(const cv::Mat &grayCode, ConnectionID id);
+  void removeNoise(const cv::Mat &grayCode);
 
   /**
    * Undistorts the HD grayscale image.
