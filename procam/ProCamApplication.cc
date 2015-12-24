@@ -89,7 +89,6 @@ ProCamApplication::ProCamApplication(
   , master_(new MasterClient(boost::make_shared<protocol::TBinaryProtocol>(transport_)))
   , baseline_(new BaselineCapture())
   , laser_(new LaserDetector(
-        display_,
         enableMaster ? master_ : nullptr,
         camera_,
         baseline_))
@@ -293,8 +292,6 @@ void ProCamApplication::pingMaster() {
 }
 
 void ProCamApplication::startLaserDetection() {
-  std::unique_lock<std::mutex> locker(detectionLock_);
+  std::cout << "Starting laser tracking." << std::endl;
   detectingLaser_ = true;
-  detectionLock_.unlock();
-  detectionCond_.notify_all();
 }

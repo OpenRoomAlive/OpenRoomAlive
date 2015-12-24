@@ -20,123 +20,99 @@ LaserDrawer::LaserDrawer(
   , system_(system)
   , stream_(stream)
   , connectionHandler_(connectionHandler)
-  , tracked_(false)
-  , lastUpdate_(std::chrono::steady_clock::now())
 {
+  positions_.resize(ids.size(), cv::Point2i(0, 0));
+  tracked_.resize(ids.size(), false);
+  lastUpdate_.resize(ids.size(), std::chrono::steady_clock::now());
 }
 
 LaserDrawer::~LaserDrawer() {
 }
 
+// (*)
+// (x, y) points sent by the procams are centered in top right corner,
+// i.e. x increases to the left and y increases down. Thus, in order
+// to transfer it to the coordinate system centered in the top left corner
+// we leave the y as it is and invert the x.
+//event.point_.x = 512 - event.point_.x - 1;
+
+// TODO: Process event using 1. our matrices 2. the whole 3D reconstruction.
+// TODO: Dynamically create list of laser colors and use it for responses.
 void LaserDrawer::run() {
   std::cout << "Running the drawer" << std::endl;
 
-  // TODO: Keep position (and other data) per detected laser (i.e. detected
-  // laser color)
   while (true) {
-    auto eventPair = stream_->poll();
+    const auto eventPair = stream_->poll();
     if (!eventPair.first) {
       break;
     }
-    auto event = eventPair.second;
+    const auto event = eventPair.second;
 
-    // (x, y) points sent by the procams are centered in top right corner,
-    // i.e. x increases to the left and y increases down. Thus, in order
-    // to transfer it to the coordinate system centered in the top left corner
-    // we leave the y as it is and invert the x.
-    // event.point_.x = 512 - event.point_.x - 1;
+    const auto position = event.getPosition();
+    const auto proCamId = event.getProCamID();
+    const auto kinect = system_->getProCam(proCamId);
 
-    auto newPosition = event.getPosition();
+    std::cout << "Received [x, y, depth]  " << position
+              << " from procam# "           << proCamId << std::endl;
 
-    // TODO: Process event using 1. our matrices 2. the whole 3D reconstruction.
-    // TODO: Dynamically create list of laser colors and use it for responses.
+    // Project the point to the 3D space of the proCamId's kinect.
+    auto position3D = projection::map3D(
+        kinect->irCam_.proj,
+        position.z / 1000.0f,
+        position.x,
+        position.y);
 
-    // DEMO
-    // For demo - reject the corner with noise (we could in future probably
-    // reject all extreme coordinates).
-    if (newPosition.x != 0 && newPosition.y != 0) {
-      if (tracked_) {
-        handleEvent(event);
+    // Consider the point from each projector's view.
+    for (const auto projectorId : ids_) {
+      const auto projector = system_->getProCam(projectorId);
+      const auto pose = projector->poses.find(proCamId);
+      const auto res = projector->effectiveProjRes_;
+
+      // Check if the kinect is in the projector's group.
+      if ( pose == projector->poses.end()) {
+        continue;
       }
 
-      std::cout << "Received [x, y, depth]: " << newPosition << std::endl;
+      std::vector<cv::Point3f> objectPoints { position3D };
+      std::vector<cv::Point2f> imagePoints;
 
-      tracked_ = true;
-      position_ = newPosition;
-      lastUpdate_ = std::chrono::steady_clock::now();
+      // Project the point to the projector's screen space.
+      cv::projectPoints(
+          objectPoints,
+          pose->second.rvec,
+          pose->second.tvec,
+          projector->projMat_,
+          projector->projDist_,
+          imagePoints);
+
+      // Adjust the point for the projector view.
+      cv::Point2i pointProj(
+          projector->effectiveProjRes_.width - imagePoints[0].x - 1,
+          imagePoints[0].y);
+
+      // Discard out of view points.
+      if (pointProj.x < 0 || pointProj.x >= res.width ||
+          pointProj.y < 0 || pointProj.y >= res.height)
+      {
+        continue;
+      }
+
+      // If the time delay was too large, do not connect the lines.
+      auto timeDiff = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - lastUpdate_[projectorId]);
+
+      // Draw a segment if the laser is being tracked.
+      if (tracked_[projectorId] && timeDiff < 750ms) {
+        std::vector<std::pair<cv::Point2i, cv::Point2i>> path;
+        path.emplace_back(positions_[projectorId], pointProj);
+        connectionHandler_->updateLaser(projectorId, path, event.getColor());
+      }
+
+      // Remember the point.
+      positions_[projectorId] = pointProj;
+      tracked_[projectorId] = true;
+      lastUpdate_[projectorId] = std::chrono::steady_clock::now();
     }
-  }
-}
-
-void LaserDrawer::handleEvent(const Event &e) {
-  const auto p = e.getPosition();
-  const auto kinectId = e.getProCamID();
-
-  // If the time delay was too large, do not connect the lines.
-  auto timeDiff = std::chrono::duration_cast<std::chrono::microseconds>(
-      std::chrono::steady_clock::now() - lastUpdate_
-  );
-  auto spaceDiff = std::sqrt(
-      (position_.x - p.x) * (position_.x - p.x) +
-      (position_.y - p.y) * (position_.y - p.y)
-  );
-  if (timeDiff > 750ms || spaceDiff > 200) {
-    return;
-  }
-
-  // Find the projector that can see the detected point.
-  for (const auto projectorId : ids_) {
-    const auto projector = system_->getProCam(projectorId);
-    const auto pose = projector->poses.find(kinectId);
-
-    // Check if the projector can see the point from the event.
-    if (pose == projector->poses.end()) {
-      continue;
-    }
-
-    std::vector<cv::Point3f> objectPoints { position_, p };
-
-    // Consturct 3D points in kinect world space.
-    auto kinect = system_->getProCam(kinectId);
-
-    auto d1 = position_.z / 1000.0f;
-    auto d2 = p.z / 1000.0f;
-
-    objectPoints[0] = projection::map3D(
-        kinect->irCam_.proj,
-        d1,
-        objectPoints[0].x,
-        objectPoints[0].y);
-
-    objectPoints[1] = projection::map3D(
-        kinect->irCam_.proj,
-        d2,
-        objectPoints[1].x,
-        objectPoints[1].y);
-
-    std::vector<cv::Point2f> imagePoints;
-
-    // Project the points to projector space.
-    cv::projectPoints(
-        objectPoints,
-        pose->second.rvec,
-        pose->second.tvec,
-        projector->projMat_,
-        projector->projDist_,
-        imagePoints);
-
-    cv::Point2i p1(
-        projector->effectiveProjRes_.width - imagePoints[0].x - 1,
-        imagePoints[0].y);
-
-    cv::Point2i p2(
-        projector->effectiveProjRes_.width - imagePoints[1].x - 1,
-        imagePoints[1].y);
-
-    // Send a message to display the laser segment.
-    std::vector<std::pair<cv::Point2i, cv::Point2i>> path;
-    path.emplace_back(p1, p2);
-    connectionHandler_->updateLaser(projectorId, path, e.getColor());
   }
 }
 
