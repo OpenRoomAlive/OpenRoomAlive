@@ -55,13 +55,6 @@ class Display {
   virtual void displayImage(const cv::Mat &image) = 0;
 
   /**
-   * Update in image the laser path of color 'color' with provided 'segments'.
-   */
-  virtual void updateWithLaser(
-      const std::vector<std::pair<cv::Point2i, cv::Point2i>> &segments,
-      const cv::Scalar &color) = 0;
-
-  /**
    * Retrieves the image currently displayed.
    */
    virtual cv::Mat getImage() = 0;

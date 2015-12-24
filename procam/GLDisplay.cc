@@ -241,23 +241,6 @@ void GLDisplay::onKeyPressed(int key) {
   }
 }
 
-void GLDisplay::updateWithLaser(
-    const std::vector<std::pair<cv::Point2i, cv::Point2i>> &segments,
-    const cv::Scalar &color)
-{
-  std::lock_guard<std::mutex> locker(lock_);
-
-  for (const auto &seg : segments) {
-    cv::line(image_, seg.first, seg.second, color, 1);
-  }
-
-  /*
-  cv::line(image_, cv::Point2i(0, 200), cv::Point2i(200,400), color, 1);
-  cv::line(image_, cv::Point2i(100, 100), cv::Point2i(500, 100), color, 1);
-  cv::line(image_, cv::Point2i(200, 100), cv::Point2i(200, 500), color, 1);
-  */
-}
-
 cv::Mat GLDisplay::getImage() {
   std::lock_guard<std::mutex> locker(lock_);
   return image_;

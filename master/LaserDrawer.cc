@@ -8,6 +8,8 @@
 
 using namespace dv::master;
 
+using namespace std::literals;
+
 
 LaserDrawer::LaserDrawer(
     const std::vector<ConnectionID>& ids,
@@ -19,10 +21,11 @@ LaserDrawer::LaserDrawer(
   , stream_(stream)
   , connectionHandler_(connectionHandler)
   , tracked_(false)
+  , lastUpdate_(std::chrono::steady_clock::now())
 {
 }
 
-LaserDrawer::~LaserDrawer(){
+LaserDrawer::~LaserDrawer() {
 }
 
 void LaserDrawer::run() {
@@ -37,12 +40,11 @@ void LaserDrawer::run() {
     }
     auto event = eventPair.second;
 
-    // (*)
     // (x, y) points sent by the procams are centered in top right corner,
     // i.e. x increases to the left and y increases down. Thus, in order
     // to transfer it to the coordinate system centered in the top left corner
     // we leave the y as it is and invert the x.
-    //event.point_.x = 512 - event.point_.x - 1;
+    // event.point_.x = 512 - event.point_.x - 1;
 
     auto newPosition = event.getPosition();
 
@@ -61,6 +63,7 @@ void LaserDrawer::run() {
 
       tracked_ = true;
       position_ = newPosition;
+      lastUpdate_ = std::chrono::steady_clock::now();
     }
   }
 }
@@ -68,6 +71,18 @@ void LaserDrawer::run() {
 void LaserDrawer::handleEvent(const Event &e) {
   const auto p = e.getPosition();
   const auto kinectId = e.getProCamID();
+
+  // If the time delay was too large, do not connect the lines.
+  auto timeDiff = std::chrono::duration_cast<std::chrono::microseconds>(
+      std::chrono::steady_clock::now() - lastUpdate_
+  );
+  auto spaceDiff = std::sqrt(
+      (position_.x - p.x) * (position_.x - p.x) +
+      (position_.y - p.y) * (position_.y - p.y)
+  );
+  if (timeDiff > 750ms || spaceDiff > 200) {
+    return;
+  }
 
   // Find the projector that can see the detected point.
   for (const auto projectorId : ids_) {
@@ -109,12 +124,6 @@ void LaserDrawer::handleEvent(const Event &e) {
         projector->projMat_,
         projector->projDist_,
         imagePoints);
-
-    /*
-    // (*)
-    cv::Point2i p1(imagePoints[0].x, imagePoints[0].y);
-    cv::Point2i p2(imagePoints[1].x, imagePoints[1].y);
-    */
 
     cv::Point2i p1(
         projector->effectiveProjRes_.width - imagePoints[0].x - 1,

@@ -97,6 +97,7 @@ ProCamApplication::ProCamApplication(
   , latency_(latency)
   , updatesStreamOn_(true)
   , detectingLaser_(false)
+  , canvas_(display_->getResolution(), CV_8UC3)
 {
 }
 
@@ -250,9 +251,19 @@ void ProCamApplication::updateLaser(
     const std::vector<Segment> &segments,
     const Color &color)
 {
-  display_->updateWithLaser(
-      conv::thriftSegmentsToCvPoints(segments),
-      conv::thriftColorToCvScalar(color));
+  cv::Mat temp;
+
+  for (const auto &seg : segments) {
+    cv::line(
+        canvas_,
+        { seg.x1, seg.y1 },
+        { seg.x2, seg.y2 },
+        cv::Scalar(color.b, color.g, color.r),
+        3);
+  }
+
+  cv::GaussianBlur(canvas_, temp, {9, 9}, 0);
+  display_->displayImage(temp);
 }
 
 void ProCamApplication::pingMaster() {

@@ -166,6 +166,8 @@ class ProCamApplication : public ProCamIf {
   std::mutex detectionLock_;
   /// Condition variable waiting on laser detectiong to start.
   std::condition_variable detectionCond_;
+  /// Canvas displayed on the screen.
+  cv::Mat canvas_;
 };
 
 }}

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <vector>
 
 #include "master/ConnectionHandler.h"
@@ -42,6 +43,8 @@ class LaserDrawer {
   bool tracked_;
   /// Laser position.
   cv::Point3f position_;
+  /// Last time the position was updated.
+  std::chrono::steady_clock::time_point lastUpdate_;
 };
 
 }}
