@@ -340,18 +340,8 @@ void Calibrator::calibrate() {
           continue;
         }
 
-
         // Compute the 3D point out of the depth info.
         auto point3D = projection::map3D(kinect->irCam_.proj, depth, x, y);
-
-        /*
-        std::cout << point3D.x << " "
-                  << point3D.y << " "
-                  << point3D.z << " "
-                  << x         << " "
-                  << y         << " "
-                  << std::endl;
-        */
 
         // Construct the 3D - 2D (color image) correspondence.
         map3Dto2D.push_back(std::make_pair(point3D, point2D));
@@ -411,21 +401,10 @@ void Calibrator::calibrate() {
       // Construct the 3D - 2D (projector) point correspondences.
       for (const auto &bucket : buckets) {
         // We need to relate decoded (x, y) values to projector coordinates.
+        // We choose world origin is on top left, ie y down x right
         auto projPoint = cv::Point2f(
             effectiveRes.width - bucket.first.x - 1,
             bucket.first.y);
-
-        // TODO: Think about this.
-        /*
-        auto projPoint = cv::Point2f(
-            bucket.first.x,
-            bucket.first.y);
-        */
-        /*
-        auto projPoint = cv::Point2f(
-            effectiveRes.width - bucket.first.x - 1,
-            effectiveRes.height - bucket.first.y - 1);
-        */
 
         // Use centroid of the points from the bucket.
         auto worldPoint = findMedianCenter(bucket.second);
