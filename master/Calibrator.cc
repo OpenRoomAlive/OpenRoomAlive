@@ -120,21 +120,6 @@ void Calibrator::formProjectorGroups() {
 
     connectionHandler_->clearDisplay(id);
   }
-
-  /*
-  // TODO: T80
-  std::cout << "Formed projector groups." << std::endl;
-  for (const auto projectorId : ids_) {
-    std::cout << "Members of projector "
-              << projectorId << " group: "
-              << std::endl;
-    auto projector = system_->getProCam(projectorId);
-    for (const auto kinectId : projector->projectorGroup_) {
-      std::cout << kinectId << " ";
-    }
-    std::cout << std::endl << "--------" << std::endl;
-  }
-  */
 }
 
 void Calibrator::displayGrayCodes() {
@@ -535,17 +520,7 @@ void Calibrator::calibrate() {
       projector->poses[projector->projectorGroup_[i]] = p;
     }
 
-    /*
-    for (size_t i = 0; i < worldPointsCalib[0].size(); ++i) {
-      std::cout << worldPointsCalib[0][i].x << " "
-                << worldPointsCalib[0][i].y << " "
-                << worldPointsCalib[0][i].z << " "
-                << projectorPointsCalib[0][i].x << " "
-                << projectorPointsCalib[0][i].y << " "
-                << std::endl;
-    }
-    */
-
+    // Print rms & calibration matirx.
     std::cout << "Projector #" << projectorId << std::endl;
     std::cout << "Points used: " << worldPointsCalib[0].size() << std::endl;
     std::cout << "RMS: " << rms << std::endl;
@@ -553,20 +528,7 @@ void Calibrator::calibrate() {
     std::cout << projector->projMat_ << std::endl;
   }
 
-  // TODO(ilijar): remove.
-  std::cout << "Rotation and translation vectors:" << std::endl;
-  for (auto projectorId : ids_) {
-    std::cout << "Projector: " << projectorId << std::endl;
-    auto projector = system_->getProCam(projectorId);
-    for (auto kinectId : projector->projectorGroup_) {
-      auto pose = projector->poses[kinectId];
-      std::cout
-          << "Kinect: " << kinectId << std::endl
-          << "Tvec: " << std::endl << pose.tvec << std::endl
-          << "Rvec: " << std::endl << pose.rvec << std::endl
-          << "--------------------" << std::endl;
-    }
-  }
+  printPoses();
 }
 
 cv::Mat Calibrator::undistort(
@@ -611,3 +573,20 @@ cv::Mat Calibrator::undistort(
 
   return undistorted;
 }
+
+void Calibrator::printPoses() {
+  std::cout << "Rotation and translation vectors:" << std::endl;
+  for (auto projectorId : ids_) {
+    std::cout << "Projector: " << projectorId << std::endl;
+    auto projector = system_->getProCam(projectorId);
+    for (auto kinectId : projector->projectorGroup_) {
+      auto pose = projector->poses[kinectId];
+      std::cout
+          << "Kinect: " << kinectId << std::endl
+          << "Tvec: " << std::endl << pose.tvec << std::endl
+          << "Rvec: " << std::endl << pose.rvec << std::endl
+          << "--------------------" << std::endl;
+    }
+  }
+}
+

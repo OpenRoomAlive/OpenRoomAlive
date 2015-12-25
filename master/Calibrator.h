@@ -119,6 +119,11 @@ class Calibrator {
     const cv::Mat &HDImage,
     ConnectionID id);
 
+  /**
+   * Print the computed poses.
+   */
+  void printPoses();
+
  private:
   /// IDs of the procam connections
   const std::vector<ConnectionID> ids_;
