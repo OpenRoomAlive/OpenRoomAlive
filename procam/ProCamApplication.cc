@@ -86,7 +86,8 @@ ProCamApplication::ProCamApplication(
         boost::make_shared<protocol::TBinaryProtocolFactory>()))
   , transport_(new transport::TBufferedTransport(
         boost::make_shared<transport::TSocket>(masterIP_, port_)))
-  , master_(new MasterClient(boost::make_shared<protocol::TBinaryProtocol>(transport_)))
+  , master_(new MasterClient(
+        boost::make_shared<protocol::TBinaryProtocol>(transport_)))
   , baseline_(new BaselineCapture())
   , laser_(new LaserDetector(
         enableMaster ? master_ : nullptr,
@@ -96,7 +97,7 @@ ProCamApplication::ProCamApplication(
   , latency_(latency)
   , updatesStreamOn_(true)
   , detectingLaser_(false)
-  , canvas_(display_->getResolution(), CV_8UC3)
+  , canvas_(effectiveSize.height, effectiveSize.width, CV_8UC3)
 {
 }
 
@@ -115,14 +116,14 @@ int ProCamApplication::run() {
     // Open the connection with master and ping it.
     pingMaster();
 
+    // Using the open connection, start sending updates of laser positions.
+    auto futureLaser = asyncExecute([this]() {
+      detectLaser();
+    });
+
     // Continuously update display and depth baseline.
     while (display_->isRunning()) {
       baseline_->process(camera_->getDepthImage());
-      if (detectingLaser_) {
-        laser_->detect(
-            camera_->getColorImage(),
-            camera_->getDepthImage());
-      }
       display_->update();
     }
 
@@ -293,5 +294,26 @@ void ProCamApplication::pingMaster() {
 
 void ProCamApplication::startLaserDetection() {
   std::cout << "Starting laser tracking." << std::endl;
+  std::unique_lock<std::mutex> locker(detectionLock_);
   detectingLaser_ = true;
+  detectionLock_.unlock();
+  detectionCond_.notify_all();
 }
+
+void ProCamApplication::detectLaser() {
+  // Start detecting the laser after receiving the signal from the master.
+  {
+    std::unique_lock<std::mutex> locker(detectionLock_);
+    detectionCond_.wait(locker, [this] () {
+      return detectingLaser_;
+    });
+  }
+
+  while (display_->isRunning()) {
+    laser_->detect(
+        camera_->getColorImage(),
+        camera_->getDepthImage());
+  }
+  updatesStreamOn_ = false;
+}
+

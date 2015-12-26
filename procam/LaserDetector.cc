@@ -14,7 +14,7 @@ using namespace dv::procam;
 using namespace std::literals;
 
 // Window size for laser detection.
-constexpr auto kLaserWindowSize = 50;
+constexpr auto kLaserWindowSize = 25;
 
 // Threshold for laser detection.
 constexpr auto kLaserThreshold = 30;
@@ -35,6 +35,9 @@ LaserDetector::LaserDetector(
   , baseline_(baseline)
   , prev_(cv::Mat::zeros(kScaledSize, CV_8UC1))
   , tracked_(false)
+  , scaled_(cv::Mat::zeros(kScaledSize, CV_8UC4))
+  , frame_(cv::Mat::zeros(kScaledSize, CV_8UC1))
+  , diff_(cv::Mat::zeros(kScaledSize, CV_8UC1))
 {
 }
 
@@ -44,36 +47,30 @@ void LaserDetector::detect(
 {
   (void) depth;
 
-  cv::Mat colorFrame, diff, frame, diffThresh;
   Candidates old;
   Candidates newCandidates;
 
-  // Source of input.
-  colorFrame = rgbFrame.clone();
-
   // Scale down (HD proc. takes too long)
-  cv::resize(rgbFrame, frame, kScaledSize);
+  cv::resize(rgbFrame, scaled_, kScaledSize);
 
   // Extract the red channel.
-  {
-    std::vector<cv::Mat> chan;
-    cv::split(frame, chan);
-    frame = chan[2];
-  }
+  cv::extractChannel(scaled_, frame_, 2);
 
   if (tracked_) {
+    cv::Mat diff;
+
     // If we had a previous position, try to restrict the search area
     // to a 50x50 window around the old position, improving speed
     // and resiliency to noise.
-    int32_t offY = std::max(track.y - kLaserWindowSize, 0);
+    int32_t offY = std::max(track_.y - kLaserWindowSize, 0);
     int32_t height = std::min(
         kScaledSize.height - 1,
-        track.y + kLaserWindowSize) - offY;
-    int32_t offX = std::max(track.x - kLaserWindowSize, 0);
+        track_.y + kLaserWindowSize) - offY;
+    int32_t offX = std::max(track_.x - kLaserWindowSize, 0);
     int32_t width = std::min(
         kScaledSize.width - 1,
-        track.x + kLaserWindowSize) - offX;
-    cv::Mat wndFrame = frame(cv::Rect(offX, offY, width, height));
+        track_.x + kLaserWindowSize) - offX;
+    cv::Mat wndFrame = frame_(cv::Rect(offX, offY, width, height));
     cv::Mat wndPrev = prev_(cv::Rect(offX, offY, width, height));
 
     // Compute the difference between two consecutive frames and find
@@ -81,25 +78,41 @@ void LaserDetector::detect(
     // are removed using tresholding since we prefer to loose track and
     // find the pointer again to following noise.
     cv::absdiff(wndFrame, wndPrev, diff);
-    cv::threshold(diff, diffThresh, kLaserThreshold, 255, cv::THRESH_TOZERO);
-    cv::minMaxLoc(diffThresh, nullptr, nullptr, nullptr, &track);
+    cv::threshold(diff, diff, kLaserThreshold, 255, cv::THRESH_BINARY);
 
-    if (track.x > 0 && track.y > 0) {
-      track.x += offX;
-      track.y += offY;
+    // Reset the tracked point.
+    track_ = {-100, -100};
+
+    // Find the point closest to the center.
+    cv::Mat toTrack;
+    cv::findNonZero(diff, toTrack);
+
+    cv::Point2i mid(kLaserWindowSize, kLaserWindowSize);
+    for (size_t i = 0; i < toTrack.total(); i++) {
+      const auto newPoint = toTrack.at<cv::Point2i>(i);
+      const float d1 = diff.at<uint8_t>(newPoint) / cv::norm(mid - newPoint);
+      const float d2 = diff.at<uint8_t>(track_) / cv::norm(mid - track_);
+      if (d1 < d2) {
+        track_ = newPoint;
+      }
+    }
+
+    if (track_.x > 0 && track_.y > 0) {
+      track_.x += offX;
+      track_.y += offY;
     } else {
       tracked_ = false;
     }
   } else {
     // Compute the difference & treshold for noise.
-    cv::absdiff(frame, prev_, diff);
-    cv::threshold(diff, diffThresh, kLaserThreshold, 255, cv::THRESH_TOZERO);
+    cv::absdiff(frame_, prev_, diff_);
+    cv::threshold(diff_, diff_, kLaserThreshold, 255, cv::THRESH_TOZERO);
 
     // Find the points of great intensity.
     double maxv;
-    cv::minMaxLoc(diffThresh, nullptr, &maxv, nullptr, nullptr);
+    cv::minMaxLoc(diff_, nullptr, &maxv, nullptr, nullptr);
     cv::Mat toTrack;
-    cv::findNonZero(diffThresh, toTrack);
+    cv::findNonZero(diff_, toTrack);
 
     if (maxv > kLaserThreshold && toTrack.total() < kMaxPointsLaserAnalysis) {
       newCandidates.clear();
@@ -108,7 +121,7 @@ void LaserDetector::detect(
       // Keep a set of candidate points. If in the new frame we do not
       // have any points close to the old candidates, discard them.
       // If there are neighbours, increase the 'age' of the old points.
-      for (const auto &cand : candidates) {
+      for (const auto &cand : candidates_) {
         auto point = cand.first;
         auto age = cand.second;
         int32_t count = 0;
@@ -128,13 +141,13 @@ void LaserDetector::detect(
       }
 
       // Update candidates set.
-      candidates.clear();
+      candidates_.clear();
       for (const auto &newCand : newCandidates) {
-        candidates.push_back(newCand);
+        candidates_.push_back(newCand);
       }
       for (size_t i = 0; i < toTrack.total(); i++) {
         auto newPoint = toTrack.at<cv::Point2i>(i);
-        candidates.emplace_back(newPoint, 0);
+        candidates_.emplace_back(newPoint, 0);
       }
 
       // Select the candidate which belongs to the most populous cluster.
@@ -146,13 +159,13 @@ void LaserDetector::detect(
             {
               return a.second >= b.second;
             });
-        track = old[0].first;
+        track_ = old[0].first;
       }
     }
   }
 
   // Progress to next frame.
-  frame.copyTo(prev_);
+  frame_.copyTo(prev_);
 
   // TODO: detect color and send it + on master side use it (dynamical list
   // of laser colors)
@@ -161,41 +174,42 @@ void LaserDetector::detect(
     cv::Mat laserIm = cv::Mat::zeros(
         kScaledSize,
         kColorFormat);
-    laserIm.at<uint32_t>(track.y, track.x) = 0xFFFFFFFF;
+    laserIm.at<uint32_t>(track_.y, track_.x) = 0xFFFFFFFF;
     cv::resize(
         laserIm,
         laserIm,
         cv::Size(kColorImageWidth, kColorImageHeight));
 
     // Undistort the HD image and find laser position in depth image.
-    track.x = -1;
-    track.y = -1;
+    track_.x = -1;
+    track_.y = -1;
     cv::Mat undistortLaserIm = camera_->undistort(
         laserIm,
         baseline_->getDepthImage());
     for (size_t r = 0; r < kDepthImageHeight; r++) {
       for (size_t c = 0; c < kDepthImageWidth; c++) {
         if (undistortLaserIm.at<uint32_t>(r, c) > 0) {
-          track.x = c;
-          track.y = r;
+          track_.x = c;
+          track_.y = r;
           break;
         }
       }
     }
 
     // Send point only if we didn't lose it when undistorting.
-    if (track.x != -1 || track.y != -1) {
+    if (track_.x != -1 || track_.y != -1) {
       // Get laser colour.
-      cv::Vec4b bgraPixel = colorFrame.at<cv::Vec4b>(track.y, track.x);
+      cv::Vec4b bgraPixel = rgbFrame.at<cv::Vec4b>(track_.y, track_.x);
       dv::Color thriftColor;
       conv::cvScalarToThriftColor({0xFF, 0, 0}, thriftColor);
 
       // Send depth point corresponding to laser.
       dv::Point laser;
-      laser.x = track.x;
-      laser.y = track.y;
-      laser.depth = baseline_->getDepthImage().at<float>(track.y, track.x);
+      laser.x = track_.x;
+      laser.y = track_.y;
+      laser.depth = baseline_->getDepthImage().at<float>(track_.y, track_.x);
       master_->detectedLaser(laser, thriftColor);
     }
   }
 }
+

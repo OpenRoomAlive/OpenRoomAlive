@@ -162,6 +162,10 @@ class ProCamApplication : public ProCamIf {
   std::atomic<bool> updatesStreamOn_;
   /// Flag indicating if laser detection has been started.
   bool detectingLaser_;
+  /// Mutex guarding the detectingLaser_ flag.
+  std::mutex detectionLock_;
+  /// Condition variable waiting on laser detectiong to start.
+  std::condition_variable detectionCond_;
   /// Canvas displayed on the screen.
   cv::Mat canvas_;
 };

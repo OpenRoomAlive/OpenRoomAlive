@@ -69,7 +69,7 @@ void LaserDrawer::run() {
       const auto res = projector->effectiveProjRes_;
 
       // Check if the kinect is in the projector's group.
-      if ( pose == projector->poses.end()) {
+      if (pose == projector->poses.end()) {
         continue;
       }
 
@@ -98,20 +98,27 @@ void LaserDrawer::run() {
       }
 
       // If the time delay was too large, do not connect the lines.
-      auto timeDiff = std::chrono::duration_cast<std::chrono::microseconds>(
-        std::chrono::steady_clock::now() - lastUpdate_[projectorId]);
+      auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now() - lastUpdate_[projectorId]);
+      auto distDiff = cv::norm(positions_[projectorId] - pointProj);
 
       // Draw a segment if the laser is being tracked.
-      if (tracked_[projectorId] && timeDiff < 750ms) {
-        std::vector<std::pair<cv::Point2i, cv::Point2i>> path;
-        path.emplace_back(positions_[projectorId], pointProj);
-        connectionHandler_->updateLaser(projectorId, path, event.getColor());
-      }
+      if (tracked_[projectorId]) {
+        if (timeDiff < 500ms && distDiff < 100) {
+          std::vector<std::pair<cv::Point2i, cv::Point2i>> path;
+          path.emplace_back(positions_[projectorId], pointProj);
+          connectionHandler_->updateLaser(projectorId, path, event.getColor());  
+          lastUpdate_[projectorId] = std::chrono::steady_clock::now();    
+        } else {
+          tracked_[projectorId] = false;
+        }
+      } else {
+        // Remember the point.
+        lastUpdate_[projectorId] = std::chrono::steady_clock::now();
+        tracked_[projectorId] = true; 
+      } 
 
-      // Remember the point.
       positions_[projectorId] = pointProj;
-      tracked_[projectorId] = true;
-      lastUpdate_[projectorId] = std::chrono::steady_clock::now();
     }
   }
 }

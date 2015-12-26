@@ -5,6 +5,7 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
+
 #include "core/Master.h"
 
 
@@ -45,9 +46,15 @@ class LaserDetector {
   /// True if a pointer is being tracked.
   bool tracked_;
   /// Point being tracked.
-  cv::Point2i track;
+  cv::Point2i track_;
   /// Candidate points suitable for tracking.
-  Candidates candidates;
+  Candidates candidates_;
+  /// Scaled down frame.
+  cv::Mat scaled_;
+  /// Temporary frame.
+  cv::Mat frame_;
+  /// Frame difference.
+  cv::Mat diff_;
 };
 
 }}

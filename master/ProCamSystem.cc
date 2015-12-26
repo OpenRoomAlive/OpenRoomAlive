@@ -136,7 +136,6 @@ void ProCamSystem::fromJSON(const folly::dynamic &data) {
           loadMat<double, 1>(3, 1, pd["rvec"]),
           loadMat<double, 1>(3, 1, pd["tvec"])
       };
-      std::cerr << cam->poses[id].rvec << " " << cam->poses[id].tvec << std::endl;
     }
   }
 }
