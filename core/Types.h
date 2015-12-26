@@ -60,5 +60,14 @@ static inline bool equals(float x, float y) {
 std::ostream& operator << (std::ostream& os, const Size&);
 std::istream& operator >> (std::istream& is, Size&);
 
+
+/**
+ * Generic OpenCV type generator.
+ */
+template<typename T, size_t D> struct CVType { };
+template<> struct CVType<float, 1>  { static const int type = CV_32FC1; };
+template<> struct CVType<double, 1>  { static const int type = CV_64FC1; };
+template<> struct CVType<uint8_t, 4> { static const int type = CV_8UC4; };
+
 }
 

@@ -61,6 +61,6 @@ class Exception : public std::exception {
   std::string message_;
 };
 
-#define EXCEPTION() Exception(__FILENAME__, __LINE__, __FUNCTION__)
+#define EXCEPTION() ::dv::Exception(__FILENAME__, __LINE__, __FUNCTION__)
 
 }

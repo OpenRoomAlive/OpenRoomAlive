@@ -37,15 +37,22 @@ class ProCam {
       const std::chrono::milliseconds &latency);
   ~ProCam();
 
-  /**
-   * Returns the actual resolution.
-   */
   cv::Size getActualResolution() const { return actualProjRes_; }
+  cv::Size getEffectiveResolution() const { return effectiveProjRes_; }
 
-  /**
-   * Returns the latency.
-   */
   std::chrono::milliseconds getLatency() const { return latency_; }
+
+  CameraModel getColorCameraModel() const { return colorCam_; }
+  CameraModel getIrCameraModel() const { return irCam_; }
+
+  cv::Mat getProjMatrix() const { return projMat_; }
+  cv::Mat getProjDistortion() const { return projDist_; }
+
+  cv::Mat getBaselineColor() const { return colorBaseline_; }
+  cv::Mat getBaselineDepth() const { return depthBaseline_; }
+  cv::Mat getBaselineVariance() const { return depthVariance_; }
+
+  CameraPose getPose(const ConnectionID &id) const;
 
  private:
   /// Color camera matrix & distortion.
@@ -68,6 +75,7 @@ class ProCam {
   cv::Mat depthBaseline_;
   /// Variance depth image.
   cv::Mat depthVariance_;
+
   /// Cameras that can observe some part of projector's image.
   std::vector<ConnectionID> projectorGroup_;
   /// Stores poses of the kinects in the projector group.
