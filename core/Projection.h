@@ -26,7 +26,7 @@ namespace dv { namespace projection {
  * @param point  Point in 3D
  * @return UV coordinate
  */
-cv::Point2f project(
+cv::Point2i project(
     const cv::Mat& camera,
     float k1,
     float k2,

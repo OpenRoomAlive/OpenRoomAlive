@@ -7,7 +7,7 @@
 namespace dv { namespace projection {
 
 
-cv::Point2f project(
+cv::Point2i project(
     const cv::Mat& camera,
     float k1,
     float k2,
@@ -30,23 +30,22 @@ cv::Point2f project(
   const float u = fx * xpp + cx;
   const float v = fy * ypp + cy;
 
-  return cv::Point2f(u, v);
+  return cv::Point2i(u, v);
 }
 
 cv::Point3f map3D(const cv::Mat& camera, float depth, size_t xx, size_t yy) {
+
   // Principal points of the camera.
-  const double cx = camera.at<double>(0, 2);
-  const double cy = camera.at<double>(1, 2);
+  const float cx = camera.at<float>(0, 2);
+  const float cy = camera.at<float>(1, 2);
 
   // Focal points.
-  const double fx = camera.at<double>(0, 0);
-  const double fy = camera.at<double>(1, 1);
+  const float fx = camera.at<float>(0, 0);
+  const float fy = camera.at<float>(1, 1);
 
-  const double x =
-      ((static_cast<double>(xx) - cx) * static_cast<double>(depth)) / fx;
-  const double y =
-       ((static_cast<double>(yy) - cy) * static_cast<double>(depth)) / fy;
-  const double z = static_cast<double>(depth);
+  const float x = ((static_cast<float>(xx) - cx) * depth) / fx;
+  const float y = ((static_cast<float>(yy) - cy) * depth) / fy;
+  const float z = depth;
 
   return cv::Point3f(x, y, z);
 }

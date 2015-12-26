@@ -34,15 +34,15 @@ void thriftFrameToCvMat(const Frame &frame, cv::Mat &image) {
 CameraModel thriftCamMatToCvMat(const BGRCameraParams &bgrParams)
 {
 
-  cv::Mat cm(3, 3, cv::DataType<double>::type, cvScalar(0.));
+  cv::Mat cm(3, 3, cv::DataType<float>::type, cvScalar(0.));
 
-  cm.at<double>(0, 0) = bgrParams.fx;
-  cm.at<double>(1, 1) = bgrParams.fy;
-  cm.at<double>(0, 2) = bgrParams.cx;
-  cm.at<double>(1, 2) = bgrParams.cy;
-  cm.at<double>(2, 2) = 1.0;
+  cm.at<float>(0, 0) = bgrParams.fx;
+  cm.at<float>(1, 1) = bgrParams.fy;
+  cm.at<float>(0, 2) = bgrParams.cx;
+  cm.at<float>(1, 2) = bgrParams.cy;
+  cm.at<float>(2, 2) = 1.0f;
 
-  return { cm, cv::Mat(0, 0, cv::DataType<double>::type) };
+  return { cm, cv::Mat(0, 0, cv::DataType<float>::type) };
 }
 
 
@@ -51,21 +51,21 @@ CameraModel thriftCamMatToCvMat(const BGRCameraParams &bgrParams)
  */
 CameraModel thriftCamMatToCvMat(const IrCameraParams &irParams)
 {
-  cv::Mat cm(3, 3, cv::DataType<double>::type, cvScalar(0.));
+  cv::Mat cm(3, 3, cv::DataType<float>::type, cvScalar(0.));
 
-  cm.at<double>(0, 0) = irParams.fx;
-  cm.at<double>(1, 1) = irParams.fy;
-  cm.at<double>(0, 2) = irParams.cx;
-  cm.at<double>(1, 2) = irParams.cy;
-  cm.at<double>(2, 2) = 1.0;
+  cm.at<float>(0, 0) = irParams.fx;
+  cm.at<float>(1, 1) = irParams.fy;
+  cm.at<float>(0, 2) = irParams.cx;
+  cm.at<float>(1, 2) = irParams.cy;
+  cm.at<float>(2, 2) = 1.0f;
 
-  cv::Mat dc(1, 5, cv::DataType<double>::type);
+  cv::Mat dc(1, 5, cv::DataType<float>::type);
 
-  dc.at<double>(0, 0) = irParams.k1;
-  dc.at<double>(0, 1) = irParams.k2;
-  dc.at<double>(0, 2) = irParams.p1;
-  dc.at<double>(0, 3) = irParams.p2;
-  dc.at<double>(0, 4) = irParams.k3;
+  dc.at<float>(0, 0) = irParams.k1;
+  dc.at<float>(0, 1) = irParams.k2;
+  dc.at<float>(0, 2) = irParams.p1;
+  dc.at<float>(0, 3) = irParams.p2;
+  dc.at<float>(0, 4) = irParams.k3;
 
   return { cm, dc };
 }

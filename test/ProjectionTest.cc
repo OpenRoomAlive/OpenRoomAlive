@@ -15,7 +15,7 @@ using namespace dv;
  * Check a point from the origin of a 1x1 depth map is correctly mapped to 3D
  * coordinates.
  */
-TEST(ProjectionTest, DISABLED_InvertTestOrigin) {
+TEST(ProjectionTest, InvertTestOrigin) {
   // Parameters of the camera.
   float params[9] {
     0.5f, 0.0f, 0.5f,
@@ -38,8 +38,8 @@ TEST(ProjectionTest, DISABLED_InvertTestOrigin) {
   const auto projection = projection::project(cameraParams, k1, k2, point3d);
 
   // Check that the projection is the same as the original point.
-  ASSERT_NEAR(projection.x, 0, 0.1f);
-  ASSERT_NEAR(projection.y, 0, 0.1f);
+  ASSERT_EQ(projection.x, 0);
+  ASSERT_EQ(projection.y, 0);
   ASSERT_NEAR(z, point3d.z, 0.1f);
 }
 
@@ -47,7 +47,7 @@ TEST(ProjectionTest, DISABLED_InvertTestOrigin) {
  * Check that if we take a (random) point from the depth image, retrieve its
  * 3D coordinates, and then project it, we get the original UV coordinates.
  */
-TEST(ProjectionTest, DISABLED_InvertTestRandomPoint) {
+TEST(ProjectionTest, InvertTestRandomPoint) {
   // Parameters of the camera.
   float params[9] {
     0.1f, 0.0f, 0.03f,
@@ -67,6 +67,9 @@ TEST(ProjectionTest, DISABLED_InvertTestRandomPoint) {
   const auto projection = projection::project(cameraParams, k1, k2, point3d);
 
   // Check that the projection is the same as the original point.
-  ASSERT_NEAR(projection.x, 2, 0.1f);
-  ASSERT_NEAR(projection.y, 1, 0.1f);
+  // OpenCV rounds down when constructin cv::Point2i from float values.
+  // Thus, 1.9 computed in projection::project gets rounded to 1, rather than 2.
+  ASSERT_EQ(projection.x, 1);
+  ASSERT_EQ(projection.y, 1);
 }
+
