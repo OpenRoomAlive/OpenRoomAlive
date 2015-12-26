@@ -11,6 +11,7 @@ SET(SOURCES
     MasterApplication.cc
     MasterConnectionHandler.cc
     MasterServer.cc
+    PointCloud.cc
     ProCam.cc
     ProCamRecorder.cc
     ProCamSystem.cc
@@ -26,6 +27,7 @@ SET(HEADERS
     MasterConnectionHandler.h
     MasterConnectionHandler-inl.h
     MasterServer.h
+    PointCloud.h
     ProCam.h
     ProCamRecorder.h
     ProCamSystem.h

@@ -12,6 +12,7 @@
 
 namespace dv { namespace core {
 
+
 class GLViewer {
  public:
   /**
@@ -51,6 +52,13 @@ class GLViewer {
       const std::vector<cv::Point3f> &worldPoints,
       const std::vector<cv::Point2f> &projPoints,
       const cv::Size &size);
+
+  /**
+   * Draws another array of points.
+   */
+  void drawPoints(
+      const std::vector<std::pair<cv::Point3f, cv::Point3f>> &points,
+      const cv::Point3f &centroid);
 
   /**
    * Draws a camera frustum.

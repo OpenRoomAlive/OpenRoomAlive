@@ -13,6 +13,9 @@
  */
 namespace dv { namespace projection {
 
+// 1m = 1000mm
+constexpr float kMilimetersToMeters = 1000.0f;
+
 
 /**
  * Projects a 3D point to a UV coordinate.

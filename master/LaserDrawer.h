@@ -16,7 +16,7 @@ namespace dv { namespace master {
 class LaserDrawer {
  public:
   LaserDrawer(
-      const std::vector<ConnectionID>& ids,
+      const std::vector<ConnectionID> &ids,
       const std::shared_ptr<ProCamSystem> system,
       const std::shared_ptr<EventStream> stream,
       const boost::shared_ptr<ConnectionHandler> connectionHandler);
@@ -28,7 +28,7 @@ class LaserDrawer {
   void run();
 
  private:
- /// ProCam ids.
+  /// ProCam ids.
   const std::vector<ConnectionID> ids_;
   /// ProCam system.
   const std::shared_ptr<ProCamSystem> system_;

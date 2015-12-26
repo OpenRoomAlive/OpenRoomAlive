@@ -26,7 +26,8 @@ class MasterApplication {
       uint16_t port,
       size_t procamTotal,
       const std::string &recordDirectory,
-      bool calibrate);
+      bool calibrate,
+      bool render);
   ~MasterApplication();
 
   int run();
@@ -46,6 +47,8 @@ class MasterApplication {
   const std::shared_ptr<ProCamSystem> system_;
   /// Indicates if the system need to be re-calibrated.
   const bool calibrate_;
+  /// Indicates if the reconstructed 3D mesh is to be rendered.
+  const bool render_;
 };
 
 }}

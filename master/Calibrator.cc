@@ -19,6 +19,7 @@
 
 
 using namespace dv::master;
+using namespace dv::projection;
 using namespace dv;
 
 
@@ -33,9 +34,6 @@ constexpr size_t kColorImageHeight = 1080;
 
 // Treshold used to filter out some of the depth image noise.
 constexpr auto kDepthVarianceTreshold = 36;
-
-// 1m = 1000mm
-constexpr float kMilimetersToMeters = 1000.0f;
 
 // Threshold for minimum area of decoded graycode
 constexpr auto kDecodedAreaThreshold = 30;
@@ -326,7 +324,7 @@ void Calibrator::calibrate() {
         }
 
         // Compute the 3D point out of the depth info.
-        auto point3D = projection::map3D(kinect->irCam_.proj, depth, x, y);
+        auto point3D = map3D(kinect->irCam_.calib, depth, x, y);
 
         // Construct the 3D - 2D (color image) correspondence.
         map3Dto2D.push_back(std::make_pair(point3D, point2D));
@@ -517,7 +515,7 @@ void Calibrator::calibrate() {
       CameraPose p;
       p.rvec = rvecs[i];
       p.tvec = tvecs[i];
-      projector->poses[projector->projectorGroup_[i]] = p;
+      projector->poses_[projector->projectorGroup_[i]] = p;
     }
 
     // Print rms & calibration matirx.
@@ -528,7 +526,20 @@ void Calibrator::calibrate() {
     std::cout << projector->projMat_ << std::endl;
   }
 
-  printPoses();
+  // TODO(ilijar): remove.
+  std::cout << "Rotation and translation vectors:" << std::endl;
+  for (auto projectorId : ids_) {
+    std::cout << "Projector: " << projectorId << std::endl;
+    auto projector = system_->getProCam(projectorId);
+    for (auto kinectId : projector->projectorGroup_) {
+      auto pose = projector->poses_[kinectId];
+      std::cout
+          << "Kinect: " << kinectId << std::endl
+          << "Tvec: " << std::endl << pose.tvec << std::endl
+          << "Rvec: " << std::endl << pose.rvec << std::endl
+          << "--------------------" << std::endl;
+    }
+  }
 }
 
 cv::Mat Calibrator::undistort(
@@ -580,7 +591,7 @@ void Calibrator::printPoses() {
     std::cout << "Projector: " << projectorId << std::endl;
     auto projector = system_->getProCam(projectorId);
     for (auto kinectId : projector->projectorGroup_) {
-      auto pose = projector->poses[kinectId];
+      auto pose = projector->poses_[kinectId];
       std::cout
           << "Kinect: " << kinectId << std::endl
           << "Tvec: " << std::endl << pose.tvec << std::endl

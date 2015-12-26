@@ -7,6 +7,7 @@
 #include "master/LaserDrawer.h"
 
 using namespace dv::master;
+using namespace dv::projection;
 
 using namespace std::literals;
 
@@ -56,20 +57,20 @@ void LaserDrawer::run() {
               << " from procam# "           << proCamId << std::endl;
 
     // Project the point to the 3D space of the proCamId's kinect.
-    auto position3D = projection::map3D(
-        kinect->irCam_.proj,
-        position.z / 1000.0f,
+    auto position3D = map3D(
+        kinect->irCam_.calib,
+        position.z / kMilimetersToMeters,
         position.x,
         position.y);
 
     // Consider the point from each projector's view.
     for (const auto projectorId : ids_) {
       const auto projector = system_->getProCam(projectorId);
-      const auto pose = projector->poses.find(proCamId);
+      const auto pose = projector->poses_.find(proCamId);
       const auto res = projector->effectiveProjRes_;
 
       // Check if the kinect is in the projector's group.
-      if (pose == projector->poses.end()) {
+      if (pose == projector->poses_.end()) {
         continue;
       }
 

@@ -166,11 +166,11 @@ TEST(ProCamSystemTest, TestLoadFromJSON) {
   EXPECT_EQ(100ms, cam->getLatency());
 
   auto color = cam->getColorCameraModel();
-  checkCVMat<float>(3, 3, 1, color.proj);
+  checkCVMat<float>(3, 3, 1, color.calib);
   checkCVMat<float>(0, 0, 1, color.dist);
 
   auto ir = cam->getIrCameraModel();
-  checkCVMat<float>(3, 3, 1, ir.proj);
+  checkCVMat<float>(3, 3, 1, ir.calib);
   checkCVMat<float>(1, 5, 1, ir.dist);
 
   checkCVMat<double>(3, 3, 1, cam->getProjMatrix());

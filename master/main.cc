@@ -39,6 +39,10 @@ int main(int argc, char **argv) {
         ( "calibrate"
         , po::value<bool>()->default_value(true)
         , "Re-calibrates the system."
+        )
+        ( "render"
+        , po::value<bool>()->default_value(false)
+        , "Renders the reconstructed 3D mesh."
         );
 
     // Parse options.
@@ -57,7 +61,8 @@ int main(int argc, char **argv) {
         options["port"].as<uint16_t>(),
         options["procam-total"].as<size_t>(),
         options["record"].as<std::string>(),
-        options["calibrate"].as<bool>()
+        options["calibrate"].as<bool>(),
+        options["render"].as<bool>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;

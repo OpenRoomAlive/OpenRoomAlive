@@ -132,7 +132,7 @@ void ProCamSystem::fromJSON(const folly::dynamic &data) {
       const auto &id = pose.asInt();
 
       cam->projectorGroup_.push_back(id);
-      cam->poses[id] = {
+      cam->poses_[id] = {
           loadMat<double, 1>(3, 1, pd["rvec"]),
           loadMat<double, 1>(3, 1, pd["tvec"])
       };
@@ -156,11 +156,11 @@ folly::dynamic ProCamSystem::toJSON() const {
             ( "height", cam->effectiveProjRes_.height )
         )
         ( "color-cam", folly::dynamic::object
-            ( "proj", saveMat(cam->colorCam_.proj) )
+            ( "proj", saveMat(cam->colorCam_.calib) )
             ( "dist", saveMat(cam->colorCam_.dist) )
         )
         ( "ir-cam", folly::dynamic::object
-            ( "proj", saveMat(cam->irCam_.proj) )
+            ( "proj", saveMat(cam->irCam_.calib) )
             ( "dist", saveMat(cam->irCam_.dist) )
         )
         ( "projector", folly::dynamic::object

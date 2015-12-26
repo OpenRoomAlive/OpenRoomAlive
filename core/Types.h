@@ -22,7 +22,7 @@ using ConnectionID = uint64_t;
  * Camera matrix & distorion.
  */
 struct CameraModel {
-  cv::Mat proj;
+  cv::Mat calib;
   cv::Mat dist;
 };
 

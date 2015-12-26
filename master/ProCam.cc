@@ -42,8 +42,8 @@ ProCam::~ProCam() {
 
 
 CameraPose ProCam::getPose(const ConnectionID &id) const {
-  auto pose = poses.find(id);
-  if (pose == poses.end()) {
+  auto pose = poses_.find(id);
+  if (pose == poses_.end()) {
     throw EXCEPTION() << "ProCam not in group.";
   }
   return pose->second;

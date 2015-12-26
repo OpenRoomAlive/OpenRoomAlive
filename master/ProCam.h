@@ -25,6 +25,7 @@ class ProCamSystem;
 class ProCam {
   friend class Calibrator;
   friend class LaserDrawer;
+  friend class PointCloud;
   friend class ProCamSystem;
 
  public:
@@ -79,7 +80,7 @@ class ProCam {
   /// Cameras that can observe some part of projector's image.
   std::vector<ConnectionID> projectorGroup_;
   /// Stores poses of the kinects in the projector group.
-  std::unordered_map<ConnectionID, CameraPose, boost::hash<ConnectionID>> poses;
+  std::unordered_map<ConnectionID, CameraPose, boost::hash<ConnectionID>> poses_;
 };
 
 }}

@@ -22,12 +22,15 @@
 #include "core/Async.h"
 #include "core/Conv.h"
 #include "core/Exception.h"
+#include "core/GLViewer.h"
 #include "master/Calibrator.h"
 #include "master/LaserDrawer.h"
 #include "master/MasterApplication.h"
 #include "master/MasterConnectionHandler.h"
+#include "master/PointCloud.h"
 #include "master/RecordingConnectionHandler.h"
 
+using namespace dv::core;
 using namespace dv::master;
 
 constexpr auto kCalibrateFileName = ".calibrate";
@@ -36,7 +39,8 @@ MasterApplication::MasterApplication(
     uint16_t port,
     size_t procamTotal,
     const std::string &recordDirectory,
-    bool calibrate)
+    bool calibrate,
+    bool render)
   : stream_(new EventStream())
   , port_(port)
   , procamTotal_(procamTotal)
@@ -50,6 +54,7 @@ MasterApplication::MasterApplication(
         boost::make_shared<apache::thrift::protocol::TBinaryProtocolFactory>()))
   , system_(new ProCamSystem())
   , calibrate_(calibrate)
+  , render_(render)
 {
   if (procamTotal_ == 0) {
     throw EXCEPTION() << "At least one procam should be attached.";
@@ -116,18 +121,28 @@ int MasterApplication::run() {
     system_->fromJSON(folly::parseJson(source));
   }
 
-  // TODO: Perform 3D reconstruction.
+  // Perform 3D reconstruction.
+  PointCloud pointCloud(connectionIds, system_);
+  pointCloud.construct();
 
-  // Spawn thread waiting for user input - input => quit.
-  auto futureInput = asyncExecute([&, this] () {
-    getchar();
-    stream_->close();
-  });
+  std::future<void> futureInput;
 
-  // Perform laser drawing.
-  connectionHandler_->clearDisplays();
-  connectionHandler_->startLaserDetection();
-  LaserDrawer(connectionIds, system_, stream_, connectionHandler_).run();
+  if (render_) {
+    GLViewer viewer([&pointCloud, &viewer] () {
+      viewer.drawPoints(pointCloud.getPoints(), pointCloud.getCentroid());
+    });
+  } else {
+    // Spawn thread waiting for user input - input => quit.
+    futureInput = asyncExecute([&, this] () {
+      getchar();
+      stream_->close();
+    });
+
+    // Perform laser drawing.
+    connectionHandler_->clearDisplays();
+    connectionHandler_->startLaserDetection();
+    LaserDrawer(connectionIds, system_, stream_, connectionHandler_).run();
+  }
 
   // Disconnect all clients.
   connectionHandler_->stop();

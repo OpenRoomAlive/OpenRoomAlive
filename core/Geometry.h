@@ -51,7 +51,7 @@ std::vector<cv::Point3f> transformPlane(
  *
  * @param points Points whose centroid is to be computed.
  *
- * @return Cetnroid.
+ * @return Centroid.
  */
 cv::Point3f findCentroid(const std::vector<cv::Point3f> &points);
 

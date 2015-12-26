@@ -233,16 +233,40 @@ void GLViewer::drawPoints(
 }
 
 
+void GLViewer::drawPoints(
+      const std::vector<std::pair<cv::Point3f, cv::Point3f>> &points,
+      const cv::Point3f &centroid)
+{
+  glPushMatrix();
+
+  glColor3f(1.0f, 1.0f, 1.0f);
+  glPointSize(3.0f);
+  glTranslatef(-centroid.x, -centroid.y, -centroid.z);
+  
+  glBegin(GL_POINTS);
+  for (const auto &point : points) {
+    const auto &vertex = point.first;
+    const auto &color = point.second;
+
+    glColor3f(color.x, color.y, color.z);
+    glVertex3f(vertex.x, vertex.y, vertex.z);
+  }
+  glEnd();
+
+  glPopMatrix();
+}
+
+
 void GLViewer::drawCamera(
     const cv::Mat &cam,
     const cv::Mat &r,
     const cv::Mat &t)
 {
   // Extract camera parameters.
-  float fx = cam.at<double>(0, 0);
-  float fy = cam.at<double>(1, 1);
-  float cx = cam.at<double>(0, 2);
-  float cy = cam.at<double>(1, 2);
+  float fx = cam.at<float>(0, 0);
+  float fy = cam.at<float>(1, 1);
+  float cx = cam.at<float>(0, 2);
+  float cy = cam.at<float>(1, 2);
   float n  = 0.1f;
   float f  = 4.0f;
 
@@ -262,7 +286,7 @@ void GLViewer::drawCamera(
     rm.at<float>(0, 0), rm.at<float>(1, 0), rm.at<float>(2, 0), 0.0f,
     rm.at<float>(0, 1), rm.at<float>(1, 1), rm.at<float>(2, 1), 0.0f,
     rm.at<float>(0, 2), rm.at<float>(1, 2), rm.at<float>(2, 2), 0.0f,
-    t.at<double>(0, 0), t.at<double>(1, 0), t.at<double>(2, 0), 1.0f
+    t.at<float>(0, 0), t.at<float>(1, 0), t.at<float>(2, 0), 1.0f
   );
 
   // Compute the inverse MV matrix.

@@ -27,6 +27,7 @@ class ProCam;
 class ProCamSystem {
 friend class Calibrator;
 friend class LaserDrawer;
+friend class PointCloud;
 
  public:
   ProCamSystem();
