@@ -289,7 +289,7 @@ void Calibrator::colorToProjPoints(const GrayCodeBitMaskMap &decodedGrayCodes) {
   }
 }
 
-void Calibrator::calibrate() {
+void Calibrator::calibrate(bool twoStepK) {
   // KinectID -> [(3D point, 2D Kinect color image)]
   std::unordered_map<
       ConnectionID,
@@ -398,135 +398,137 @@ void Calibrator::calibrate() {
       }
     }
 
-    /*
-    // Try to avoid using initial intrinsic guess.
-    std::vector<std::vector<cv::Point3f>> worldPointsPlane(
-        projectorGroupSize);
-    std::vector<std::vector<cv::Point2f>> projectorPointsPlane(
-        projectorGroupSize);
+    // Calibrate the projector.
+    if (twoStepK) {
+      // Try to avoid using initial intrinsic guess.
+      std::vector<std::vector<cv::Point3f>> worldPointsPlane(
+          projectorGroupSize);
+      std::vector<std::vector<cv::Point2f>> projectorPointsPlane(
+          projectorGroupSize);
 
-    for (size_t i = 0; i < projectorGroupSize; ++i) {
-      auto &worldPoints = worldPointsPlane[i];
-      auto &projectorPoints = projectorPointsPlane[i];
+      for (size_t i = 0; i < projectorGroupSize; ++i) {
+        auto &worldPoints = worldPointsPlane[i];
+        auto &projectorPoints = projectorPointsPlane[i];
 
-      auto plane = planeFit(worldPointsCalib[i], 200, 100, 0.1f);
-      for (size_t j = 0; j < worldPointsCalib[i].size(); ++j) {
-        const auto &world = worldPointsCalib[i][j];
-        const auto &proj = projectorPointsCalib[i][j];
+        auto plane = planeFit(worldPointsCalib[i], 200, 100, 0.1f);
+        for (size_t j = 0; j < worldPointsCalib[i].size(); ++j) {
+          const auto &world = worldPointsCalib[i][j];
+          const auto &proj = projectorPointsCalib[i][j];
 
-        const float d =
-            plane.nx * world.x +
-            plane.ny * world.y +
-            plane.nz * world.z -
-            plane.d;
+          const float d =
+              plane.nx * world.x +
+              plane.ny * world.y +
+              plane.nz * world.z -
+              plane.d;
 
-        if (std::abs(d) < 0.05f) {
-          worldPoints.push_back(world);
-          projectorPoints.push_back(proj);
+          if (std::abs(d) < 0.05f) {
+            worldPoints.push_back(world);
+            projectorPoints.push_back(proj);
+          }
+        }
+
+        // Transform the points so they are on a plane with z = 0.
+        worldPoints = transformPlane(worldPoints, {0, 0, 1});
+        for (auto &pt : worldPoints) {
+          pt.z = 0.0f;
         }
       }
 
-      // Transform the points so they are on a plane with z = 0.
-      worldPoints = transformPlane(worldPoints, {0, 0, 1});
-      for (auto &pt : worldPoints) {
-        pt.z = 0.0f;
-      }
-    }
+      // Find the calibration matrix in two steps.
+      // First, a set of points on a planar surface with z = 0 is used to
+      // compute an initial guess for the camera parameters, after which
+      // the projection matrix is refined using all the correspondences.
+      projector->projMat_ = cv::initCameraMatrix2D(
+          worldPointsPlane,
+          projectorPointsPlane,
+          projector->effectiveProjRes_,
+          static_cast<float>(effectiveRes.width) /
+          static_cast<float>(effectiveRes.height)
+      );
 
-    // Find the calibration matrix in two steps.
-    // First, a set of points on a planar surface with z = 0 is used to
-    // compute an initial guess for the camera parameters, after which
-    // the projection matrix is refined using all the correspondences.
-    projector->projMat_ = cv::initCameraMatrix2D(
-        worldPointsPlane,
-        projectorPointsPlane,
-        projector->effectiveProjRes_,
-        static_cast<float>(effectiveRes.width) /
-        static_cast<float>(effectiveRes.height)
-    );
-
-    auto rms = cv::calibrateCamera(
-       worldPointsCalib,
-        projectorPointsCalib,
-        projector->effectiveProjRes_,
-        projector->projMat_,
-        projector->projDist_,
-        {},
-        {},
-        CV_CALIB_USE_INTRINSIC_GUESS |
-        CV_CALIB_FIX_PRINCIPAL_POINT
-    );
-    std::cerr
-        << projector->projMat_ << std::endl
-        << projector->projDist_ << std::endl;
-
-    // Store the computed rotation and translation vectors.
-    for (size_t i = 0; i < ids_.size(); ++i) {
-      cv::solvePnP(
-          worldPointsCalib[i],
-          projectorPointsCalib[i],
+      auto rms = cv::calibrateCamera(
+         worldPointsCalib,
+          projectorPointsCalib,
+          projector->effectiveProjRes_,
           projector->projMat_,
           projector->projDist_,
-          projector->poses[i].rvec,
-          projector->poses[i].tvec,
-          false,
-          CV_ITERATIVE);
-   }
+          {},
+          {},
+          CV_CALIB_USE_INTRINSIC_GUESS |
+          CV_CALIB_FIX_PRINCIPAL_POINT
+      );
+      std::cerr
+          << projector->projMat_ << std::endl
+          << projector->projDist_ << std::endl;
 
-    std::cout
-        << "Projector #" << projectorId << std::endl
-        << "  RMS: " << rms << std::endl
-        << "  matrix: " << projector->projMat_ << std::endl;
+      // Store the computed rotation and translation vectors.
+      for (size_t i = 0; i < ids_.size(); ++i) {
+        cv::solvePnP(
+            worldPointsCalib[i],
+            projectorPointsCalib[i],
+            projector->projMat_,
+            projector->projDist_,
+            projector->poses_[i].rvec,
+            projector->poses_[i].tvec,
+            false,
+            CV_ITERATIVE);
+      }
 
-    core::GLViewer viewer([&] {
-      viewer.drawPoints(
-          worldPointsCalib[0],
-          projectorPointsCalib[0],
-          projector->effectiveProjRes_);
-      viewer.drawCamera(
+      std::cout
+          << "Projector #" << projectorId << std::endl
+          << "  RMS: " << rms << std::endl
+          << "  matrix: " << projector->projMat_ << std::endl;
+
+      /*
+      core::GLViewer viewer([&] {
+        viewer.drawPoints(
+            worldPointsCalib[0],
+            projectorPointsCalib[0],
+            projector->effectiveProjRes_);
+        viewer.drawCamera(
+            projector->projMat_,
+            projector->poses[0].rvec,
+            projector->poses[0].tvec);
+      });
+      */
+    } else {
+      // Construct an initial guess for thr calibration matrix.
+      projector->projMat_.at<float>(0, 0) = 1000.0f;
+      projector->projMat_.at<float>(1, 1) = 1000.0f;
+      projector->projMat_.at<float>(0, 2) = effectiveRes.width / 2;
+      projector->projMat_.at<float>(1, 2) = 0.0f;
+      projector->projMat_.at<float>(2, 2) = 1.0f;
+
+      std::vector<cv::Mat> rvecs, tvecs;
+
+      auto rms = cv::calibrateCamera(
+          worldPointsCalib,
+          projectorPointsCalib,
+          effectiveRes,
           projector->projMat_,
-          projector->poses[0].rvec,
-          projector->poses[0].tvec);
-    });
-    */
+          projector->projDist_,
+          rvecs,
+          tvecs,
+          CV_CALIB_USE_INTRINSIC_GUESS);
 
-    // If you are running the calibration using initCameraMatrix2D & solvePnP,
-    // don't delete the following. Comment it out as it is done above.
-    projector->projMat_.at<float>(0, 0) = 1000.0f;
-    projector->projMat_.at<float>(1, 1) = 1000.0f;
-    projector->projMat_.at<float>(0, 2) = effectiveRes.width / 2;
-    projector->projMat_.at<float>(1, 2) = 0.0f;
-    projector->projMat_.at<float>(2, 2) = 1.0f;
+      // Store the computed rotation and translation vectors.
+      for (size_t i = 0; i < projector->projectorGroup_.size(); ++i) {
+        CameraPose p;
+        p.rvec = rvecs[i];
+        p.tvec = tvecs[i];
+        projector->poses_[projector->projectorGroup_[i]] = p;
+      }
 
-    std::vector<cv::Mat> rvecs, tvecs;
-
-    auto rms = cv::calibrateCamera(
-        worldPointsCalib,
-        projectorPointsCalib,
-        effectiveRes,
-        projector->projMat_,
-        projector->projDist_,
-        rvecs,
-        tvecs,
-        CV_CALIB_USE_INTRINSIC_GUESS);
-
-    // Store the computed rotation and translation vectors.
-    for (size_t i = 0; i < projector->projectorGroup_.size(); ++i) {
-      CameraPose p;
-      p.rvec = rvecs[i];
-      p.tvec = tvecs[i];
-      projector->poses_[projector->projectorGroup_[i]] = p;
+      // Print rms & calibration matirx.
+      std::cout << "Projector #" << projectorId << std::endl;
+      std::cout << "Points used: " << worldPointsCalib[0].size() << std::endl;
+      std::cout << "RMS: " << rms << std::endl;
+      std::cout << "Calibration matrix: " << std::endl;
+      std::cout << projector->projMat_ << std::endl;
     }
-
-    // Print rms & calibration matirx.
-    std::cout << "Projector #" << projectorId << std::endl;
-    std::cout << "Points used: " << worldPointsCalib[0].size() << std::endl;
-    std::cout << "RMS: " << rms << std::endl;
-    std::cout << "Calibration matrix: " << std::endl;
-    std::cout << projector->projMat_ << std::endl;
   }
 
-  // TODO(ilijar): remove.
+  // Print the computed poses.
   std::cout << "Rotation and translation vectors:" << std::endl;
   for (auto projectorId : ids_) {
     std::cout << "Projector: " << projectorId << std::endl;
@@ -536,8 +538,7 @@ void Calibrator::calibrate() {
       std::cout
           << "Kinect: " << kinectId << std::endl
           << "Tvec: " << std::endl << pose.tvec << std::endl
-          << "Rvec: " << std::endl << pose.rvec << std::endl
-          << "--------------------" << std::endl;
+          << "Rvec: " << std::endl << pose.rvec << std::endl;
     }
   }
 }
@@ -583,21 +584,5 @@ cv::Mat Calibrator::undistort(
       HDundistortedFrame.data).copyTo(undistorted);
 
   return undistorted;
-}
-
-void Calibrator::printPoses() {
-  std::cout << "Rotation and translation vectors:" << std::endl;
-  for (auto projectorId : ids_) {
-    std::cout << "Projector: " << projectorId << std::endl;
-    auto projector = system_->getProCam(projectorId);
-    for (auto kinectId : projector->projectorGroup_) {
-      auto pose = projector->poses_[kinectId];
-      std::cout
-          << "Kinect: " << kinectId << std::endl
-          << "Tvec: " << std::endl << pose.tvec << std::endl
-          << "Rvec: " << std::endl << pose.rvec << std::endl
-          << "--------------------" << std::endl;
-    }
-  }
 }
 

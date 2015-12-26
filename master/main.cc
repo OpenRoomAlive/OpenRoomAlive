@@ -43,6 +43,10 @@ int main(int argc, char **argv) {
         ( "render"
         , po::value<bool>()->default_value(false)
         , "Renders the reconstructed 3D mesh."
+        )
+        ( "two-step-k"
+        , po::value<bool>()->default_value(false)
+        , "Compute the calibration matrices in two steps."
         );
 
     // Parse options.
@@ -62,7 +66,8 @@ int main(int argc, char **argv) {
         options["procam-total"].as<size_t>(),
         options["record"].as<std::string>(),
         options["calibrate"].as<bool>(),
-        options["render"].as<bool>()
+        options["render"].as<bool>(),
+        options["two-step-k"].as<bool>()
     ).run();
   } catch (const std::exception &ex) {
     std::cerr << "[Exception] " << ex.what() << std::endl;

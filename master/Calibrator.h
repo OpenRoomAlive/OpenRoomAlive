@@ -93,7 +93,7 @@ class Calibrator {
   /**
    * Calibrates the ProCam system.
    */
-  void calibrate();
+  void calibrate(bool twoStepK);
 
  private:
   /**
@@ -118,11 +118,6 @@ class Calibrator {
   cv::Mat undistort(
     const cv::Mat &HDImage,
     ConnectionID id);
-
-  /**
-   * Print the computed poses.
-   */
-  void printPoses();
 
  private:
   /// IDs of the procam connections

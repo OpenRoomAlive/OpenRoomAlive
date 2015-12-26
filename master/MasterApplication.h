@@ -27,7 +27,8 @@ class MasterApplication {
       size_t procamTotal,
       const std::string &recordDirectory,
       bool calibrate,
-      bool render);
+      bool render,
+      bool twoStepK);
   ~MasterApplication();
 
   int run();
@@ -49,6 +50,8 @@ class MasterApplication {
   const bool calibrate_;
   /// Indicates if the reconstructed 3D mesh is to be rendered.
   const bool render_;
+  /// Determines how to compute calibration matrices.
+  const bool twoStepK_;
 };
 
 }}

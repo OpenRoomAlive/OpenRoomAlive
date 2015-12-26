@@ -63,5 +63,15 @@ TEST_F(CalibratorTest, DISABLED_RunCalibration) {
   calibrator.formProjectorGroups();
   calibrator.displayGrayCodes();
   calibrator.decodeGrayCodes();
-  calibrator.calibrate();
+  calibrator.calibrate(false);
 }
+
+TEST_F(CalibratorTest, DISABLED_RunCalibrationTwoStepK) {
+  Calibrator calibrator(ids, conn, system);
+  calibrator.captureBaselines();
+  calibrator.formProjectorGroups();
+  calibrator.displayGrayCodes();
+  calibrator.decodeGrayCodes();
+  calibrator.calibrate(true);
+}
+

@@ -40,7 +40,8 @@ MasterApplication::MasterApplication(
     size_t procamTotal,
     const std::string &recordDirectory,
     bool calibrate,
-    bool render)
+    bool render,
+    bool twoStepK)
   : stream_(new EventStream())
   , port_(port)
   , procamTotal_(procamTotal)
@@ -55,6 +56,7 @@ MasterApplication::MasterApplication(
   , system_(new ProCamSystem())
   , calibrate_(calibrate)
   , render_(render)
+  , twoStepK_(twoStepK)
 {
   if (procamTotal_ == 0) {
     throw EXCEPTION() << "At least one procam should be attached.";
@@ -102,7 +104,7 @@ int MasterApplication::run() {
     calibrator.formProjectorGroups();
     calibrator.displayGrayCodes();
     calibrator.decodeGrayCodes();
-    calibrator.calibrate();
+    calibrator.calibrate(twoStepK_);
 
     std::cerr << "Calibration completed." << std::endl;
 
