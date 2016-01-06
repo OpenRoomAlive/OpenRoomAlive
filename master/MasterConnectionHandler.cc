@@ -67,7 +67,7 @@ MasterConnectionHandler::getHandler(const TConnectionInfo& connInfo) {
           std::make_shared<ProCamClient>(protocol)));
     }
 
-    std::cout << "ProCam connected." << std::endl;
+    std::cout << "ProCam "<< id << " connected." << std::endl;
     connectionCountCondition_.notify_all();
   } catch (at::TException& tx) {
     std::cout << "OPENING PROCAM CONNECTION: " << tx.what() << std::endl;

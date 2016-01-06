@@ -78,7 +78,6 @@ void Calibrator::formProjectorGroups() {
   connectionHandler_->clearDisplays();
 
   for (const auto &id :ids_) {
-    std::cout << "procam #" << id << " displaying" << std::endl;
     auto proCam = system_->getProCam(id);
 
     // Project alternative black and white strips

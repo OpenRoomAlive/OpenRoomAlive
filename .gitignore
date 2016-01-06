@@ -19,3 +19,6 @@ data
 
 # Kinect log file.
 KinectLog.txt
+
+# Python compiled files.
+*.pyc

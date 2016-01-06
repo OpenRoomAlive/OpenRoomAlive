@@ -76,7 +76,7 @@ int MasterApplication::run() {
   // Wait for all the procams to connect.
   std::cout << "Waiting for " << procamTotal_ << " connections..." << std::endl;
   auto connectionIds = connectionHandler_->waitForConnections(procamTotal_);
-  std::cout << "Procams completed." << std::endl;
+  std::cout << "All " << procamTotal_ << " ProCams connected." << std::endl;
 
   // Check if there is a valid calibration file or if user explicitly
   // asked to re-calibrate the system from scratch.
