@@ -199,7 +199,6 @@ void LaserDetector::detect(
     // Send point only if we didn't lose it when undistorting.
     if (track_.x != -1 || track_.y != -1) {
       // Get laser colour.
-      cv::Vec4b bgraPixel = rgbFrame.at<cv::Vec4b>(track_.y, track_.x);
       dv::Color thriftColor;
       conv::cvScalarToThriftColor({0xFF, 0, 0}, thriftColor);
 
