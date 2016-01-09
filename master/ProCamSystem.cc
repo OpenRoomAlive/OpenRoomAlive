@@ -24,7 +24,7 @@ cv::Mat loadMat(
     throw EXCEPTION() << "Array expected in JSON.";
   }
 
-  if (width * height * D != static_cast<int>(arr.size())) {
+  if (width * height * D != arr.size()) {
     throw EXCEPTION() << "Invalid array size.";
   }
   cv::Mat mat = cv::Mat::zeros({ width, height }, CVType<T, D>::type);
