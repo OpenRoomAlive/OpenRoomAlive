@@ -13,13 +13,15 @@ namespace dv { namespace procam {
 
 /// Minimal range of the kinect is 40 cm.
 constexpr float kMinDepth = 400.0f;
+/// Size of the depth image.
+const cv::Size kDepthImageSize(kDepthImageWidth, kDepthImageHeight);
 
 
 BaselineCapture::BaselineCapture()
   : count_(0)
-  , baseline_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
-  , variance_(kDepthImageHeight, kDepthImageWidth, kDepthFormat)
-  , mask_(kDepthImageHeight, kDepthImageWidth, CV_8UC1, cv::Scalar(0xFF))
+  , baseline_(kDepthImageSize, kDepthFormat, 0.0f)
+  , variance_(kDepthImageSize, kDepthFormat, 0.0f)
+  , mask_(kDepthImageSize, CV_8UC1, cv::Scalar(0xFF))
   , ready_(false)
 {
 }
@@ -42,25 +44,22 @@ void BaselineCapture::process(const cv::Mat &frame) {
   for (size_t r = 0; r < kDepthImageHeight; ++r) {
     for (size_t c = 0; c < kDepthImageWidth; ++c) {
       buf.reserve(kCandidateFrames);
-      size_t count = 0;
 
       for (const auto &frame : frames_) {
         const auto depth = frame.at<const float>(r, c);
-        buf.push_back(depth);
-
         if (depth > kMinDepth) {
-          ++count;
+          buf.push_back(depth);
         }
       }
 
       // If there are no pixels in more then 10% of frames, the pixel is masked.
-      if (count < kCandidateFrames) {
+      if (buf.size() < kCandidateFrames) {
         mask_.at<uint8_t>(r, c) = 0x00;
       }
 
       // If there are enough pixels, compute the median and variance.
       // Otherwise discard the pixel and consider it to be noise.
-      if (count < kCandidateFrames / 2) {
+      if (buf.size() < kCandidateFrames / 2) {
         baseline_.at<float>(r, c) = 0.0f;
         variance_.at<float>(r, c) = 0.0f;
         continue;
@@ -71,19 +70,19 @@ void BaselineCapture::process(const cv::Mat &frame) {
       baseline_.at<float>(r, c) = buf[buf.size() / 2];
 
       // Compute the variance.
-      float sum = 0.0f;
-      float sum2 = 0.0f;
-
+      double mean = 0.0;
       for (const auto &d : buf) {
-        if (d > kMinDepth) {
-          sum += d;
-          sum2 += d * d;
-        }
+        mean += d;
       }
+      mean /= buf.size();
 
-      float mean = sum / count;
-      variance_.at<float>(r, c) = sum2 / count - mean * mean;
+      double var = 0.0;
+      for (const auto &d : buf) {
+        var += (d - mean) * (d - mean);
+      }
+      var /= buf.size();
 
+      variance_.at<float>(r, c) = static_cast<float>(var);
       buf.clear();
     }
   }
