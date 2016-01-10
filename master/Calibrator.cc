@@ -62,6 +62,9 @@ Calibrator::~Calibrator() {
 }
 
 void Calibrator::captureBaselines() {
+  // Clear displays before capturing baselines.
+  connectionHandler_->clearDisplays();
+
   auto colorBaselines = connectionHandler_->getColorBaselines();
   auto depthBaselines = connectionHandler_->getDepthBaselines();
   auto depthVariances = connectionHandler_->getDepthVariances();
