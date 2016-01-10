@@ -97,7 +97,7 @@ ProCamApplication::ProCamApplication(
   , latency_(latency)
   , updatesStreamOn_(true)
   , detectingLaser_(false)
-  , canvas_(effectiveSize.height, effectiveSize.width, CV_8UC3)
+  , canvas_(cv::Mat::zeros(effectiveSize.height, effectiveSize.width, CV_8UC3))
 {
 }
 

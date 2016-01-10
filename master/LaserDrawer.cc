@@ -53,9 +53,6 @@ void LaserDrawer::run() {
     const auto proCamId = event.getProCamID();
     const auto kinect = system_->getProCam(proCamId);
 
-    std::cout << "Received [x, y, depth]  " << position
-              << " from procam# "           << proCamId << std::endl;
-
     // Project the point to the 3D space of the proCamId's kinect.
     auto position3D = map3D(
         kinect->irCam_.calib,
