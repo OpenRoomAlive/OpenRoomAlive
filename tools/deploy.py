@@ -16,8 +16,8 @@ GIT = 'git@gitlab.doc.ic.ac.uk:nl1813/DerpVision.git'
 
 # List of hosts that will run ProCam units.
 HOSTS = [
-  ('nl1813', 'voxel22.doc.ic.ac.uk', '~/build1'),
-  ('nl1813', 'voxel21.doc.ic.ac.uk', '~/build2')
+  ('nandor', 'localhost', '/Users/nandor/build1'),
+  ('nandor', 'localhost', '/Users/nandor/build2')
 ]
 
 
@@ -57,31 +57,32 @@ class ProCam(Task):
 
     self.logger.info('Build started...')
 
-    self.run_command('git clone %s' % GIT, self.path)
-    self.run_command('mkdir -p %s', build_dir)
+    self.run_command('rm -rf %s' % self.path)
+    self.run_command('git clone %s %s' % (GIT, self.path))
+    self.run_command('mkdir -p %s' %  build_dir)
     self.run_command('cmake ..', build_dir)
-    self.run_command('make procam', build_dir)
+    self.run_command('make procam -j4', build_dir)
 
   def run(self):
     """Runs the program client."""
 
     self.logger.info('Running ProCam client.')
 
-    self.run_command('procam/procam --ip %s' % self.master_ip, build_dir)
+    self.run_command('build/procam/procam --ip %s' % self.master_ip, self.path)
 
   def run_command(self, command, cwd='.'):
     """Runs a single command."""
 
     self.logger.info(command)
 
-    stdin, stdout, stderr = client.exec_command(
-        'cd %s; %s', cwd, command
+    stdin, stdout, stderr = self.ssh.exec_command(
+        'source ~/.zshrc; cd %s; %s' % (cwd, command)
     )
     if stdout.channel.recv_exit_status():
       for line in stderr.read().splitlines():
         if line:
           self.logger.error(line)
-      raise subprocess.CalledProcessError(p.returncode)
+        raise RuntimeError('Cannot execute command.')
 
 
 class Master(Task):
@@ -112,7 +113,7 @@ class Master(Task):
 
     self.logger.info('Master started...')
 
-    self.run_command('build/master/master --procamTotal %d' % len(self.hosts))
+    self.run_command('build/master/master --procam-total %d' % len(self.hosts))
 
   def run_command(self, command, cwd='.'):
     """Runs a single command."""
@@ -163,32 +164,35 @@ def main():
 
   # Create all the tasks to run.
   logging.info('Connecting to all hosts...')
-  tasks = []
-  tasks.append(Master(sha, HOSTS))
+  procams = []
+  master = Master(sha, HOSTS)
   for user, host, path in HOSTS:
     try:
-      tasks.append(ProCam(user, host, path, sha, master_ip))
+      procams.append(ProCam(user, host, path, sha, master_ip))
     except:
       logging.error('Cannot connect to %s' % host)
       sys.exit(-1)
 
   # Build everything.
   logging.info('Building on all hosts...')
-  for task in tasks:
+  for procam in procams:
     try:
-      task.build()
-    except:
-      logging.error('Cannot build %s' % task.name)
+      procam.build()
+    except Exception as e:
+      logging.error('Cannot build %s: %s' % (procam.name, e))
       sys.exit(-1)
+  master.build()
 
   # Run everything.
   logging.info('Running on all hosts...')
-  for task in tasks:
+  for procam in procams:
     try:
-      task.run()
-    except:
-      logging.error('Cannot run %s' % task.name)
+      t = threading.Thread(target = lambda: procam.run())
+      t.start()
+    except Exception as e:
+      logging.error('Cannot run %s: %s' % (procam.name, e))
       sys.exit(-1)
+  master.run()
 
 
 if __name__ == '__main__':
