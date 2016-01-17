@@ -54,13 +54,11 @@ thriftFrameToCvMatMap(std::unordered_map<K, Frame> frames)
 CameraModel thriftCamMatToCvMat(
     const BGRCameraParams &bgrParams);
 
-
 /**
  * Converts depth camera parameters to OpenCV camera and distortion parameters.
  */
 CameraModel thriftCamMatToCvMat(
     const IrCameraParams &depthParams);
-
 
 /**
  * Converts thrift Color to cv::Scalar.
@@ -76,6 +74,11 @@ void cvScalarToThriftColor(const cv::Scalar &color, Color &thriftColor);
  * Converts thrift Point to cv::Point3f.
  */
 cv::Point3f thriftPointToCvPoint(const Point &point);
+
+/**
+ * Converts cv::Point3f to thrift Point.
+ */
+void cvPointToThriftPoint(const cv::Point3f &point, Point &thriftPoint);
 
 /**
  * Converts vector of thrift Segment to vector of std::pair<cv::Point2i>.

@@ -84,6 +84,12 @@ cv::Point3f thriftPointToCvPoint(const Point &point) {
   return cv::Point3f(point.x, point.y, point.depth);
 }
 
+void cvPointToThriftPoint(const cv::Point3f &point, Point &thriftPoint) {
+  thriftPoint.x = point.x;
+  thriftPoint.y = point.y;
+  thriftPoint.depth = point.z;
+}
+
 std::vector<std::pair<cv::Point2i, cv::Point2i>> thriftSegmentsToCvPoints(
     const std::vector<Segment> &segments)
 {

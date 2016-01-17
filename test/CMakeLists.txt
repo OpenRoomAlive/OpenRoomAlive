@@ -14,6 +14,7 @@ SET(HELPERS
 SET(TESTS
     CalibratorTest.cc
     CompressionTest.cc
+    ConvTest.cc
     ExceptionTest.cc
     GeometryTest.cc
     GrayCodeTest.cc
