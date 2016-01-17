@@ -18,12 +18,12 @@
 #include "core/Conv.h"
 #include "core/Exception.h"
 #include "core/Master.h"
-#include "core/ProCam.h"
 #include "master/ConnectionHandler.h"
-#include "master/EventStream.h"
 #include "master/MasterServer.h"
 
 namespace dv { namespace master {
+
+class EventStream;
 
 /**
  * Manages ProCam connections.

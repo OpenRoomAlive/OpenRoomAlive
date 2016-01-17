@@ -7,10 +7,11 @@
 #include <opencv2/opencv.hpp>
 
 #include "core/Types.h"
-#include "master/ProCamSystem.h"
 
 
 namespace dv { namespace master {
+
+class ProCamSystem;
 
 /**
  * Point cloud.

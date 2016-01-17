@@ -10,10 +10,11 @@
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/registration.h>
 
-#include "master/ConnectionHandler.h"
-#include "master/ProCamSystem.h"
 
 namespace dv { namespace master {
+
+class ConnectionHandler;
+class ProCamSystem;
 
 /**
  * Class wrapping the functionality responsible for ProCam calibration.

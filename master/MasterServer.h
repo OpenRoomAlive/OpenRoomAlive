@@ -6,9 +6,11 @@
 
 #include "core/Master.h"
 #include "core/Types.h"
-#include "master/EventStream.h"
+
 
 namespace dv { namespace master {
+
+class EventStream;
 
 class MasterServer : virtual public MasterIf {
  public:

@@ -13,12 +13,12 @@
 
 #include <folly/dynamic.h>
 
-#include "master/MasterConnectionHandler.h"
-#include "master/ProCam.h"
 
 namespace dv { namespace master {
 
 class Calibrator;
+class LaserDrawer;
+class MasterConnectionHandler;
 class ProCam;
 
 /**

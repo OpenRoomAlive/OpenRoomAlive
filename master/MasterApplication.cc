@@ -24,10 +24,12 @@
 #include "core/Exception.h"
 #include "core/GLViewer.h"
 #include "master/Calibrator.h"
+#include "master/EventStream.h"
 #include "master/LaserDrawer.h"
 #include "master/MasterApplication.h"
 #include "master/MasterConnectionHandler.h"
 #include "master/PointCloud.h"
+#include "master/ProCamSystem.h"
 #include "master/RecordingConnectionHandler.h"
 
 using namespace dv::core;

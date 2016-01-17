@@ -3,6 +3,10 @@
 // (C) 2015 Group 13. All rights reserved.
 
 #include "core/Projection.h"
+#include "master/ConnectionHandler.h"
+#include "master/EventStream.h"
+#include "master/ProCam.h"
+#include "master/ProCamSystem.h"
 
 #include "master/LaserDrawer.h"
 

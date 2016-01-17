@@ -8,6 +8,7 @@
 
 #include <gtest/gtest.h>
 
+#include "master/ProCam.h"
 #include "master/ProCamSystem.h"
 
 using namespace dv;

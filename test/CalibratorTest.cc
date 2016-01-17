@@ -14,6 +14,7 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "core/Conv.h"
 #include "core/ProCam.h"
 #include "core/Types.h"
 #include "master/Calibrator.h"

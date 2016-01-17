@@ -6,6 +6,7 @@
 
 #include "core/Conv.h"
 #include "master/Event.h"
+#include "master/EventStream.h"
 #include "master/MasterServer.h"
 
 using namespace dv;

@@ -4,6 +4,9 @@
 
 #include "core/Geometry.h"
 #include "core/Projection.h"
+#include "master/ProCam.h"
+#include "master/ProCamSystem.h"
+
 #include "master/PointCloud.h"
 
 using namespace dv::master;

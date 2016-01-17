@@ -6,6 +6,8 @@
 
 #include "core/Exception.h"
 #include "core/Types.h"
+#include "master/ProCam.h"
+
 #include "master/ProCamSystem.h"
 
 using namespace dv;

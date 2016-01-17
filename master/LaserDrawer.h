@@ -7,12 +7,16 @@
 #include <chrono>
 #include <vector>
 
-#include "master/ConnectionHandler.h"
-#include "master/ProCamSystem.h"
-
 
 namespace dv { namespace master {
 
+class ConnectionHandler;
+class EventStream;
+class ProCamSystem;
+
+/**
+ * Performs laser drawing.
+ */
 class LaserDrawer {
  public:
   LaserDrawer(

@@ -8,14 +8,12 @@
 
 #include <thrift/server/TServer.h>
 
-#include "master/EventStream.h"
-#include "master/ProCamSystem.h"
-
 
 namespace dv { namespace master {
 
+class EventStream;
 class MasterConnectionHandler;
-
+class ProCamSystem;
 
 /**
  * Encapsulates most of the functionality of the application.
