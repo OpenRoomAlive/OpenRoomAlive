@@ -51,8 +51,7 @@ class GrayCode {
   }
 
   /**
-   * Converts gray code encoding to binary according to the method outlined
-   * at: http://www.electrical4u.com.
+   * Converts gray code encoding to binary.
    */
   static uint32_t grayCodeToBinary(uint32_t encodedBits, size_t signifBits);
 

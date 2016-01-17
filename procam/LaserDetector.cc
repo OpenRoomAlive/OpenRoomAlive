@@ -88,7 +88,12 @@ void LaserDetector::detect(
     cv::findNonZero(diff, toTrack);
 
     cv::Point2i mid(kLaserWindowSize, kLaserWindowSize);
-    for (size_t i = 0; i < toTrack.total(); i++) {
+
+    if (toTrack.total() >= 1) {
+      track_ = toTrack.at<cv::Point2i>(0);
+    }
+
+    for (size_t i = 1; i < toTrack.total(); i++) {
       const auto newPoint = toTrack.at<cv::Point2i>(i);
       const float d1 = diff.at<uint8_t>(newPoint) / cv::norm(mid - newPoint);
       const float d2 = diff.at<uint8_t>(track_) / cv::norm(mid - track_);

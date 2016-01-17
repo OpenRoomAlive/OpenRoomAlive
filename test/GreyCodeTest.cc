@@ -10,7 +10,8 @@ using namespace dv;
 
 
 /*
- * Test which checks gray code decoding on an example found on the Internet.
+ * Test which checks gray code decoding on a small example: Gray code = 13,
+ * binary = 9.
  */
 TEST(GreyCode, GreyCodeDecode) {
   uint32_t grayCodeValue = 0b01101;
