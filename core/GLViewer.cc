@@ -234,7 +234,7 @@ void GLViewer::drawPoints(
 
 
 void GLViewer::drawPoints(
-      const std::vector<std::pair<cv::Point3f, cv::Point3f>> &points,
+      const std::vector<Vertex> &points,
       const cv::Point3f &centroid)
 {
   glPushMatrix();
@@ -242,14 +242,14 @@ void GLViewer::drawPoints(
   glColor3f(1.0f, 1.0f, 1.0f);
   glPointSize(3.0f);
   glTranslatef(-centroid.x, -centroid.y, -centroid.z);
-  
+
   glBegin(GL_POINTS);
   for (const auto &point : points) {
-    const auto &vertex = point.first;
-    const auto &color = point.second;
+    const auto &position = point.position;
+    const auto &color = point.color;
 
     glColor3f(color.x, color.y, color.z);
-    glVertex3f(vertex.x, vertex.y, vertex.z);
+    glVertex3f(position.x, position.y, position.z);
   }
   glEnd();
 

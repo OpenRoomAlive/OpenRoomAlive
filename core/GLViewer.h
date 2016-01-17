@@ -57,7 +57,7 @@ class GLViewer {
    * Draws another array of points.
    */
   void drawPoints(
-      const std::vector<std::pair<cv::Point3f, cv::Point3f>> &points,
+      const std::vector<Vertex> &points,
       const cv::Point3f &centroid);
 
   /**

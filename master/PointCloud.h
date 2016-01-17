@@ -17,9 +17,6 @@ namespace dv { namespace master {
  */
 class PointCloud {
  public:
-  /// Position + Colour.
-  using Vertex = std::pair<cv::Point3f, cv::Point3f>;
- public:
   PointCloud(
       const std::vector<ConnectionID> &ids,
       const std::shared_ptr<ProCamSystem> system);

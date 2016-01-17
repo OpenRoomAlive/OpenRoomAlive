@@ -58,18 +58,19 @@ void PointCloud::addView(
     for (auto x = 0; x < depthMap.cols; ++x) {
       // Convert the depth to meters.
       auto depth = depthMap.at<float>(y, x) / kMilimetersToMeters;
-      auto colorByte = colorMap.at<cv::Vec4b>(y, x);
-      cv::Point3f color(
-          colorByte[2] / 255.0f, 
-          colorByte[1] / 255.0f,
-          colorByte[0] / 255.0f
-      );
 
-      // TODO: consider filtering on variance as well
       // Filter out the noisy points.
       if (equals(depth, 0.0f)) {
         continue;
       }
+
+      // Extract the color.
+      auto colorByte = colorMap.at<cv::Vec4b>(y, x);
+      cv::Point3f color(
+          colorByte[2] / 255.0f,
+          colorByte[1] / 255.0f,
+          colorByte[0] / 255.0f
+      );
 
       // Compute the 3D point in the view.
       auto point3D = map3D(depthCamera.calib, depth, x, y);
@@ -96,12 +97,13 @@ void PointCloud::addView(
   // Compute the centroid.
   centroid_ = {0.0f};
   for (const auto &point : points_) {
-    centroid_ += point.first;
+    centroid_ += point.position;
   }
   centroid_ *= 1.0f / points_.size();
 
   // Save the camera params.
   intrinsics_.emplace_back(depthCamera);
+
   // TODO: compute the absolute pose and save it.
   poses_.emplace_back(relativePose);
 }

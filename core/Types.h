@@ -43,6 +43,22 @@ struct Plane {
 };
 
 /**
+ * Structure representing a vertex (position + color).
+ */
+struct Vertex {
+  Vertex(
+      const cv::Point3f &position,
+      const cv::Point3f &color)
+    : position(position)
+    , color(color)
+  {
+  }
+
+  cv::Point3f position;
+  cv::Point3f color;
+};
+
+/**
  * Structure representing a size.
  */
 struct Size {
