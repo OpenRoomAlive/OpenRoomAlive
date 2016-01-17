@@ -13,7 +13,7 @@ using namespace dv;
  * Test which checks gray code decoding on a small example: Gray code = 13,
  * binary = 9.
  */
-TEST(GreyCode, GreyCodeDecode) {
+TEST(GrayCode, GrayCodeDecode) {
   uint32_t grayCodeValue = 0b01101;
   uint32_t binaryValue = GrayCode::grayCodeToBinary(grayCodeValue, 5);
   ASSERT_EQ(binaryValue, 0b01001);
@@ -23,7 +23,7 @@ TEST(GreyCode, GreyCodeDecode) {
  * Test which checks encodes a random integer value as a gray code and later
  * decodes it.
  */
-TEST(GreyCode, GrayCodeEncode) {
+TEST(GrayCode, GrayCodeEncode) {
   uint32_t binaryValue = 143851;
   uint32_t grayCodeValue = binaryValue ^ (binaryValue >> 1);
   uint32_t retrievedBinaryValue = GrayCode::grayCodeToBinary(
@@ -34,7 +34,7 @@ TEST(GreyCode, GrayCodeEncode) {
 /*
  * Check of gray code decoding for a corner case: 0.
  */
-TEST(GreyCode, GrayCodeDecodeZero) {
+TEST(GrayCode, GrayCodeDecodeZero) {
   uint32_t binaryValue = 0;
   uint32_t grayCodeValue = binaryValue ^ (binaryValue >> 1);
   uint32_t retrievedBinaryValue = GrayCode::grayCodeToBinary(
