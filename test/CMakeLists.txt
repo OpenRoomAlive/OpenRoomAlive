@@ -13,9 +13,10 @@ SET(HELPERS
 # List of all tests.
 SET(TESTS
     CalibratorTest.cc
+    CompressionTest.cc
     ExceptionTest.cc
     GeometryTest.cc
-    GreyCodeTest.cc
+    GrayCodeTest.cc
     LaserDetectorTest.cc
     PointCloudTest.cc
     ProCamSystemTest.cc
