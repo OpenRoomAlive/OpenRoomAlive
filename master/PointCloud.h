@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <opencv2/opencv.hpp>
 
 #include "core/Types.h"
@@ -38,7 +40,6 @@ class PointCloud {
    */
   const cv::Point3f getCentroid() const { return centroid_; }
 
- private:
   /**
    * Adds points from a view to the point cloud.
    *

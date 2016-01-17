@@ -17,6 +17,7 @@ SET(TESTS
     GeometryTest.cc
     GreyCodeTest.cc
     LaserDetectorTest.cc
+    PointCloudTest.cc
     ProCamSystemTest.cc
     ProjectionTest.cc
 )
