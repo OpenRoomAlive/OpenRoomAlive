@@ -43,19 +43,22 @@ struct Plane {
 };
 
 /**
- * Structure representing a vertex (position + color).
+ * Structure representing a vertex (position + color + viewId).
  */
 struct Vertex {
   Vertex(
       const cv::Point3f &position,
-      const cv::Point3f &color)
+      const cv::Point3f &color,
+      ConnectionID viewId)
     : position(position)
     , color(color)
+    , viewId(viewId)
   {
   }
 
   cv::Point3f position;
   cv::Point3f color;
+  ConnectionID viewId;
 };
 
 /**

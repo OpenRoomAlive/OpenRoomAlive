@@ -109,16 +109,16 @@ void LaserDrawer::run() {
         if (timeDiff < 500ms && distDiff < 100) {
           std::vector<std::pair<cv::Point2i, cv::Point2i>> path;
           path.emplace_back(positions_[projectorId], pointProj);
-          connectionHandler_->updateLaser(projectorId, path, event.getColor());  
-          lastUpdate_[projectorId] = std::chrono::steady_clock::now();    
+          connectionHandler_->updateLaser(projectorId, path, event.getColor());
+          lastUpdate_[projectorId] = std::chrono::steady_clock::now();
         } else {
           tracked_[projectorId] = false;
         }
       } else {
         // Remember the point.
         lastUpdate_[projectorId] = std::chrono::steady_clock::now();
-        tracked_[projectorId] = true; 
-      } 
+        tracked_[projectorId] = true;
+      }
 
       positions_[projectorId] = pointProj;
     }

@@ -75,7 +75,7 @@ TEST(PointCloudTest, SinglePlane) {
   auto sys = std::shared_ptr<ProCamSystem>(new ProCamSystem());
 
   PointCloud pointCloud(ids, sys);
-  pointCloud.addView(depthMap, colorMap, depthCamera, pose);
+  pointCloud.addView(0, depthMap, colorMap, depthCamera, pose);
 
   std::vector<Vertex> points = pointCloud.getPoints();
 
@@ -87,7 +87,7 @@ TEST(PointCloudTest, SinglePlane) {
       auto point = points[k++];
       // Check point coordinates.
       EXPECT_NEAR(point.position.x, x, 0.000001f);
-      EXPECT_NEAR(-point.position.y, y, 0.000001f);
+      EXPECT_NEAR(point.position.y, y, 0.000001f);
       EXPECT_NEAR(point.position.z, 1.01f, 0.000001f);
       // Check colour values.
       EXPECT_NEAR(point.color.x, 1.0f, 0.000001f);

@@ -17,6 +17,7 @@
 namespace dv { namespace master {
 
 class Calibrator;
+class EnviromentDrawer;
 class LaserDrawer;
 class MasterConnectionHandler;
 class ProCam;
@@ -26,6 +27,7 @@ class ProCam;
  */
 class ProCamSystem {
 friend class Calibrator;
+friend class EnviromentDrawer;
 friend class LaserDrawer;
 friend class PointCloud;
 

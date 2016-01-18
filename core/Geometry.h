@@ -32,6 +32,17 @@ Plane planeFit(
     float eps);
 
 /**
+ * Finds a set of planes in a set of points using hough transform.
+ *
+ * @note The equations of the planes will be returned normalized.
+ *
+ * @param points Set of input points.
+ *
+ * @return Plane equations.
+ */
+std::vector<Plane> fitPlanes(const std::vector<cv::Point3f> &points);
+
+/**
  * Maps all points on a plane to another plane defined by an equation.
  *
  * This is required because apparently in OpenCV 'planar' means 'all points
@@ -45,6 +56,18 @@ Plane planeFit(
 std::vector<cv::Point3f> transformPlane(
     const std::vector<cv::Point3f> &points,
     const cv::Point3f &n);
+
+/**
+ * Computes the points that lie in the vicinity of the plane.
+ *
+ * @param vertices Set of vertices.
+ * @param plane    Plane normal vector.
+ *
+ * @return set of points that lie in the vicinity of the plane.
+ */
+std::vector<Vertex> findPointsInPlane(
+    const std::vector<Vertex> &vertices,
+    const Plane &plane);
 
 /**
  * Computes the centroid of the set of points.

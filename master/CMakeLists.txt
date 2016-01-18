@@ -5,6 +5,7 @@
 SET(SOURCES
     Calibrator.cc
     ConnectionHandler.cc
+    EnviromentDrawer.cc
     Event.cc
     EventStream.cc
     LaserDrawer.cc
@@ -20,6 +21,7 @@ SET(SOURCES
 SET(HEADERS
     Calibrator.h
     ConnectionHandler.h
+    EnviromentDrawer.h
     Event.h
     EventStream.h
     LaserDrawer.h

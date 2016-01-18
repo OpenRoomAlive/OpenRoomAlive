@@ -35,14 +35,19 @@ void PointCloud::construct() {
 
     // Add the points captured from the kinect's view.
     addView(
+        idPose.first,
         kinect->depthBaseline_,
         kinect->colorBaseline_,
         kinect->irCam_,
         relativePose);
+
+    // Save the relative pose.
+    poses_[idPose.first] = relativePose;
   }
 }
 
 void PointCloud::addView(
+    ConnectionID viewId,
     const cv::Mat &depthMap,
     const cv::Mat &colorMap,
     const CameraModel &depthCamera,
@@ -88,12 +93,11 @@ void PointCloud::addView(
 
       // Convert back to cv::Point3f.
       point3D.x = p.at<double>(0, 0);
-      // Since +y in our coordinate system is down, invert y.
-      point3D.y = -p.at<double>(1, 0);
+      point3D.y = p.at<double>(1, 0);
       point3D.z = p.at<double>(2, 0);
 
       // Save the point.
-      points_.emplace_back(point3D, color);
+      points_.emplace_back(point3D, color, viewId);
     }
   }
 
@@ -103,11 +107,5 @@ void PointCloud::addView(
     centroid_ += point.position;
   }
   centroid_ *= 1.0f / points_.size();
-
-  // Save the camera params.
-  intrinsics_.emplace_back(depthCamera);
-
-  // TODO: compute the absolute pose and save it.
-  poses_.emplace_back(relativePose);
 }
 

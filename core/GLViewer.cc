@@ -241,7 +241,7 @@ void GLViewer::drawPoints(
 
   glColor3f(1.0f, 1.0f, 1.0f);
   glPointSize(3.0f);
-  glTranslatef(-centroid.x, -centroid.y, -centroid.z);
+  glTranslatef(-centroid.x, centroid.y, -centroid.z);
 
   glBegin(GL_POINTS);
   for (const auto &point : points) {
@@ -249,7 +249,7 @@ void GLViewer::drawPoints(
     const auto &color = point.color;
 
     glColor3f(color.x, color.y, color.z);
-    glVertex3f(position.x, position.y, position.z);
+    glVertex3f(position.x, -position.y, position.z);
   }
   glEnd();
 

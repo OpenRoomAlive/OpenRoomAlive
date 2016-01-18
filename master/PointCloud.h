@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 
 #include <opencv2/opencv.hpp>
 
@@ -41,14 +42,23 @@ class PointCloud {
   const cv::Point3f getCentroid() const { return centroid_; }
 
   /**
+   * Returns the poses.
+   */
+  const std::unordered_map<ConnectionID, CameraPose> getPoses() {
+    return poses_;
+  }
+
+  /**
    * Adds points from a view to the point cloud.
    *
+   * @param viewId   Id of the ProCam used to capture the view.
    * @param depthMap Depth map recorder by the camera.
    * @param colorMap Undistorted color image.
    * @param depthCamera Calibration matrix and distortion coefficients.
    * @param relativePose Relative pose from the view to the origin.
    */
   void addView(
+      ConnectionID viewId,
       const cv::Mat &depthMap,
       const cv::Mat &colorMap,
       const CameraModel &depthCamera,
@@ -63,10 +73,8 @@ class PointCloud {
   std::vector<Vertex> points_;
   /// Centroid of the points.
   cv::Point3f centroid_;
-  /// Poses of the cameras used to acquire the points.
-  std::vector<CameraPose> poses_;
-  /// Intrinsics of the cameras used to acquire the points.
-  std::vector<CameraModel> intrinsics_;
+  /// Relative poses between the center of the point cloud and the views.
+  std::unordered_map<ConnectionID, CameraPose> poses_;
 };
 
 }}
