@@ -40,7 +40,7 @@ def main():
       "Run the ProCam",
       "Shut it down",
       "The ProCam was shut down."]
-  program = "../build/procam/procam --enable-kinect=false"
+  program = "../build/procam/procam"
   widgets = [(resEnt, "effective-size"), (ipEnt, "ip")]
 
 
