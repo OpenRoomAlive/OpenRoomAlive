@@ -34,15 +34,6 @@ LaserDrawer::LaserDrawer(
 LaserDrawer::~LaserDrawer() {
 }
 
-// (*)
-// (x, y) points sent by the procams are centered in top right corner,
-// i.e. x increases to the left and y increases down. Thus, in order
-// to transfer it to the coordinate system centered in the top left corner
-// we leave the y as it is and invert the x.
-//event.point_.x = 512 - event.point_.x - 1;
-
-// TODO: Process event using 1. our matrices 2. the whole 3D reconstruction.
-// TODO: Dynamically create list of laser colors and use it for responses.
 void LaserDrawer::run() {
   std::cout << "Running the drawer" << std::endl;
 

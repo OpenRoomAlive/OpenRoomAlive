@@ -172,8 +172,6 @@ void LaserDetector::detect(
   // Progress to next frame.
   frame_.copyTo(prev_);
 
-  // TODO: detect color and send it + on master side use it (dynamical list
-  // of laser colors)
   if (tracked_) {
     // Get the laser position in otherwise black HD image.
     cv::Mat laserIm = cv::Mat::zeros(
