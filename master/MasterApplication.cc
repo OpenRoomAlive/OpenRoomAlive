@@ -112,7 +112,7 @@ int MasterApplication::run() {
 
     // Write the calibration data to .calibrate.
     std::ofstream(calibFile.string())
-        << folly::toJson(system_->toJSON()).toStdString()
+        << folly::toJson(system_->toJSON())
         << std::endl;
   } else {
     std::cout << "Loading calibration data..." << std::endl;

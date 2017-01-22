@@ -82,7 +82,7 @@ INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIRS})
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     SET(GL_LIBRARIES
         dl
-        glfw3
+        glfw
         X11
         Xcursor
         Xrandr
