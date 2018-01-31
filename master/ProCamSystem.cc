@@ -43,7 +43,7 @@ cv::Mat loadMat(
 }
 
 folly::dynamic saveMat(const cv::Mat &mat) {
-  folly::dynamic arr = {};
+  folly::dynamic arr = folly::dynamic::array;
 
   switch (mat.type()) {
     case CV_32FC1: {
@@ -97,7 +97,7 @@ void ProCamSystem::fromJSON(const folly::dynamic &data) {
   for (const auto &key : data.keys()) {
     const auto &cd = data[key];
     addProCam(
-        std::stoi(key.asString().toStdString()),
+        std::stoi(key.asString()),
         {
           loadMat<float, 1>(3, 3, cd["color-cam"]["proj"]),
           loadMat<float, 1>(0, 0, cd["color-cam"]["dist"]),

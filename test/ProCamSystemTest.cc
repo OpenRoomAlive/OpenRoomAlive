@@ -26,7 +26,7 @@ enum class MatType {
 };
 
 folly::dynamic genJsonMat(int height, int width, int depth) {
-  folly::dynamic mat = {};
+  folly::dynamic mat = folly::dynamic::array;
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
       for (int k = 0; k < depth; ++k) {
