@@ -72,7 +72,6 @@ void GLViewer::onMouseMoveCallback(
 
 
 GLViewer::GLViewer()
-try
   : window_(nullptr)
   , wndSize_({640, 480})
   , view_(glm::lookAt(
@@ -93,6 +92,7 @@ try
       nullptr,
       nullptr);
   if (!window_) {
+    glfwTerminate();
     throw EXCEPTION() << "Cannot create GLFW window.";
   }
 
@@ -111,9 +111,6 @@ try
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_DEPTH_TEST);
-} catch(...) {
-  destroy();
-  throw;
 }
 
 GLViewer::GLViewer(std::function<void()> func)
